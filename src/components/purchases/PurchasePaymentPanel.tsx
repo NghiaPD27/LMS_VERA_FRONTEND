@@ -70,7 +70,7 @@ export function PurchasePaymentPanel({
               {isPending
                 ? 'Open payment details to scan the QR code or copy the transfer content.'
                 : isPaid
-                  ? 'The payment has been confirmed by the backend.'
+                  ? 'Vera has confirmed this payment.'
                   : 'Check the latest purchase status before continuing.'}
             </p>
           </div>
@@ -128,7 +128,7 @@ export function PurchasePaymentPanel({
             </div>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               {isPaid
-                ? 'Vera has confirmed this payment. Your course access is managed by the backend enrollment flow.'
+                ? 'Vera has confirmed this payment. Your course access is ready.'
                 : isPending
                   ? 'Transfer the exact amount and keep the transfer content unchanged so Vera can match the payment.'
                   : 'This payment is not active anymore. Check the latest purchase status before trying again.'}
@@ -199,7 +199,7 @@ export function PurchasePaymentPanel({
             <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
               <p>
-                Use the QR code or transfer manually with the exact amount and transfer content shown above. Vera will update this page automatically after the backend receives confirmation.
+                Use the QR code or transfer manually with the exact amount and transfer content shown above. Vera will update this page automatically after payment is confirmed.
               </p>
             </div>
           )}

@@ -10,6 +10,7 @@ import {
 } from '../../hooks/useLessons'
 import { LessonTable } from '../../components/lessons/LessonTable'
 import { LessonForm, type LessonFormValues } from '../../components/lessons/LessonForm'
+import { LessonVideoManager } from '../../components/lessons/LessonVideoManager'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
@@ -47,6 +48,7 @@ export const ProgramDetailPage: React.FC = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
+  const [videoLesson, setVideoLesson] = useState<Lesson | null>(null)
   const [deletingLessonId, setDeletingLessonId] = useState<number | null>(null)
   const [formServerError, setFormServerError] = useState<string | null>(null)
 
@@ -194,6 +196,7 @@ export const ProgramDetailPage: React.FC = () => {
           <LessonTable
             lessons={sortedLessons}
             onEdit={handleEditClick}
+            onVideo={setVideoLesson}
             onPublish={handlePublishClick}
             onDelete={handleDeleteClick}
           />
@@ -207,6 +210,12 @@ export const ProgramDetailPage: React.FC = () => {
         title="Delete Lesson?"
         description="Are you sure you want to delete this lesson? This action cannot be undone."
         isLoading={deleteLessonMutation.isPending}
+      />
+      <LessonVideoManager
+        lesson={videoLesson}
+        programId={pId}
+        isOpen={!!videoLesson}
+        onClose={() => setVideoLesson(null)}
       />
     </section>
   )

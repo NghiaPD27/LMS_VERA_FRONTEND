@@ -63,7 +63,7 @@ export function PurchaseDetailPage() {
             <div>
               <h1 className="lms-section-title">Payment details</h1>
               <p className="lms-section-description">
-                Scan the SePay QR code or transfer manually. This page checks the backend for payment confirmation every few seconds.
+                Scan the SePay QR code or transfer manually. Vera checks payment confirmation every few seconds.
               </p>
             </div>
           </div>
@@ -76,7 +76,7 @@ export function PurchaseDetailPage() {
         <div className="lms-surface flex flex-col gap-3 border-emerald-200 bg-emerald-50 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-extrabold text-emerald-900">Your course is ready</p>
-            <p className="mt-1 text-sm text-emerald-800">The backend has created your enrollment. You can start learning now.</p>
+            <p className="mt-1 text-sm text-emerald-800">Your course access is ready. You can start learning now.</p>
           </div>
           <Button asChild>
             <Link to={`/student/lessons/${purchase.programId}`}>

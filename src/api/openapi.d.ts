@@ -84,6 +84,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lessons/{lessonId}/video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["upsertLessonVideo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lessons/{lessonId}/video/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["syncLessonVideo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lessons/{lessonId}/video-upload-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createLessonVideoUploadSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lessons/{lessonId}/video-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateLessonVideoProgress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lessons/{id}/publish": {
         parameters: {
             query?: never;
@@ -388,6 +452,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lessons/{lessonId}/video-playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLessonVideoPlayback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -535,6 +615,71 @@ export interface components {
             lessonNumber?: number;
             content?: string;
             status?: string;
+        };
+        UpsertLessonVideoRequest: {
+            bunnyVideoId: string;
+            libraryId: string;
+            /** Format: int32 */
+            durationSeconds?: number;
+            thumbnailUrl?: string;
+            status?: string;
+        };
+        LessonVideoResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            lessonId?: number;
+            bunnyVideoId?: string;
+            libraryId?: string;
+            /** Format: int32 */
+            durationSeconds?: number;
+            thumbnailUrl?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CreateVideoUploadSessionRequest: {
+            title?: string;
+            fileType: string;
+        };
+        VideoUploadSessionResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            /** Format: int64 */
+            lessonVideoId?: number;
+            videoId?: string;
+            libraryId?: string;
+            tusUploadUrl?: string;
+            authorizationSignature?: string;
+            /** Format: int64 */
+            authorizationExpire?: number;
+            title?: string;
+            fileType?: string;
+            status?: string;
+        };
+        UpdateVideoProgressRequest: {
+            /** Format: int32 */
+            currentSecond?: number;
+            /** Format: int32 */
+            furthestWatchedSecond?: number;
+        };
+        VideoProgressResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            /** Format: int64 */
+            lessonVideoId?: number;
+            /** Format: int32 */
+            currentSecond?: number;
+            /** Format: int32 */
+            furthestWatchedSecond?: number;
+            /** Format: int32 */
+            watchedPercentage?: number;
+            completed?: boolean;
+            lessonProgressStatus?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         EnrollStudentRequest: {
             /** Format: int64 */
@@ -689,6 +834,17 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        VideoPlaybackResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            /** Format: int64 */
+            lessonVideoId?: number;
+            playbackUrl?: string;
+            /** Format: int32 */
+            durationSeconds?: number;
+            thumbnailUrl?: string;
+            status?: string;
         };
         AdminStudentResponse: {
             /** Format: int64 */
@@ -990,6 +1146,106 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LessonResponse"];
+                };
+            };
+        };
+    };
+    upsertLessonVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertLessonVideoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LessonVideoResponse"];
+                };
+            };
+        };
+    };
+    syncLessonVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LessonVideoResponse"];
+                };
+            };
+        };
+    };
+    createLessonVideoUploadSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVideoUploadSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VideoUploadSessionResponse"];
+                };
+            };
+        };
+    };
+    updateLessonVideoProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVideoProgressRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VideoProgressResponse"];
                 };
             };
         };
@@ -1504,6 +1760,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProgramResponse"];
+                };
+            };
+        };
+    };
+    getLessonVideoPlayback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VideoPlaybackResponse"];
                 };
             };
         };

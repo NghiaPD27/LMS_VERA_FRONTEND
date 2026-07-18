@@ -14,6 +14,7 @@ import {
 interface LessonTableProps {
   lessons: Lesson[]
   onEdit: (lesson: Lesson) => void
+  onVideo: (lesson: Lesson) => void
   onPublish: (id: number) => void
   onDelete: (id: number) => void
 }
@@ -21,6 +22,7 @@ interface LessonTableProps {
 export const LessonTable: React.FC<LessonTableProps> = ({
   lessons,
   onEdit,
+  onVideo,
   onPublish,
   onDelete
 }) => {
@@ -57,6 +59,14 @@ export const LessonTable: React.FC<LessonTableProps> = ({
                     onClick={() => onEdit(lesson)}
                   >
                     Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-testid={`video-lesson-${lesson.id}`}
+                    onClick={() => onVideo(lesson)}
+                  >
+                    Video
                   </Button>
                   {isDraft && (
                     <Button

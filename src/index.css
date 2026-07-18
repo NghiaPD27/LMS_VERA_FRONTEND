@@ -116,15 +116,19 @@
     @apply relative p-6 md:p-7;
   }
 
+  .lms-page-hero-inner > * {
+    @apply relative z-10;
+  }
+
   .lms-page-hero-inner::before {
     content: "";
-    @apply pointer-events-none absolute -right-12 -top-14 h-36 w-52 rounded-[44%_56%_48%_52%] bg-[hsl(var(--brand-green-soft))];
+    @apply pointer-events-none absolute -right-12 -top-14 z-0 h-36 w-52 rounded-[44%_56%_48%_52%] bg-[hsl(var(--brand-green-soft))];
     transform: rotate(-12deg);
   }
 
   .lms-page-hero-inner::after {
     content: "";
-    @apply pointer-events-none absolute -bottom-12 right-20 h-24 w-44 rounded-[58%_42%_52%_48%] bg-[hsl(var(--brand-orange-soft))];
+    @apply pointer-events-none absolute -bottom-12 right-20 z-0 h-24 w-44 rounded-[58%_42%_52%_48%] bg-[hsl(var(--brand-orange-soft))];
     transform: rotate(9deg);
   }
 
