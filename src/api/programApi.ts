@@ -24,5 +24,15 @@ export const programApi = {
 
   deleteProgram: async (id: number): Promise<void> => {
     await http.delete(`/programs/${id}`)
+  },
+
+  getPublicPrograms: async (params: ProgramQueryParams = {}): Promise<ProgramPage> => {
+    const response = await http.get('/public/programs', { params })
+    return response.data
+  },
+
+  getPublicProgram: async (id: number): Promise<Program> => {
+    const response = await http.get(`/public/programs/${id}`)
+    return response.data
   }
 }

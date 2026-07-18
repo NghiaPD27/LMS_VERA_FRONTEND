@@ -1,5 +1,5 @@
 ﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, ClipboardList, GraduationCap, KeyRound, LayoutDashboard, LogOut } from 'lucide-react'
+import { ClipboardList, GraduationCap, KeyRound, LayoutDashboard, LogOut, ReceiptText, ShoppingBag } from 'lucide-react'
 import { Button } from '../components/common/Button'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
 import { useCurrentUser, useLogout } from '../hooks/useAuth'
@@ -7,8 +7,9 @@ import { cn } from '@/utils/cn'
 
 const navItems = [
   { label: 'Dashboard', href: '/student', icon: LayoutDashboard },
+  { label: 'Courses', href: '/student/courses', icon: ShoppingBag, end: false },
+  { label: 'My Purchases', href: '/student/purchases', icon: ReceiptText, end: false },
   { label: 'My Enrollments', href: '/student/enrollments', icon: ClipboardList },
-  { label: 'My Lessons', href: '/student/enrollments', icon: BookOpen },
   { label: 'Change Password', href: '/change-password', icon: KeyRound },
 ]
 
@@ -43,7 +44,7 @@ export function StudentLayout() {
             <NavLink
               key={item.href}
               to={item.href}
-              end
+              end={item.end ?? true}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition-[background-color,color,transform] hover:-translate-y-0.5',

@@ -452,7 +452,7 @@ export function HomePage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-white bg-white text-[hsl(var(--brand-green))] hover:bg-white/90">
-                <a href="#programs">{t.secondaryCta}</a>
+                <Link to="/courses">{t.secondaryCta}</Link>
               </Button>
             </div>
           </div>

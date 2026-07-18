@@ -161,7 +161,13 @@ export const ProgramsPage: React.FC = () => {
           <ProgramForm
             initialValues={
               editingProgram
-                ? { name: editingProgram.name, description: editingProgram.description }
+                ? {
+                    name: editingProgram.name,
+                    description: editingProgram.description,
+                    price: editingProgram.price,
+                    currency: editingProgram.currency,
+                    salesStatus: editingProgram.salesStatus,
+                  }
                 : undefined
             }
             onSubmit={handleFormSubmit}

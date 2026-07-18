@@ -4,6 +4,7 @@ import type {
   AdminEnrollmentQueryParams,
   Enrollment,
   EnrollStudentRequest,
+  ExtendEnrollmentRequest,
   UpdateEnrollmentRequest
 } from '../types/enrollment'
 
@@ -15,6 +16,11 @@ export const enrollmentApi = {
 
   updateEnrollment: async (id: number, data: UpdateEnrollmentRequest): Promise<Enrollment> => {
     const response = await http.patch(`/enrollments/${id}`, data)
+    return response.data
+  },
+
+  extendEnrollment: async (id: number, data: ExtendEnrollmentRequest): Promise<Enrollment> => {
+    const response = await http.patch(`/admin/enrollments/${id}/extend`, data)
     return response.data
   },
 

@@ -1,6 +1,8 @@
 ﻿import React from 'react'
 import type { Program } from '../../types/program'
 import { Button } from '../common/Button'
+import { SalesStatusBadge } from './SalesStatusBadge'
+import { formatCurrency } from '../../utils/formatters'
 import {
   Table,
   TableBody,
@@ -31,6 +33,8 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({
             <TableHead className="w-[100px]">Code</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -40,6 +44,10 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({
               <TableCell className="font-medium text-primary">{program.id}</TableCell>
               <TableCell className="font-semibold text-foreground">{program.name}</TableCell>
               <TableCell className="text-muted-foreground">{program.description || '-'}</TableCell>
+              <TableCell>{formatCurrency(program.price, program.currency || 'VND')}</TableCell>
+              <TableCell>
+                <SalesStatusBadge status={program.salesStatus} />
+              </TableCell>
               <TableCell className="text-right space-x-2">
                 <Button
                   variant="outline"

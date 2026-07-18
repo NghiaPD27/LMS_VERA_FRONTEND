@@ -1,5 +1,6 @@
 ﻿import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useGetMyEnrollments } from '../../hooks/useEnrollments'
 import { EnrollmentStatusBadge } from '../../components/enrollments/EnrollmentStatusBadge'
 import { LoadingState } from '../../components/common/LoadingState'
@@ -7,7 +8,14 @@ import { ErrorState } from '../../components/common/ErrorState'
 import { EmptyState } from '../../components/common/EmptyState'
 import { Button } from '../../components/common/Button'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
-import { ArrowRight, ClipboardList } from 'lucide-react'
+import {
+  getEnrollmentAccessBadgeClass,
+  getEnrollmentAccessLabel,
+  hasActiveCourseAccess,
+  isEnrollmentExpired
+} from '../../utils/enrollmentAccess'
+import { formatDateTime } from '../../utils/formatters'
+import { ArrowRight, CalendarClock, ClipboardList } from 'lucide-react'
 
 export const MyEnrollmentsPage: React.FC = () => {
   const navigate = useNavigate()
@@ -45,33 +53,72 @@ export const MyEnrollmentsPage: React.FC = () => {
       </div>
 
       {!enrollments || enrollments.length === 0 ? (
-        <EmptyState
-          message="No enrollments found"
-          description="You are not enrolled in any programs yet."
-        />
+        <div className="space-y-4">
+          <EmptyState
+            message="No enrollments found"
+            description="You are not enrolled in any programs yet."
+          />
+          <div className="text-center">
+            <Button asChild>
+              <Link to="/student/courses">Browse available courses</Link>
+            </Button>
+          </div>
+        </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="student-enrollments-table">
-          {enrollments.map((enrollment) => (
-            <article key={enrollment.id} className="lms-surface p-5" data-testid={`student-enrollment-row-${enrollment.id}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-muted-foreground">Program</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-foreground">#{enrollment.programId}</h2>
+        <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3" data-testid="student-enrollments-table">
+          {enrollments.map((enrollment) => {
+            const canStudy = hasActiveCourseAccess(enrollment)
+            const expired = isEnrollmentExpired(enrollment)
+
+            return (
+              <article key={enrollment.id} className="lms-surface p-5" data-testid={`student-enrollment-row-${enrollment.id}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground">Program</p>
+                    <h2 className="mt-1 text-xl font-extrabold text-foreground">Program #{enrollment.programId}</h2>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <EnrollmentStatusBadge status={enrollment.status} />
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
+                      {getEnrollmentAccessLabel(enrollment)}
+                    </span>
+                  </div>
                 </div>
-                <EnrollmentStatusBadge status={enrollment.status} />
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground">Enrollment #{enrollment.id}</p>
-              <Button
-                variant="outline"
-                className="mt-5 w-full"
-                data-testid={`view-lessons-${enrollment.programId}`}
-                onClick={() => enrollment.programId && navigate(`/student/lessons/${enrollment.programId}`)}
-              >
-                View Lessons
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </article>
-          ))}
+
+                <dl className="mt-5 space-y-2 text-sm">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Enrollment</dt>
+                    <dd className="font-bold text-foreground">#{enrollment.id}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Enrolled</dt>
+                    <dd className="text-right font-semibold text-foreground">{formatDateTime(enrollment.enrolledAt)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Expires</dt>
+                    <dd className="text-right font-semibold text-foreground">{formatDateTime(enrollment.expiredAt)}</dd>
+                  </div>
+                </dl>
+
+                {canStudy ? (
+                  <Button
+                    variant="outline"
+                    className="mt-5 w-full"
+                    data-testid={`view-lessons-${enrollment.programId}`}
+                    onClick={() => enrollment.programId && navigate(`/student/lessons/${enrollment.programId}`)}
+                  >
+                    View Lessons
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <div className={`mt-5 flex items-start gap-2 rounded-lg border p-3 text-sm leading-6 ${expired ? 'border-red-200 bg-red-50 text-red-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+                    <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" />
+                    {expired ? 'This course has expired. Contact Vera to extend access.' : 'This enrollment is not active for learning right now.'}
+                  </div>
+                )}
+              </article>
+            )
+          })}
         </div>
       )}
     </section>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useGetStudents, useGetStudent, useGetStudentEnrollments } from '../../hooks/useAdminUsers'
-import { useEnrollStudent, useGetAdminEnrollments, useUpdateEnrollment } from '../../hooks/useEnrollments'
+import { useEnrollStudent, useExtendEnrollment, useGetAdminEnrollments, useUpdateEnrollment } from '../../hooks/useEnrollments'
 import { useGetPrograms } from '../../hooks/usePrograms'
 import { Button } from '../../components/common/Button'
 import { LoadingState } from '../../components/common/LoadingState'
@@ -10,7 +10,12 @@ import type { AdminEnrollment } from '../../types/enrollment'
 import type { Program } from '../../types/program'
 import type { AdminStudent } from '../../types/user'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
-import { Search, UserPlus } from 'lucide-react'
+import {
+  getEnrollmentAccessBadgeClass,
+  getEnrollmentAccessLabel
+} from '../../utils/enrollmentAccess'
+import { formatDateTime } from '../../utils/formatters'
+import { CalendarPlus, Search, UserPlus } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -40,6 +45,8 @@ export const EnrollmentPage: React.FC = () => {
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [rowError, setRowError] = useState<string | null>(null)
+  const [extendEnrollmentId, setExtendEnrollmentId] = useState<number | null>(null)
+  const [extendMonths, setExtendMonths] = useState('1')
 
   const studentsQuery = useGetStudents({
     keyword: studentKeyword || undefined,
@@ -62,6 +69,7 @@ export const EnrollmentPage: React.FC = () => {
   })
   const enrollStudentMutation = useEnrollStudent()
   const updateEnrollmentMutation = useUpdateEnrollment()
+  const extendEnrollmentMutation = useExtendEnrollment()
 
   const students = studentsQuery.data?.content ?? []
   const programs = programsQuery.data?.content ?? []
@@ -111,6 +119,28 @@ export const EnrollmentPage: React.FC = () => {
       })
     } catch (err) {
       setRowError(getFriendlyApiErrorMessage(err, 'Failed to update enrollment'))
+    }
+  }
+
+  const handleExtendEnrollment = async (enrollment: AdminEnrollment) => {
+    if (!enrollment.id) return
+    const months = Number(extendMonths)
+    if (!Number.isInteger(months) || months < 1) {
+      setRowError('Months must be a positive whole number.')
+      return
+    }
+
+    try {
+      setRowError(null)
+      await extendEnrollmentMutation.mutateAsync({
+        id: enrollment.id,
+        data: { months }
+      })
+      setActionMessage(`${enrollment.programName || `Program #${enrollment.programId}`} access extended by ${months} month${months > 1 ? 's' : ''}.`)
+      setExtendEnrollmentId(null)
+      setExtendMonths('1')
+    } catch (err) {
+      setRowError(getFriendlyApiErrorMessage(err, 'Failed to extend enrollment'))
     }
   }
 
@@ -285,7 +315,22 @@ export const EnrollmentPage: React.FC = () => {
                   {currentEnrollments.map((enrollment) => (
                     <div key={enrollment.id} className="rounded-md border border-border p-3">
                       <p className="text-sm font-medium text-foreground">{enrollment.programName || `Program #${enrollment.programId}`}</p>
-                      <EnrollmentStatusBadge status={enrollment.status} />
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <EnrollmentStatusBadge status={enrollment.status} />
+                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
+                          {getEnrollmentAccessLabel(enrollment)}
+                        </span>
+                      </div>
+                      <dl className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                        <div className="flex justify-between gap-2">
+                          <dt>Enrolled</dt>
+                          <dd className="text-right">{formatDateTime(enrollment.enrolledAt)}</dd>
+                        </div>
+                        <div className="flex justify-between gap-2">
+                          <dt>Expires</dt>
+                          <dd className="text-right">{formatDateTime(enrollment.expiredAt)}</dd>
+                        </div>
+                      </dl>
                     </div>
                   ))}
                 </div>
@@ -345,12 +390,16 @@ export const EnrollmentPage: React.FC = () => {
         ) : adminEnrollments.length === 0 ? (
           <EmptyState message="No enrollments found" description="Adjust filters or enroll a student." />
         ) : (
-          <Table data-testid="admin-enrollments-table">
+          <div className="overflow-x-auto">
+            <Table data-testid="admin-enrollments-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Student</TableHead>
                 <TableHead>Program</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Access</TableHead>
+                <TableHead>Enrolled</TableHead>
+                <TableHead>Expires</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -365,22 +414,71 @@ export const EnrollmentPage: React.FC = () => {
                   <TableCell>
                     <EnrollmentStatusBadge status={enrollment.status} />
                   </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
+                      {getEnrollmentAccessLabel(enrollment)}
+                    </span>
+                  </TableCell>
+                  <TableCell>{formatDateTime(enrollment.enrolledAt)}</TableCell>
+                  <TableCell>{formatDateTime(enrollment.expiredAt)}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={updateEnrollmentMutation.isPending}
-                      onClick={() => handleToggleStatus(enrollment)}
-                      data-testid={`toggle-enrollment-${enrollment.id}`}
-                    >
-                      Mark {enrollment.status === 'ACTIVE' ? 'Completed' : 'Active'}
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={updateEnrollmentMutation.isPending}
+                          onClick={() => handleToggleStatus(enrollment)}
+                          data-testid={`toggle-enrollment-${enrollment.id}`}
+                        >
+                          Mark {enrollment.status === 'ACTIVE' ? 'Completed' : 'Active'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setExtendEnrollmentId(enrollment.id ?? null)
+                            setExtendMonths('1')
+                            setRowError(null)
+                          }}
+                          data-testid={`extend-enrollment-${enrollment.id}`}
+                        >
+                          <CalendarPlus className="h-4 w-4" />
+                          Extend
+                        </Button>
+                      </div>
+                      {extendEnrollmentId === enrollment.id && (
+                        <div className="flex w-full max-w-xs items-center justify-end gap-2 rounded-md border border-border bg-background p-2">
+                          <input
+                            type="number"
+                            min={1}
+                            value={extendMonths}
+                            onChange={(event) => setExtendMonths(event.target.value)}
+                            className="lms-input h-9 w-20"
+                            aria-label="Extension months"
+                            data-testid={`extend-months-${enrollment.id}`}
+                          />
+                          <span className="text-xs text-muted-foreground">months</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={extendEnrollmentMutation.isPending}
+                            onClick={() => handleExtendEnrollment(enrollment)}
+                            data-testid={`confirm-extend-enrollment-${enrollment.id}`}
+                          >
+                            {extendEnrollmentMutation.isPending ? 'Extending...' : 'Save'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         )}
 
         <div className="mt-4 flex items-center justify-end gap-2 text-sm text-muted-foreground">

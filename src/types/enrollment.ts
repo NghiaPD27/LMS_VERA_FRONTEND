@@ -5,6 +5,7 @@ export type EnrollStudentRequest = components['schemas']['EnrollStudentRequest']
 export type UpdateEnrollmentRequest = components['schemas']['UpdateEnrollmentRequest']
 export type AdminEnrollment = components['schemas']['AdminEnrollmentResponse']
 export type AdminEnrollmentPage = components['schemas']['PageResponseAdminEnrollmentResponse']
+export type ExtendEnrollmentRequest = components['schemas']['ExtendEnrollmentRequest']
 export type EnrollmentStatus = 'ACTIVE' | 'COMPLETED'
 
 export interface AdminEnrollmentQueryParams {

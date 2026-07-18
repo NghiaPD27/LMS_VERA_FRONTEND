@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, ClipboardList, Users } from 'lucide-react'
+import { BookOpen, ClipboardList, ReceiptText, Users } from 'lucide-react'
 
 const cards = [
   { title: 'Programs', description: 'Create and manage A1/A2 learning programs.', href: '/admin/programs', icon: BookOpen },
+  { title: 'Purchases', description: 'Review purchase requests and mark paid orders.', href: '/admin/purchases', icon: ReceiptText },
   { title: 'Enrollments', description: 'Enroll students and update enrollment status.', href: '/admin/enrollments', icon: ClipboardList },
   { title: 'Users', description: 'Create users and manage account access.', href: '/admin/users', icon: Users },
 ]

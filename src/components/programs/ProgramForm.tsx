@@ -7,10 +7,22 @@ import { Input } from '../common/Input'
 
 export const programSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  description: z.string().optional()
+  description: z.string().optional(),
+  price: z.preprocess(
+    (value) => {
+      if (value === '' || value === null || value === undefined || (typeof value === 'number' && Number.isNaN(value))) {
+        return undefined
+      }
+      return Number(value)
+    },
+    z.number().min(0, 'Price must be at least 0').optional()
+  ),
+  currency: z.string().optional(),
+  salesStatus: z.string().optional(),
 })
 
 export type ProgramFormValues = z.infer<typeof programSchema>
+type ProgramFormInput = z.input<typeof programSchema>
 
 interface ProgramFormProps {
   initialValues?: Partial<ProgramFormValues>
@@ -31,11 +43,14 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<ProgramFormValues>({
+  } = useForm<ProgramFormInput, unknown, ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: {
       name: initialValues?.name || '',
-      description: initialValues?.description || ''
+      description: initialValues?.description || '',
+      price: initialValues?.price,
+      currency: initialValues?.currency || 'VND',
+      salesStatus: initialValues?.salesStatus || 'DRAFT',
     }
   })
 
@@ -82,6 +97,68 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
             {errors.description.message}
           </p>
         )}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+            Price
+          </label>
+          <Input
+            id="price"
+            type="number"
+            min="0"
+            step="1000"
+            data-testid="program-price-input"
+            disabled={isLoading}
+            {...register('price')}
+          />
+          {errors.price && (
+            <p className="mt-1 text-xs text-red-600" data-testid="program-price-error">
+              {errors.price.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+            Currency
+          </label>
+          <Input
+            id="currency"
+            type="text"
+            data-testid="program-currency-input"
+            disabled={isLoading}
+            {...register('currency')}
+          />
+          {errors.currency && (
+            <p className="mt-1 text-xs text-red-600" data-testid="program-currency-error">
+              {errors.currency.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="salesStatus" className="block text-sm font-medium text-gray-700">
+            Sales Status
+          </label>
+          <select
+            id="salesStatus"
+            data-testid="program-sales-status-select"
+            className="lms-input"
+            disabled={isLoading}
+            {...register('salesStatus')}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">On Sale</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+          {errors.salesStatus && (
+            <p className="mt-1 text-xs text-red-600" data-testid="program-sales-status-error">
+              {errors.salesStatus.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end space-x-2">

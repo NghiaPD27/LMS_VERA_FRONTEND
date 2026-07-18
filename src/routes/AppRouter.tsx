@@ -3,16 +3,22 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { StudentLayout } from '../layouts/StudentLayout'
 import { LoginPage } from '../pages/auth/LoginPage'
+import { RegisterPage } from '../pages/auth/RegisterPage'
 import { ChangePasswordPage } from '../pages/auth/ChangePasswordPage'
 import { HomePage } from '../pages/public/HomePage'
+import { CoursesPage } from '../pages/public/CoursesPage'
+import { CourseDetailPage } from '../pages/public/CourseDetailPage'
 import { DashboardPage } from '../pages/admin/DashboardPage'
 import { UsersPage } from '../pages/admin/UsersPage'
 import { ProgramsPage } from '../pages/admin/ProgramsPage'
 import { ProgramDetailPage } from '../pages/admin/ProgramDetailPage'
 import { EnrollmentPage } from '../pages/admin/EnrollmentPage'
+import { PurchasesPage } from '../pages/admin/PurchasesPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
+import { MyPurchasesPage } from '../pages/student/MyPurchasesPage'
+import { PurchaseDetailPage } from '../pages/student/PurchaseDetailPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
 import { ROLES } from '../utils/constants'
@@ -23,9 +29,18 @@ export const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
+    path: '/courses',
+    element: <CoursesPage />,
+  },
+  {
+    path: '/courses/:programId',
+    element: <CourseDetailPage />,
+  },
+  {
     element: <AuthLayout />,
     children: [
       { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
       {
         element: <ProtectedRoute />,
         children: [{ path: 'change-password', element: <ChangePasswordPage /> }],
@@ -45,6 +60,7 @@ export const router = createBrowserRouter([
               { path: 'admin/users', element: <UsersPage /> },
               { path: 'admin/programs', element: <ProgramsPage /> },
               { path: 'admin/programs/:programId', element: <ProgramDetailPage /> },
+              { path: 'admin/purchases', element: <PurchasesPage /> },
               { path: 'admin/enrollments', element: <EnrollmentPage /> },
             ],
           },
@@ -57,6 +73,10 @@ export const router = createBrowserRouter([
             element: <StudentLayout />,
             children: [
               { path: 'student', element: <StudentDashboardPage /> },
+              { path: 'student/courses', element: <CoursesPage embedded courseBasePath="/student/courses" /> },
+              { path: 'student/courses/:programId', element: <CourseDetailPage embedded courseBasePath="/student/courses" /> },
+              { path: 'student/purchases', element: <MyPurchasesPage /> },
+              { path: 'student/purchases/:purchaseId', element: <PurchaseDetailPage /> },
               { path: 'student/enrollments', element: <MyEnrollmentsPage /> },
               { path: 'student/lessons/:programId', element: <MyLessonsPage /> },
             ],

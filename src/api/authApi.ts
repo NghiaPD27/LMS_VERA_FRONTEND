@@ -1,10 +1,22 @@
 import { http } from './client'
-import type { ChangePasswordRequest, LoginRequest, LoginResponse, RefreshRequest } from '../types/auth'
+import type {
+  ChangePasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  RefreshRequest,
+  RegisterStudentRequest,
+  StudentProfileResponse
+} from '../types/auth'
 import { normalizeCurrentUser, type CurrentUser } from '../types/user'
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await http.post('/auth/login', data)
+    return response.data
+  },
+
+  registerStudent: async (data: RegisterStudentRequest): Promise<StudentProfileResponse> => {
+    const response = await http.post('/auth/register', data)
     return response.data
   },
 

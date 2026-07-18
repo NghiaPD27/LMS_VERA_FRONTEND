@@ -5,8 +5,8 @@ import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
 import { EmptyState } from '../../components/common/EmptyState'
 import { Button } from '../../components/common/Button'
-import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
-import { ArrowLeft, BookOpen } from 'lucide-react'
+import { getFriendlyApiErrorMessage, isForbiddenError } from '../../utils/errorMessage'
+import { ArrowLeft, BookOpen, CalendarClock } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -32,6 +32,34 @@ export const MyLessonsPage: React.FC = () => {
   }
 
   if (isError) {
+    if (isForbiddenError(error)) {
+      return (
+        <section className="lms-page-shell">
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            data-testid="back-to-enrollments-button"
+            className="w-fit text-sm text-muted-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to My Enrollments
+          </Button>
+          <div className="lms-surface flex flex-col items-center justify-center p-8 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-red-50 text-red-700">
+              <CalendarClock className="h-7 w-7" />
+            </div>
+            <h1 className="text-2xl font-extrabold text-foreground">Course access expired</h1>
+            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+              This course is no longer available for learning. Contact Vera to extend your enrollment, then try again.
+            </p>
+            <Button className="mt-5" onClick={handleBack}>
+              Back to enrollments
+            </Button>
+          </div>
+        </section>
+      )
+    }
+
     return (
       <ErrorState
         message={getFriendlyApiErrorMessage(error, 'Failed to fetch lessons')}

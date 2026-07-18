@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/authApi'
 import { clearTokens, getAccessToken, getRefreshToken, setAccessToken, setRefreshToken } from '../utils/tokenStorage'
-import type { ChangePasswordRequest, LoginRequest } from '../types/auth'
+import type { ChangePasswordRequest, LoginRequest, RegisterStudentRequest } from '../types/auth'
 
 export const authQueryKey = ['currentUser'] as const
 
@@ -38,6 +38,12 @@ export function useLogin() {
       }
       queryClient.removeQueries({ queryKey: authQueryKey })
     },
+  })
+}
+
+export function useRegisterStudent() {
+  return useMutation({
+    mutationFn: (data: RegisterStudentRequest) => authApi.registerStudent(data),
   })
 }
 

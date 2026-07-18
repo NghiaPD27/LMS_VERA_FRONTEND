@@ -6,7 +6,7 @@ import {
   createTeacherSchema,
   createEvaluatorSchema,
   updateUserStatusSchema,
-  extendAccountSchema
+  extendEnrollmentSchema
 } from '../../components/users/adminUserSchema'
 
 interface UserProfileData {
@@ -709,14 +709,14 @@ export const handlers = [
     }
   ),
 
-  // 10. PATCH /api/admin/users/:id/extend
-  http.patch<{ id: string }, components['schemas']['ExtendAccountRequest'], components['schemas']['AccountAccessResponse'] | { message: string }>(
-    '/api/admin/users/:id/extend',
+  // 10. PATCH /api/admin/enrollments/:id/extend
+  http.patch<{ id: string }, { months: number }, components['schemas']['EnrollmentResponse'] | { message: string }>(
+    '/api/admin/enrollments/:id/extend',
     async ({ params, request }) => {
       const { id } = params
       const idNum = Number(id)
       if (isNaN(idNum) || !Number.isInteger(idNum)) {
-        return HttpResponse.json({ message: 'Invalid user ID' }, { status: 400 })
+        return HttpResponse.json({ message: 'Invalid enrollment ID' }, { status: 400 })
       }
       let body;
       try {
@@ -724,20 +724,27 @@ export const handlers = [
       } catch {
         return HttpResponse.json({ message: 'Invalid JSON body' }, { status: 400 })
       }
-      const result = extendAccountSchema.safeParse(body)
+      const result = extendEnrollmentSchema.safeParse(body)
       if (!result.success) {
         return HttpResponse.json({ message: result.error.errors[0].message }, { status: 400 })
       }
-      const userIdStr = String(id)
-      const user = usersDb.find(u => String(u.id) === userIdStr)
-      if (!user) {
-        return HttpResponse.json({ message: 'User not found' }, { status: 404 })
+      const enrollment = enrollmentsDb.find((item) => item.id === idNum)
+      if (!enrollment) {
+        return HttpResponse.json({ message: 'Enrollment not found' }, { status: 404 })
       }
       const { months } = result.data
-      const currentExpired = new Date(user.accountAccess.expiredAt)
-      currentExpired.setMonth(currentExpired.getMonth() + months)
-      user.accountAccess.expiredAt = currentExpired.toISOString()
-      return HttpResponse.json(user.accountAccess)
+      const currentExpired = enrollment.expiredAt ? new Date(enrollment.expiredAt) : new Date()
+      const baseDate = Number.isNaN(currentExpired.getTime()) || currentExpired.getTime() < Date.now() ? new Date() : currentExpired
+      baseDate.setMonth(baseDate.getMonth() + months)
+      enrollment.expiredAt = baseDate.toISOString()
+      return HttpResponse.json({
+        id: enrollment.id,
+        studentId: enrollment.studentId,
+        programId: enrollment.programId,
+        status: enrollment.status,
+        enrolledAt: enrollment.enrolledAt,
+        expiredAt: enrollment.expiredAt,
+      })
     }
   )
 ]

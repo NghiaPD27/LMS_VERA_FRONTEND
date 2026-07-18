@@ -14,10 +14,12 @@ export function RoleRoute({ allowedRoles }: RoleRouteProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <div className="lms-surface max-w-md p-8 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Không có quyền truy cập</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Bạn không có quyền truy cập chức năng này.</p>
+          <h1 className="text-2xl font-bold text-foreground">Access denied</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You do not have permission to access this feature.
+          </p>
           <Button asChild className="mt-6">
-            <Link to={getRoleHomePath(user?.role)}>Về trang của tôi</Link>
+            <Link to={getRoleHomePath(user?.role)}>Back to my workspace</Link>
           </Button>
         </div>
       </div>

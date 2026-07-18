@@ -20,6 +20,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/webhooks/sepay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["handleSepayWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/student/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStudentPurchases"];
+        put?: never;
+        post: operations["createStudentPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/programs": {
         parameters: {
             query?: never;
@@ -78,6 +110,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["enrollStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["register"];
         delete?: never;
         options?: never;
         head?: never;
@@ -180,6 +228,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/purchases/{id}/mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markPurchasePaid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/evaluators": {
         parameters: {
             query?: never;
@@ -244,7 +308,7 @@ export interface paths {
         patch: operations["updateUser"];
         trace?: never;
     };
-    "/api/admin/users/{id}/extend": {
+    "/api/admin/enrollments/{id}/extend": {
         parameters: {
             query?: never;
             header?: never;
@@ -257,7 +321,23 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["extendAccount"];
+        patch: operations["extendEnrollment"];
+        trace?: never;
+    };
+    "/api/student/purchases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStudentPurchase"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/student/enrollments": {
@@ -268,6 +348,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getStudentEnrollments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPublicPrograms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/programs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPublicProgram"];
         put?: never;
         post?: never;
         delete?: never;
@@ -324,6 +436,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAdminPurchases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/enrollments": {
         parameters: {
             query?: never;
@@ -347,12 +475,49 @@ export interface components {
         CreateProgramRequest: {
             name: string;
             description?: string;
+            price?: number;
+            currency?: string;
+            salesStatus?: string;
         };
         ProgramResponse: {
             /** Format: int64 */
             id?: number;
             name?: string;
             description?: string;
+            price?: number;
+            currency?: string;
+            salesStatus?: string;
+        };
+        SepayWebhookResponse: {
+            success?: boolean;
+        };
+        CreatePurchaseRequest: {
+            /** Format: int64 */
+            programId: number;
+        };
+        PurchaseResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            studentEmail?: string;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            amount?: number;
+            currency?: string;
+            status?: string;
+            paymentCode?: string;
+            paymentQrUrl?: string;
+            paymentProvider?: string;
+            paymentContent?: string;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            paidAt?: string;
         };
         CreateLessonRequest: {
             name: string;
@@ -385,6 +550,30 @@ export interface components {
             /** Format: int64 */
             programId?: number;
             status?: string;
+            /** Format: date-time */
+            enrolledAt?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+        };
+        RegisterStudentRequest: {
+            username: string;
+            /** Format: email */
+            email: string;
+            password: string;
+            firstName: string;
+            lastName: string;
+            phoneNumber?: string;
+        };
+        StudentProfileResponse: {
+            /** Format: int64 */
+            userId?: number;
+            username?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            phoneNumber?: string;
+            status?: string;
+            mustChangePassword?: boolean;
         };
         RefreshRequest: {
             refreshToken?: string;
@@ -430,17 +619,6 @@ export interface components {
             firstName: string;
             lastName: string;
             phoneNumber?: string;
-        };
-        StudentProfileResponse: {
-            /** Format: int64 */
-            userId?: number;
-            username?: string;
-            email?: string;
-            firstName?: string;
-            lastName?: string;
-            phoneNumber?: string;
-            status?: string;
-            mustChangePassword?: boolean;
         };
         CreateEvaluatorRequest: {
             username: string;
@@ -497,7 +675,7 @@ export interface components {
             evaluatorProfile?: components["schemas"]["EvaluatorProfileResponse"];
             accountAccess?: components["schemas"]["AccountAccessResponse"];
         };
-        ExtendAccountRequest: {
+        ExtendEnrollmentRequest: {
             /** Format: int32 */
             months: number;
         };
@@ -545,6 +723,21 @@ export interface components {
             programId?: number;
             programName?: string;
             status?: string;
+            /** Format: date-time */
+            enrolledAt?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+        };
+        PageResponsePurchaseResponse: {
+            content?: components["schemas"]["PurchaseResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
         };
         PageResponseAdminEnrollmentResponse: {
             content?: components["schemas"]["AdminEnrollmentResponse"][];
@@ -631,6 +824,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    handleSepayWebhook: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-SePay-Signature"?: string;
+                "X-SePay-Timestamp"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string;
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SepayWebhookResponse"];
+                };
+            };
+        };
+    };
+    getStudentPurchases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"][];
+                };
+            };
+        };
+    };
+    createStudentPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePurchaseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"];
+                };
             };
         };
     };
@@ -772,6 +1036,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EnrollmentResponse"];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentProfileResponse"];
                 };
             };
         };
@@ -940,6 +1228,28 @@ export interface operations {
             };
         };
     };
+    markPurchasePaid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
     createEvaluator: {
         parameters: {
             query?: never;
@@ -1084,7 +1394,7 @@ export interface operations {
             };
         };
     };
-    extendAccount: {
+    extendEnrollment: {
         parameters: {
             query?: never;
             header?: never;
@@ -1095,7 +1405,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ExtendAccountRequest"];
+                "application/json": components["schemas"]["ExtendEnrollmentRequest"];
             };
         };
         responses: {
@@ -1105,7 +1415,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["AccountAccessResponse"];
+                    "*/*": components["schemas"]["EnrollmentResponse"];
+                };
+            };
+        };
+    };
+    getStudentPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"];
                 };
             };
         };
@@ -1126,6 +1458,52 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EnrollmentResponse"][];
+                };
+            };
+        };
+    };
+    getPublicPrograms: {
+        parameters: {
+            query?: {
+                keyword?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseProgramResponse"];
+                };
+            };
+        };
+    };
+    getPublicProgram: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProgramResponse"];
                 };
             };
         };
@@ -1190,6 +1568,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AdminEnrollmentResponse"][];
+                };
+            };
+        };
+    };
+    getAdminPurchases: {
+        parameters: {
+            query?: {
+                studentId?: string;
+                programId?: string;
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponsePurchaseResponse"];
                 };
             };
         };

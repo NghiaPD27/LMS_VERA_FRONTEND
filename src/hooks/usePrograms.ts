@@ -15,6 +15,19 @@ export const useGetProgram = (id: number) =>
     enabled: !!id
   })
 
+export const useGetPublicPrograms = (params: ProgramQueryParams = {}) =>
+  useQuery({
+    queryKey: ['public-programs', params],
+    queryFn: () => programApi.getPublicPrograms(params)
+  })
+
+export const useGetPublicProgram = (id: number) =>
+  useQuery({
+    queryKey: ['public-program', id],
+    queryFn: () => programApi.getPublicProgram(id),
+    enabled: !!id
+  })
+
 export const useCreateProgram = () => {
   const queryClient = useQueryClient()
 
@@ -22,6 +35,7 @@ export const useCreateProgram = () => {
     mutationFn: (data: CreateProgramRequest) => programApi.createProgram(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['programs'] })
+      queryClient.invalidateQueries({ queryKey: ['public-programs'] })
     }
   })
 }
@@ -35,6 +49,8 @@ export const useUpdateProgram = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['programs'] })
       queryClient.invalidateQueries({ queryKey: ['program', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['public-programs'] })
+      queryClient.invalidateQueries({ queryKey: ['public-program', variables.id] })
     }
   })
 }
@@ -46,6 +62,7 @@ export const useDeleteProgram = () => {
     mutationFn: (id: number) => programApi.deleteProgram(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['programs'] })
+      queryClient.invalidateQueries({ queryKey: ['public-programs'] })
     }
   })
 }

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { CreateUserForm } from '../../components/users/CreateUserForm'
-import { ExtendAccountForm } from '../../components/users/ExtendAccountForm'
 import { UserStatusForm } from '../../components/users/UserStatusForm'
 
 const tabs = [
@@ -9,7 +8,6 @@ const tabs = [
   { key: 'teacher', label: 'Create Teacher' },
   { key: 'evaluator', label: 'Create Evaluator' },
   { key: 'status', label: 'Update Status' },
-  { key: 'extend', label: 'Extend Account' },
 ] as const
 
 type UserTab = (typeof tabs)[number]['key']
@@ -28,7 +26,7 @@ export const UsersPage: React.FC = () => {
             <div>
               <h1 className="lms-section-title">User & Account Management</h1>
               <p className="lms-section-description">
-                Create users, update access status, and extend student accounts.
+                Create users and update account access status. Course expiry is managed from enrollments.
               </p>
             </div>
           </div>
@@ -59,7 +57,6 @@ export const UsersPage: React.FC = () => {
           {activeTab === 'teacher' && <CreateUserForm role="teacher" />}
           {activeTab === 'evaluator' && <CreateUserForm role="evaluator" />}
           {activeTab === 'status' && <UserStatusForm />}
-          {activeTab === 'extend' && <ExtendAccountForm />}
         </main>
       </div>
     </section>

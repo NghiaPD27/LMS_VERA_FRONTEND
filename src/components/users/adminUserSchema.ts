@@ -41,7 +41,7 @@ export const updateUserStatusSchema = z.object({
   status: z.string().optional().nullable(),
 });
 
-export const extendAccountSchema = z.object({
+export const extendEnrollmentSchema = z.object({
   months: z.number({ message: 'Months is required' })
     .int('Months must be an integer')
     .min(1, 'Months must be at least 1'),
@@ -51,4 +51,4 @@ export type CreateStudentInput = z.infer<typeof createStudentSchema>;
 export type CreateTeacherInput = z.infer<typeof createTeacherSchema>;
 export type CreateEvaluatorInput = z.infer<typeof createEvaluatorSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
-export type ExtendAccountInput = z.infer<typeof extendAccountSchema>;
+export type ExtendEnrollmentInput = z.infer<typeof extendEnrollmentSchema>;

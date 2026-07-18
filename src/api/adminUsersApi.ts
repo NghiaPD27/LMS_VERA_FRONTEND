@@ -1,6 +1,5 @@
 ﻿import { http } from './client';
 import type {
-  AccountAccessResponse,
   CreateEvaluatorRequest,
   CreateStudentRequest,
   CreateTeacherRequest,
@@ -47,10 +46,6 @@ export const adminUsersApi = {
     return response.data;
   },
 
-  extendAccount: async (userId: string, months: number): Promise<AccountAccessResponse> => {
-    const response = await http.patch(`/admin/users/${userId}/extend`, { months });
-    return response.data;
-  },
 };
 
 

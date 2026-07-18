@@ -3,13 +3,19 @@ import { enrollmentApi } from '../api/enrollmentApi'
 import type {
   AdminEnrollmentQueryParams,
   EnrollStudentRequest,
+  ExtendEnrollmentRequest,
   UpdateEnrollmentRequest
 } from '../types/enrollment'
 
-export const useGetMyEnrollments = () =>
+interface EnrollmentQueryOptions {
+  enabled?: boolean
+}
+
+export const useGetMyEnrollments = (options: EnrollmentQueryOptions = {}) =>
   useQuery({
     queryKey: ['student-enrollments'],
-    queryFn: enrollmentApi.getMyEnrollments
+    queryFn: enrollmentApi.getMyEnrollments,
+    enabled: options.enabled ?? true
   })
 
 export const useGetAdminEnrollments = (params: AdminEnrollmentQueryParams = {}) =>
@@ -39,6 +45,22 @@ export const useUpdateEnrollment = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateEnrollmentRequest }) =>
       enrollmentApi.updateEnrollment(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] })
+      queryClient.invalidateQueries({ queryKey: ['student-enrollments'] })
+      if (data.studentId) {
+        queryClient.invalidateQueries({ queryKey: ['student-enrollments', data.studentId] })
+      }
+    }
+  })
+}
+
+export const useExtendEnrollment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ExtendEnrollmentRequest }) =>
+      enrollmentApi.extendEnrollment(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] })
       queryClient.invalidateQueries({ queryKey: ['student-enrollments'] })

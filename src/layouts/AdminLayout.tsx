@@ -1,5 +1,5 @@
 ﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, ClipboardList, GraduationCap, KeyRound, LayoutDashboard, LogOut, Users } from 'lucide-react'
+import { BookOpen, ClipboardList, GraduationCap, KeyRound, LayoutDashboard, LogOut, ReceiptText, Users } from 'lucide-react'
 import { Button } from '../components/common/Button'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
 import { useCurrentUser, useLogout } from '../hooks/useAuth'
@@ -9,6 +9,7 @@ const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Users', href: '/admin/users', icon: Users },
   { label: 'Programs', href: '/admin/programs', icon: BookOpen },
+  { label: 'Purchases', href: '/admin/purchases', icon: ReceiptText },
   { label: 'Enrollments', href: '/admin/enrollments', icon: ClipboardList },
   { label: 'Change Password', href: '/change-password', icon: KeyRound },
 ]

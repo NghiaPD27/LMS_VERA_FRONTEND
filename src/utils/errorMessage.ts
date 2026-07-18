@@ -6,15 +6,15 @@ export const getApiErrorMessage = (error: unknown, fallbackMessage = 'An unexpec
     const data = error.response?.data
 
     if (status === 403) {
-      return 'Ban khong co quyen truy cap chuc nang nay'
+      return 'You do not have permission to access this feature.'
     }
 
     if (status === 409) {
-      return data?.message || 'Du lieu dang bi xung dot. Vui long kiem tra lai.'
+      return data?.message || 'This action conflicts with existing data. Please check again.'
     }
 
     if (status === 400) {
-      return data?.message || 'Du lieu khong hop le. Vui long kiem tra lai.'
+      return data?.message || 'The submitted data is invalid. Please check again.'
     }
 
     return data?.message || error.message || fallbackMessage
