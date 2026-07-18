@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom'
+﻿import '@testing-library/jest-dom'
 import { beforeAll, afterEach, afterAll } from 'vitest'
-import { server } from '../shared/api/mocks/server'
+import { server } from '../tests/mocks/server'
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'error' })
@@ -13,3 +13,4 @@ afterEach(() => {
 afterAll(() => {
   server.close()
 })
+

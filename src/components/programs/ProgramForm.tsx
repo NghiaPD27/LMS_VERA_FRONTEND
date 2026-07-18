@@ -1,0 +1,97 @@
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Button } from '../common/Button'
+import { Input } from '../common/Input'
+
+export const programSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional()
+})
+
+export type ProgramFormValues = z.infer<typeof programSchema>
+
+interface ProgramFormProps {
+  initialValues?: Partial<ProgramFormValues>
+  onSubmit: (values: ProgramFormValues) => void
+  onCancel: () => void
+  isLoading?: boolean
+  serverError?: string | null
+}
+
+export const ProgramForm: React.FC<ProgramFormProps> = ({
+  initialValues,
+  onSubmit,
+  onCancel,
+  isLoading = false,
+  serverError
+}) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<ProgramFormValues>({
+    resolver: zodResolver(programSchema),
+    defaultValues: {
+      name: initialValues?.name || '',
+      description: initialValues?.description || ''
+    }
+  })
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {serverError && (
+        <div data-testid="error-message" className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          {serverError}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          Program Name
+        </label>
+        <Input
+          id="name"
+          type="text"
+          data-testid="program-name-input"
+          disabled={isLoading}
+          {...register('name')}
+        />
+        {errors.name && (
+          <p className="mt-1 text-xs text-red-600" data-testid="program-name-error">
+            {errors.name.message}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          Description
+        </label>
+        <textarea
+          id="description"
+          data-testid="program-description-input"
+          rows={3}
+          className="lms-input"
+          disabled={isLoading}
+          {...register('description')}
+        />
+        {errors.description && (
+          <p className="mt-1 text-xs text-red-600" data-testid="program-description-error">
+            {errors.description.message}
+          </p>
+        )}
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" type="button" onClick={onCancel} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button type="submit" data-testid="program-form-submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
+    </form>
+  )
+}
