@@ -286,6 +286,8 @@ function LessonVideoElement({
   const [videoError, setVideoError] = useState<string | null>(null)
   const [playerState, setPlayerState] = useState<'loading' | 'ready' | 'buffering' | 'playing'>('loading')
   const [hasVideoFrame, setHasVideoFrame] = useState(false)
+  const [thumbnailFailed, setThumbnailFailed] = useState(false)
+  const loggedFirstFrameRef = useRef(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -294,8 +296,17 @@ function LessonVideoElement({
     setVideoError(null)
     setPlayerState('loading')
     setHasVideoFrame(false)
+    setThumbnailFailed(false)
+    loggedFirstFrameRef.current = false
     video.removeAttribute('src')
     video.preload = 'metadata'
+    logVideoDiagnostic('init', {
+      playbackUrl: getSafeUrlForLog(playbackUrl),
+      thumbnailUrl: thumbnailUrl ? getSafeUrlForLog(thumbnailUrl) : null,
+      hlsSupported: Hls.isSupported(),
+      nativeHlsSupport: video.canPlayType('application/vnd.apple.mpegurl') || 'not-supported',
+      video: getVideoDebugState(video),
+    })
 
     if (Hls.isSupported()) {
       const hls = new Hls()
@@ -307,38 +318,63 @@ function LessonVideoElement({
         if (sourceLoaded) return
         sourceLoaded = true
         // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
+        logVideoDiagnostic('hls.loadSource', { playbackUrl: getSafeUrlForLog(playbackUrl) })
         hls.loadSource(playbackUrl)
       }
-      const readyFallbackId = window.setTimeout(markReady, 3500)
+      const readyFallbackId = window.setTimeout(() => {
+        logVideoDiagnostic('ready fallback timeout', { video: getVideoDebugState(video) })
+        markReady()
+      }, 3500)
 
-      hls.on(Hls.Events.MEDIA_ATTACHED, loadSourceOnce)
-      hls.on(Hls.Events.MANIFEST_LOADED, markReady)
-      hls.on(Hls.Events.MANIFEST_PARSED, markReady)
-      hls.on(Hls.Events.LEVEL_LOADED, markReady)
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+        logVideoDiagnostic('hls.MEDIA_ATTACHED', { video: getVideoDebugState(video) })
+        loadSourceOnce()
+      })
+      hls.on(Hls.Events.MANIFEST_LOADED, (_event, data) => {
+        logVideoDiagnostic('hls.MANIFEST_LOADED', data)
+        markReady()
+      })
+      hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
+        logVideoDiagnostic('hls.MANIFEST_PARSED', data)
+        markReady()
+      })
+      hls.on(Hls.Events.LEVEL_LOADED, (_event, data) => {
+        logVideoDiagnostic('hls.LEVEL_LOADED', data)
+        markReady()
+      })
+      hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
+        logVideoDiagnostic('hls.FRAG_LOADED', {
+          fragUrl: getSafeUrlForLog(data.frag?.url),
+          sn: data.frag?.sn,
+          level: data.frag?.level,
+        })
+      })
       hls.attachMedia(video)
       window.setTimeout(loadSourceOnce, 0)
       hls.on(Hls.Events.ERROR, (_event, data) => {
+        logVideoDiagnostic(data.fatal ? 'hls.ERROR fatal' : 'hls.ERROR non-fatal', data)
         if (!data.fatal) return
 
         if (data.type === Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetworkError) {
           recoveredNetworkError = true
+          logVideoDiagnostic('hls.recover network', data)
           hls.startLoad()
           return
         }
 
         if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !recoveredMediaError) {
           recoveredMediaError = true
+          logVideoDiagnostic('hls.recover media', data)
           hls.recoverMediaError()
           return
         }
 
-        if (import.meta.env.DEV) {
-          console.error('[LessonVideoPlayer] HLS playback error', data)
-        }
+        console.error('[LessonVideoPlayer] HLS playback error', data)
         setVideoError(getHlsErrorMessage(data))
       })
 
       return () => {
+        logVideoDiagnostic('destroy hls player', { video: getVideoDebugState(video) })
         window.clearTimeout(readyFallbackId)
         hls.destroy()
         video.removeAttribute('src')
@@ -347,26 +383,29 @@ function LessonVideoElement({
 
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // Safari can play HLS natively, using the same backend playbackUrl.
+      logVideoDiagnostic('native hls src assigned', { playbackUrl: getSafeUrlForLog(playbackUrl) })
       video.src = playbackUrl
       setPlayerState('ready')
       return () => {
+        logVideoDiagnostic('cleanup native hls player', { video: getVideoDebugState(video) })
         video.removeAttribute('src')
       }
     }
 
+    logVideoDiagnostic('unsupported browser', { video: getVideoDebugState(video) })
     setVideoError('This browser cannot play this video format.')
-  }, [playbackUrl, videoRef])
+  }, [playbackUrl, thumbnailUrl, videoRef])
 
   const handlePlayClick = async () => {
     const video = videoRef.current
     if (!video) return
 
+    logVideoDiagnostic('play click', { video: getVideoDebugState(video) })
     try {
       await video.play()
+      logVideoDiagnostic('video.play resolved', { video: getVideoDebugState(video) })
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[LessonVideoPlayer] Browser blocked or failed video.play()', error)
-      }
+      console.error('[LessonVideoPlayer] Browser blocked or failed video.play()', error, getVideoDebugState(video))
       setVideoError('Could not start video playback. Try clicking the video controls once more.')
     }
   }
@@ -379,13 +418,17 @@ function LessonVideoElement({
         </div>
       )}
       <div className="relative aspect-video overflow-hidden bg-slate-950">
-        {thumbnailUrl ? (
+        {thumbnailUrl && !thumbnailFailed ? (
           <img
             src={thumbnailUrl}
             alt=""
             className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
               hasVideoFrame ? 'opacity-0' : 'opacity-70'
             }`}
+            onError={() => {
+              logVideoDiagnostic('thumbnail error', { thumbnailUrl: getSafeUrlForLog(thumbnailUrl) })
+              setThumbnailFailed(true)
+            }}
           />
         ) : (
           <div
@@ -422,20 +465,47 @@ function LessonVideoElement({
             hasVideoFrame || playerState === 'playing' ? 'opacity-100' : 'opacity-0'
           }`}
           data-testid="lesson-video-player"
-          onLoadedData={() => setHasVideoFrame(true)}
+          onLoadStart={(event) => logVideoDiagnostic('video.loadstart', { video: getVideoDebugState(event.currentTarget) })}
+          onLoadedMetadata={(event) => logVideoDiagnostic('video.loadedmetadata', { video: getVideoDebugState(event.currentTarget) })}
+          onLoadedData={(event) => {
+            logVideoDiagnostic('video.loadeddata', { video: getVideoDebugState(event.currentTarget) })
+            setHasVideoFrame(true)
+          }}
           onPlaying={() => {
+            logVideoDiagnostic('video.playing', { video: getVideoDebugState(videoRef.current) })
             setPlayerState('playing')
             onPlaying()
           }}
-          onWaiting={() => setPlayerState('buffering')}
-          onCanPlay={() => {
+          onWaiting={(event) => {
+            logVideoDiagnostic('video.waiting', { video: getVideoDebugState(event.currentTarget) })
+            setPlayerState('buffering')
+          }}
+          onCanPlay={(event) => {
+            logVideoDiagnostic('video.canplay', { video: getVideoDebugState(event.currentTarget) })
             setPlayerState((current) => (current === 'playing' ? current : 'ready'))
           }}
-          onPause={onPause}
-          onEnded={onEnded}
+          onCanPlayThrough={(event) => logVideoDiagnostic('video.canplaythrough', { video: getVideoDebugState(event.currentTarget) })}
+          onStalled={(event) => logVideoDiagnostic('video.stalled', { video: getVideoDebugState(event.currentTarget) })}
+          onSuspend={(event) => logVideoDiagnostic('video.suspend', { video: getVideoDebugState(event.currentTarget) })}
+          onError={(event) => {
+            console.error('[LessonVideoPlayer] HTML video error', getMediaErrorDebug(event.currentTarget.error), getVideoDebugState(event.currentTarget))
+            setVideoError(getHtmlVideoErrorMessage(event.currentTarget.error))
+          }}
+          onPause={(event) => {
+            logVideoDiagnostic('video.pause', { video: getVideoDebugState(event.currentTarget) })
+            onPause()
+          }}
+          onEnded={(event) => {
+            logVideoDiagnostic('video.ended', { video: getVideoDebugState(event.currentTarget) })
+            onEnded()
+          }}
           onTimeUpdate={(event) => {
             if (event.currentTarget.currentTime > 0) {
               setHasVideoFrame(true)
+              if (!loggedFirstFrameRef.current) {
+                loggedFirstFrameRef.current = true
+                logVideoDiagnostic('video.first-timeupdate', { video: getVideoDebugState(event.currentTarget) })
+              }
             }
             onTimeUpdate(event.currentTarget.currentTime)
           }}
@@ -450,6 +520,134 @@ function LessonVideoElement({
       )}
     </div>
   )
+}
+
+function logVideoDiagnostic(eventName: string, payload?: unknown) {
+  console.info('[LessonVideoPlayer]', eventName, sanitizeVideoLogValue(payload))
+}
+
+function sanitizeVideoLogValue(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+  if (value === null || value === undefined) return value
+
+  if (typeof value === 'string') {
+    return value.startsWith('http') ? getSafeUrlForLog(value) : value
+  }
+
+  if (typeof value !== 'object') return value
+  if (seen.has(value)) return '[Circular]'
+  if (depth > 3) return '[Object]'
+
+  seen.add(value)
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 8).map((item) => sanitizeVideoLogValue(item, depth + 1, seen))
+  }
+
+  const result: Record<string, unknown> = {}
+  for (const [key, item] of Object.entries(value)) {
+    const lowerKey = key.toLowerCase()
+    if (lowerKey.includes('url') && typeof item === 'string') {
+      result[key] = getSafeUrlForLog(item)
+    } else {
+      result[key] = sanitizeVideoLogValue(item, depth + 1, seen)
+    }
+  }
+
+  return result
+}
+
+function getSafeUrlForLog(url?: string | null) {
+  if (!url) return url
+
+  try {
+    const parsedUrl = new URL(url)
+    return `${parsedUrl.origin}${parsedUrl.pathname}${parsedUrl.search ? '?[redacted]' : ''}`
+  } catch {
+    return url
+  }
+}
+
+function getVideoDebugState(video: HTMLVideoElement | null) {
+  if (!video) return null
+
+  return {
+    readyState: `${video.readyState} (${getVideoReadyStateLabel(video.readyState)})`,
+    networkState: `${video.networkState} (${getVideoNetworkStateLabel(video.networkState)})`,
+    paused: video.paused,
+    ended: video.ended,
+    seeking: video.seeking,
+    currentTime: Number.isFinite(video.currentTime) ? Number(video.currentTime.toFixed(2)) : null,
+    duration: Number.isFinite(video.duration) ? Number(video.duration.toFixed(2)) : null,
+    currentSrc: getSafeUrlForLog(video.currentSrc),
+    src: getSafeUrlForLog(video.getAttribute('src')),
+    buffered: getTimeRangesForLog(video.buffered),
+  }
+}
+
+function getTimeRangesForLog(ranges: TimeRanges) {
+  const result: Array<{ start: number; end: number }> = []
+
+  for (let index = 0; index < ranges.length; index += 1) {
+    result.push({
+      start: Number(ranges.start(index).toFixed(2)),
+      end: Number(ranges.end(index).toFixed(2)),
+    })
+  }
+
+  return result
+}
+
+function getVideoReadyStateLabel(value: number) {
+  if (value === HTMLMediaElement.HAVE_NOTHING) return 'HAVE_NOTHING'
+  if (value === HTMLMediaElement.HAVE_METADATA) return 'HAVE_METADATA'
+  if (value === HTMLMediaElement.HAVE_CURRENT_DATA) return 'HAVE_CURRENT_DATA'
+  if (value === HTMLMediaElement.HAVE_FUTURE_DATA) return 'HAVE_FUTURE_DATA'
+  if (value === HTMLMediaElement.HAVE_ENOUGH_DATA) return 'HAVE_ENOUGH_DATA'
+  return 'UNKNOWN'
+}
+
+function getVideoNetworkStateLabel(value: number) {
+  if (value === HTMLMediaElement.NETWORK_EMPTY) return 'NETWORK_EMPTY'
+  if (value === HTMLMediaElement.NETWORK_IDLE) return 'NETWORK_IDLE'
+  if (value === HTMLMediaElement.NETWORK_LOADING) return 'NETWORK_LOADING'
+  if (value === HTMLMediaElement.NETWORK_NO_SOURCE) return 'NETWORK_NO_SOURCE'
+  return 'UNKNOWN'
+}
+
+function getMediaErrorDebug(error: MediaError | null) {
+  if (!error) return null
+
+  return {
+    code: error.code,
+    label: getMediaErrorLabel(error.code),
+    message: error.message,
+  }
+}
+
+function getMediaErrorLabel(code: number) {
+  if (code === MediaError.MEDIA_ERR_ABORTED) return 'MEDIA_ERR_ABORTED'
+  if (code === MediaError.MEDIA_ERR_NETWORK) return 'MEDIA_ERR_NETWORK'
+  if (code === MediaError.MEDIA_ERR_DECODE) return 'MEDIA_ERR_DECODE'
+  if (code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) return 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+  return 'UNKNOWN'
+}
+
+function getHtmlVideoErrorMessage(error: MediaError | null) {
+  if (!error) return 'Video playback failed.'
+
+  if (error.code === MediaError.MEDIA_ERR_NETWORK) {
+    return 'Video stream could not be downloaded.'
+  }
+
+  if (error.code === MediaError.MEDIA_ERR_DECODE) {
+    return 'This video stream could not be decoded by the browser.'
+  }
+
+  if (error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+    return 'This video stream format is not supported by the browser.'
+  }
+
+  return 'Video playback failed.'
 }
 
 function getHlsErrorMessage(data: { type?: string; details?: string; response?: { code?: number } }) {
