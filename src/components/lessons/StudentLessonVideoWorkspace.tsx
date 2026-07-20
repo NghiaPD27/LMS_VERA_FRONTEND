@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import Hls from 'hls.js'
-import { AlertTriangle, BookOpen, CheckCircle2, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, BookOpen, CheckCircle2, ImageIcon, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
 import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
@@ -210,7 +210,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         playbackUrl={playbackUrl}
         thumbnailUrl={playback.thumbnailUrl}
         videoRef={videoRef}
-        onPlay={() => setIsPlaying(true)}
+        onPlaying={() => setIsPlaying(true)}
         onPause={() => {
           setIsPlaying(false)
           void reportProgress()
@@ -270,7 +270,7 @@ function LessonVideoElement({
   playbackUrl,
   thumbnailUrl,
   videoRef,
-  onPlay,
+  onPlaying,
   onPause,
   onEnded,
   onTimeUpdate,
@@ -278,28 +278,38 @@ function LessonVideoElement({
   playbackUrl: string
   thumbnailUrl?: string | undefined
   videoRef: RefObject<HTMLVideoElement | null>
-  onPlay: () => void
+  onPlaying: () => void
   onPause: () => void
   onEnded: () => void
   onTimeUpdate: (currentTime: number) => void
 }) {
   const [videoError, setVideoError] = useState<string | null>(null)
+  const [playerState, setPlayerState] = useState<'loading' | 'ready' | 'buffering' | 'playing'>('loading')
+  const [hasVideoFrame, setHasVideoFrame] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     setVideoError(null)
+    setPlayerState('loading')
+    setHasVideoFrame(false)
     video.removeAttribute('src')
+    video.preload = 'metadata'
 
     if (Hls.isSupported()) {
       const hls = new Hls()
       let recoveredNetworkError = false
       let recoveredMediaError = false
 
-      // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+        // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
+        hls.loadSource(playbackUrl)
+      })
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setPlayerState('ready')
+      })
       hls.attachMedia(video)
-      hls.loadSource(playbackUrl)
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (!data.fatal) return
 
@@ -330,6 +340,7 @@ function LessonVideoElement({
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // Safari can play HLS natively, using the same backend playbackUrl.
       video.src = playbackUrl
+      setPlayerState('ready')
       return () => {
         video.removeAttribute('src')
       }
@@ -338,6 +349,20 @@ function LessonVideoElement({
     setVideoError('This browser cannot play this video format.')
   }, [playbackUrl, videoRef])
 
+  const handlePlayClick = async () => {
+    const video = videoRef.current
+    if (!video) return
+
+    try {
+      await video.play()
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('[LessonVideoPlayer] Browser blocked or failed video.play()', error)
+      }
+      setVideoError('Could not start video playback. Try clicking the video controls once more.')
+    }
+  }
+
   return (
     <div className="bg-slate-950">
       {videoError && (
@@ -345,17 +370,77 @@ function LessonVideoElement({
           {videoError}
         </div>
       )}
-      <video
-        ref={videoRef}
-        controls
-        poster={thumbnailUrl}
-        className="aspect-video w-full bg-black"
-        data-testid="lesson-video-player"
-        onPlay={onPlay}
-        onPause={onPause}
-        onEnded={onEnded}
-        onTimeUpdate={(event) => onTimeUpdate(event.currentTarget.currentTime)}
-      />
+      <div className="relative aspect-video overflow-hidden bg-slate-950">
+        {thumbnailUrl ? (
+          <img
+            src={thumbnailUrl}
+            alt=""
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
+              hasVideoFrame ? 'opacity-0' : 'opacity-70'
+            }`}
+          />
+        ) : (
+          <div
+            className={`absolute inset-0 grid place-items-center bg-[hsl(var(--brand-green-soft))] transition-opacity ${
+              hasVideoFrame ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            <div className="text-center text-slate-800">
+              <ImageIcon className="mx-auto mb-3 h-10 w-10 text-[hsl(var(--brand-green))]" />
+              <p className="text-sm font-extrabold">Lesson video</p>
+              <p className="mt-1 text-xs font-semibold text-slate-600">Thumbnail will appear when available</p>
+            </div>
+          </div>
+        )}
+
+        {playerState !== 'playing' && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+            <button
+              type="button"
+              className="pointer-events-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-green))] shadow-xl transition hover:scale-105 disabled:cursor-wait disabled:opacity-70"
+              onClick={() => void handlePlayClick()}
+              disabled={playerState === 'loading'}
+              aria-label="Play lesson video"
+            >
+              {playerState === 'loading' ? <RefreshCw className="h-7 w-7 animate-spin" /> : <PlayCircle className="h-8 w-8" />}
+            </button>
+          </div>
+        )}
+
+        <video
+          ref={videoRef}
+          controls
+          poster={thumbnailUrl}
+          className={`relative z-10 aspect-video w-full bg-transparent transition-opacity ${
+            hasVideoFrame ? 'opacity-100' : 'opacity-0'
+          }`}
+          data-testid="lesson-video-player"
+          onLoadedData={() => setHasVideoFrame(true)}
+          onPlaying={() => {
+            setPlayerState('playing')
+            onPlaying()
+          }}
+          onWaiting={() => setPlayerState('buffering')}
+          onCanPlay={() => {
+            if (playerState !== 'playing') setPlayerState('ready')
+          }}
+          onPause={onPause}
+          onEnded={onEnded}
+          onTimeUpdate={(event) => {
+            if (event.currentTarget.currentTime > 0) {
+              setHasVideoFrame(true)
+            }
+            onTimeUpdate(event.currentTarget.currentTime)
+          }}
+        />
+      </div>
+      {playerState !== 'playing' && (
+        <div className="border-t border-white/10 px-5 py-2 text-xs font-bold text-slate-300">
+          {playerState === 'loading' && 'Loading video stream...'}
+          {playerState === 'ready' && 'Video is ready. Press play to start.'}
+          {playerState === 'buffering' && 'Buffering video...'}
+        </div>
+      )}
     </div>
   )
 }

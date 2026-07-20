@@ -12,6 +12,7 @@ const hlsMock = vi.hoisted(() => ({
   destroy: vi.fn(),
   on: vi.fn(),
   isSupported: vi.fn(() => true),
+  mediaAttachedHandler: undefined as (() => void) | undefined,
 }))
 
 vi.mock('../../../api/lessonApi', () => ({
@@ -23,12 +24,21 @@ vi.mock('../../../api/lessonApi', () => ({
 
 vi.mock('hls.js', () => {
   class MockHls {
-    static Events = { ERROR: 'hlsError' }
+    static Events = { ERROR: 'hlsError', MEDIA_ATTACHED: 'hlsMediaAttached', MANIFEST_PARSED: 'hlsManifestParsed' }
+    static ErrorTypes = { NETWORK_ERROR: 'networkError', MEDIA_ERROR: 'mediaError' }
     static isSupported = hlsMock.isSupported
     loadSource = hlsMock.loadSource
-    attachMedia = hlsMock.attachMedia
+    attachMedia = (video: HTMLVideoElement) => {
+      hlsMock.attachMedia(video)
+      hlsMock.mediaAttachedHandler?.()
+    }
     destroy = hlsMock.destroy
-    on = hlsMock.on
+    on = (event: string, handler: () => void) => {
+      hlsMock.on(event, handler)
+      if (event === MockHls.Events.MEDIA_ATTACHED) {
+        hlsMock.mediaAttachedHandler = handler
+      }
+    }
   }
 
   return { default: MockHls }
@@ -76,6 +86,7 @@ describe('StudentLessonVideoWorkspace', () => {
   afterEach(() => {
     vi.clearAllMocks()
     hlsMock.isSupported.mockReturnValue(true)
+    hlsMock.mediaAttachedHandler = undefined
   })
 
   it('loads only the backend playbackUrl through HLS.js', async () => {
