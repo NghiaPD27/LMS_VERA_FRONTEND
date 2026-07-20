@@ -26,7 +26,7 @@ export function StudentLayout() {
   return (
     <div className="vera-workspace-bg flex min-h-screen">
       <VeraBackgroundArt />
-      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 border-r border-[hsl(var(--brand-green))]/15 bg-white md:flex md:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden h-dvh w-72 border-r border-[hsl(var(--brand-green))]/15 bg-white md:flex md:flex-col">
         <div className="shrink-0 border-b border-border/80 px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] shadow-[0_10px_22px_rgba(47,143,91,0.14)]">
@@ -72,7 +72,7 @@ export function StudentLayout() {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:pl-72">
         <header className="sticky top-0 z-30 border-b border-border/80 bg-white px-5 py-4 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold">
