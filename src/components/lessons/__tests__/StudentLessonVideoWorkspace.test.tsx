@@ -6,12 +6,33 @@ import { lessonApi } from '../../../api/lessonApi'
 import { StudentLessonVideoWorkspace } from '../StudentLessonVideoWorkspace'
 import type { Lesson } from '../../../types/lesson'
 
+const hlsMock = vi.hoisted(() => ({
+  loadSource: vi.fn(),
+  attachMedia: vi.fn(),
+  destroy: vi.fn(),
+  on: vi.fn(),
+  isSupported: vi.fn(() => true),
+}))
+
 vi.mock('../../../api/lessonApi', () => ({
   lessonApi: {
     getLessonVideoPlayback: vi.fn(),
     updateLessonVideoProgress: vi.fn(),
   },
 }))
+
+vi.mock('hls.js', () => {
+  class MockHls {
+    static Events = { ERROR: 'hlsError' }
+    static isSupported = hlsMock.isSupported
+    loadSource = hlsMock.loadSource
+    attachMedia = hlsMock.attachMedia
+    destroy = hlsMock.destroy
+    on = hlsMock.on
+  }
+
+  return { default: MockHls }
+})
 
 const mockLessonApi = vi.mocked(lessonApi)
 
@@ -54,9 +75,10 @@ const createAxiosError = (status: number) =>
 describe('StudentLessonVideoWorkspace', () => {
   afterEach(() => {
     vi.clearAllMocks()
+    hlsMock.isSupported.mockReturnValue(true)
   })
 
-  it('uses only the backend playbackUrl for the video source', async () => {
+  it('loads only the backend playbackUrl through HLS.js', async () => {
     const playbackUrl = 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc'
     mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
       lessonId: 101,
@@ -71,12 +93,13 @@ describe('StudentLessonVideoWorkspace', () => {
 
     await waitFor(() => expect(mockLessonApi.getLessonVideoPlayback).toHaveBeenCalledWith(101))
     await waitFor(() => expect(container.querySelector('video')).toBeInTheDocument())
+    await waitFor(() => expect(hlsMock.loadSource).toHaveBeenCalledWith(playbackUrl))
 
     const video = container.querySelector('video')
     const iframeHostPattern = `iframe.${['media', 'delivery'].join('')}.net/play`
     const cdnHostPattern = `${['b', 'cdn'].join('-')}.net`
 
-    expect(video).toHaveAttribute('src', playbackUrl)
+    expect(hlsMock.attachMedia).toHaveBeenCalledWith(video)
     expect(container.innerHTML).not.toContain(iframeHostPattern)
     expect(container.innerHTML).not.toContain(cdnHostPattern)
   })

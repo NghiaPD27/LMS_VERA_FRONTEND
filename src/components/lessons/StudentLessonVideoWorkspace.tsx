@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import Hls from 'hls.js'
 import { AlertTriangle, BookOpen, CheckCircle2, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
 import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
@@ -180,11 +181,12 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   }
 
   const playback = playbackQuery.data
-  const videoReady = playback?.status === 'READY' && !!playback.playbackUrl
+  const playbackUrl = playback?.playbackUrl
+  const videoReady = playback?.status === 'READY' && typeof playbackUrl === 'string' && playbackUrl.length > 0
   const watchedPercentage = lastProgress?.watchedPercentage ?? 0
   const isQuizAvailable = lastProgress?.completed === true && lastProgress.lessonProgressStatus === 'QUIZ_AVAILABLE'
 
-  if (!videoReady) {
+  if (!videoReady || !playbackUrl) {
     return (
       <VideoNotice
         icon={playback?.status === 'PROCESSING' ? <RefreshCw className="h-7 w-7 animate-spin" /> : <AlertTriangle className="h-7 w-7" />}
@@ -204,35 +206,29 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         {lesson.content && <p className="mt-2 text-sm leading-6 text-muted-foreground">{lesson.content}</p>}
       </div>
 
-      <div className="bg-slate-950">
-        <video
-          ref={videoRef}
-          // Playback URL must come from the backend permission-checked response.
-          src={playback.playbackUrl}
-          controls
-          poster={playback.thumbnailUrl}
-          className="aspect-video w-full bg-black"
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => {
-            setIsPlaying(false)
-            void reportProgress()
-          }}
-          onEnded={() => {
-            setIsPlaying(false)
-            const video = videoRef.current
-            if (video) {
-              currentSecondRef.current = video.currentTime
-              furthestSecondRef.current = Math.max(furthestSecondRef.current, video.currentTime)
-            }
-            void reportProgress()
-          }}
-          onTimeUpdate={(event) => {
-            const currentTime = event.currentTarget.currentTime
-            currentSecondRef.current = currentTime
-            furthestSecondRef.current = Math.max(furthestSecondRef.current, currentTime)
-          }}
-        />
-      </div>
+      <LessonVideoElement
+        playbackUrl={playbackUrl}
+        thumbnailUrl={playback.thumbnailUrl}
+        videoRef={videoRef}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => {
+          setIsPlaying(false)
+          void reportProgress()
+        }}
+        onEnded={() => {
+          setIsPlaying(false)
+          const video = videoRef.current
+          if (video) {
+            currentSecondRef.current = video.currentTime
+            furthestSecondRef.current = Math.max(furthestSecondRef.current, video.currentTime)
+          }
+          void reportProgress()
+        }}
+        onTimeUpdate={(currentTime) => {
+          currentSecondRef.current = currentTime
+          furthestSecondRef.current = Math.max(furthestSecondRef.current, currentTime)
+        }}
+      />
 
       <div className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center">
         <div>
@@ -267,6 +263,82 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
 
       <StudentQuizPanel lessonId={lessonId} enabled={isQuizAvailable} />
     </article>
+  )
+}
+
+function LessonVideoElement({
+  playbackUrl,
+  thumbnailUrl,
+  videoRef,
+  onPlay,
+  onPause,
+  onEnded,
+  onTimeUpdate,
+}: {
+  playbackUrl: string
+  thumbnailUrl?: string | undefined
+  videoRef: RefObject<HTMLVideoElement | null>
+  onPlay: () => void
+  onPause: () => void
+  onEnded: () => void
+  onTimeUpdate: (currentTime: number) => void
+}) {
+  const [videoError, setVideoError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    setVideoError(null)
+    video.removeAttribute('src')
+
+    if (Hls.isSupported()) {
+      const hls = new Hls()
+      // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
+      hls.loadSource(playbackUrl)
+      hls.attachMedia(video)
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) {
+          setVideoError('Video playback failed. Refresh the page or try again later.')
+        }
+      })
+
+      return () => {
+        hls.destroy()
+        video.removeAttribute('src')
+      }
+    }
+
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari can play HLS natively, using the same backend playbackUrl.
+      video.src = playbackUrl
+      return () => {
+        video.removeAttribute('src')
+      }
+    }
+
+    setVideoError('This browser cannot play this video format.')
+  }, [playbackUrl, videoRef])
+
+  return (
+    <div className="bg-slate-950">
+      {videoError && (
+        <div className="border-b border-red-900/40 bg-red-950 px-5 py-3 text-sm font-bold text-red-100">
+          {videoError}
+        </div>
+      )}
+      <video
+        ref={videoRef}
+        controls
+        poster={thumbnailUrl}
+        className="aspect-video w-full bg-black"
+        data-testid="lesson-video-player"
+        onPlay={onPlay}
+        onPause={onPause}
+        onEnded={onEnded}
+        onTimeUpdate={(event) => onTimeUpdate(event.currentTarget.currentTime)}
+      />
+    </div>
   )
 }
 
