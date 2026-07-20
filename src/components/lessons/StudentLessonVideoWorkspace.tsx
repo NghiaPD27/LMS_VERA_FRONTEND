@@ -288,6 +288,7 @@ function LessonVideoElement({
   const [hasVideoFrame, setHasVideoFrame] = useState(false)
   const [thumbnailFailed, setThumbnailFailed] = useState(false)
   const loggedFirstFrameRef = useRef(false)
+  const hlsRef = useRef<Hls | null>(null)
   const normalizedPlaybackUrl = useMemo(() => normalizePlaybackUrl(playbackUrl), [playbackUrl])
   const normalizedThumbnailUrl = useMemo(
     () => (thumbnailUrl ? normalizePlaybackUrl(thumbnailUrl) : undefined),
@@ -304,6 +305,7 @@ function LessonVideoElement({
     setThumbnailFailed(false)
     loggedFirstFrameRef.current = false
     video.removeAttribute('src')
+    safeResetVideoElement(video)
     video.preload = 'metadata'
     logVideoDiagnostic('init', {
       rawPlaybackUrl: getSafeUrlForLog(playbackUrl),
@@ -323,6 +325,7 @@ function LessonVideoElement({
 
     if (Hls.isSupported()) {
       const hls = new Hls()
+      hlsRef.current = hls
       let recoveredNetworkError = false
       let recoveredMediaError = false
       let sourceLoaded = false
@@ -389,8 +392,12 @@ function LessonVideoElement({
       return () => {
         logVideoDiagnostic('destroy hls player', { video: getVideoDebugState(video) })
         window.clearTimeout(readyFallbackId)
+        if (hlsRef.current === hls) {
+          hlsRef.current = null
+        }
         hls.destroy()
         video.removeAttribute('src')
+        safeResetVideoElement(video)
       }
     }
 
@@ -402,6 +409,7 @@ function LessonVideoElement({
       return () => {
         logVideoDiagnostic('cleanup native hls player', { video: getVideoDebugState(video) })
         video.removeAttribute('src')
+        safeResetVideoElement(video)
       }
     }
 
@@ -413,6 +421,7 @@ function LessonVideoElement({
     const video = videoRef.current
     if (!video) return
 
+    repairMalformedVideoSource(video, normalizedPlaybackUrl, hlsRef.current)
     logVideoDiagnostic('play click', { video: getVideoDebugState(video) })
     try {
       await video.play()
@@ -537,6 +546,50 @@ function LessonVideoElement({
 
 function logVideoDiagnostic(eventName: string, payload?: unknown) {
   console.info('[LessonVideoPlayer]', eventName, sanitizeVideoLogValue(payload))
+}
+
+function repairMalformedVideoSource(video: HTMLVideoElement, normalizedPlaybackUrl: string, hls: Hls | null) {
+  const rawSrc = video.getAttribute('src')
+  const currentSrc = video.currentSrc
+  const repairedRawSrc = rawSrc ? normalizePlaybackUrl(rawSrc) : rawSrc
+  const repairedCurrentSrc = currentSrc ? normalizePlaybackUrl(currentSrc) : currentSrc
+  const hasMalformedSource = (rawSrc && repairedRawSrc !== rawSrc) || (currentSrc && repairedCurrentSrc !== currentSrc)
+
+  if (!hasMalformedSource) return
+
+  logVideoDiagnostic('repairing malformed video src before play', {
+    rawSrc: getSafeUrlForLog(rawSrc),
+    repairedRawSrc: getSafeUrlForLog(repairedRawSrc),
+    currentSrc: getSafeUrlForLog(currentSrc),
+    repairedCurrentSrc: getSafeUrlForLog(repairedCurrentSrc),
+    normalizedPlaybackUrl: getSafeUrlForLog(normalizedPlaybackUrl),
+  })
+
+  if (hls) {
+    hls.stopLoad()
+    hls.detachMedia()
+    video.removeAttribute('src')
+    safeResetVideoElement(video)
+    hls.loadSource(normalizedPlaybackUrl)
+    hls.attachMedia(video)
+    hls.startLoad(-1)
+    return
+  }
+
+  video.src = normalizedPlaybackUrl
+  safeResetVideoElement(video)
+}
+
+function safeResetVideoElement(video: HTMLVideoElement) {
+  if (typeof window !== 'undefined' && /jsdom/i.test(window.navigator.userAgent)) {
+    return
+  }
+
+  try {
+    video.load()
+  } catch (error) {
+    logVideoDiagnostic('video.load reset failed', error)
+  }
 }
 
 function normalizePlaybackUrl(url: string) {
