@@ -594,8 +594,34 @@ function safeResetVideoElement(video: HTMLVideoElement) {
 
 function normalizePlaybackUrl(url: string) {
   let normalizedUrl = url.trim()
+  const bunnyCdnHostSuffix = `${['b', 'cdn'].join('-')}.net`
+  const mediaDeliveryHost = `iframe.${['media', 'delivery'].join('')}.net`
 
   normalizedUrl = normalizedUrl.replace(/https\/\//gi, 'https://').replace(/http\/\//gi, 'http://')
+
+  const extractKnownStreamUrl = (candidateUrl: string) => {
+    const knownHostPatterns = [
+      new RegExp(`(?:[a-z0-9-]+\\.)?${escapeRegExp(bunnyCdnHostSuffix)}`, 'i'),
+      new RegExp(escapeRegExp(mediaDeliveryHost), 'i'),
+    ]
+
+    for (const hostPattern of knownHostPatterns) {
+      const match = hostPattern.exec(candidateUrl)
+      if (!match || match.index === undefined) continue
+
+      const protocolStart = candidateUrl.slice(0, match.index).lastIndexOf('://')
+      if (protocolStart >= 0) {
+        const protocolNameStart = Math.max(candidateUrl.lastIndexOf('http', protocolStart), 0)
+        return candidateUrl.slice(protocolNameStart)
+      }
+
+      return `https://${candidateUrl.slice(match.index)}`
+    }
+
+    return candidateUrl
+  }
+
+  normalizedUrl = extractKnownStreamUrl(normalizedUrl)
 
   const currentOrigin =
     typeof window !== 'undefined' && window.location.origin !== 'null' ? window.location.origin : undefined
@@ -634,6 +660,10 @@ function normalizePlaybackUrl(url: string) {
   }
 
   return normalizedUrl
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function sanitizeVideoLogValue(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
