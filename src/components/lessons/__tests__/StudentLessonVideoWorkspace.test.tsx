@@ -24,7 +24,13 @@ vi.mock('../../../api/lessonApi', () => ({
 
 vi.mock('hls.js', () => {
   class MockHls {
-    static Events = { ERROR: 'hlsError', MEDIA_ATTACHED: 'hlsMediaAttached', MANIFEST_PARSED: 'hlsManifestParsed' }
+    static Events = {
+      ERROR: 'hlsError',
+      MEDIA_ATTACHED: 'hlsMediaAttached',
+      MANIFEST_LOADED: 'hlsManifestLoaded',
+      MANIFEST_PARSED: 'hlsManifestParsed',
+      LEVEL_LOADED: 'hlsLevelLoaded',
+    }
     static ErrorTypes = { NETWORK_ERROR: 'networkError', MEDIA_ERROR: 'mediaError' }
     static isSupported = hlsMock.isSupported
     loadSource = hlsMock.loadSource

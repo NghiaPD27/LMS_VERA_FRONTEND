@@ -301,15 +301,22 @@ function LessonVideoElement({
       const hls = new Hls()
       let recoveredNetworkError = false
       let recoveredMediaError = false
-
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+      let sourceLoaded = false
+      const markReady = () => setPlayerState((current) => (current === 'playing' ? current : 'ready'))
+      const loadSourceOnce = () => {
+        if (sourceLoaded) return
+        sourceLoaded = true
         // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
         hls.loadSource(playbackUrl)
-      })
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setPlayerState('ready')
-      })
+      }
+      const readyFallbackId = window.setTimeout(markReady, 3500)
+
+      hls.on(Hls.Events.MEDIA_ATTACHED, loadSourceOnce)
+      hls.on(Hls.Events.MANIFEST_LOADED, markReady)
+      hls.on(Hls.Events.MANIFEST_PARSED, markReady)
+      hls.on(Hls.Events.LEVEL_LOADED, markReady)
       hls.attachMedia(video)
+      window.setTimeout(loadSourceOnce, 0)
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (!data.fatal) return
 
@@ -332,6 +339,7 @@ function LessonVideoElement({
       })
 
       return () => {
+        window.clearTimeout(readyFallbackId)
         hls.destroy()
         video.removeAttribute('src')
       }
@@ -397,12 +405,11 @@ function LessonVideoElement({
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <button
               type="button"
-              className="pointer-events-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-green))] shadow-xl transition hover:scale-105 disabled:cursor-wait disabled:opacity-70"
+              className="pointer-events-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-green))] shadow-xl transition hover:scale-105"
               onClick={() => void handlePlayClick()}
-              disabled={playerState === 'loading'}
               aria-label="Play lesson video"
             >
-              {playerState === 'loading' ? <RefreshCw className="h-7 w-7 animate-spin" /> : <PlayCircle className="h-8 w-8" />}
+              {playerState === 'buffering' ? <RefreshCw className="h-7 w-7 animate-spin" /> : <PlayCircle className="h-8 w-8" />}
             </button>
           </div>
         )}
@@ -412,7 +419,7 @@ function LessonVideoElement({
           controls
           poster={thumbnailUrl}
           className={`relative z-10 aspect-video w-full bg-transparent transition-opacity ${
-            hasVideoFrame ? 'opacity-100' : 'opacity-0'
+            hasVideoFrame || playerState === 'playing' ? 'opacity-100' : 'opacity-0'
           }`}
           data-testid="lesson-video-player"
           onLoadedData={() => setHasVideoFrame(true)}
@@ -422,7 +429,7 @@ function LessonVideoElement({
           }}
           onWaiting={() => setPlayerState('buffering')}
           onCanPlay={() => {
-            if (playerState !== 'playing') setPlayerState('ready')
+            setPlayerState((current) => (current === 'playing' ? current : 'ready'))
           }}
           onPause={onPause}
           onEnded={onEnded}
@@ -436,7 +443,7 @@ function LessonVideoElement({
       </div>
       {playerState !== 'playing' && (
         <div className="border-t border-white/10 px-5 py-2 text-xs font-bold text-slate-300">
-          {playerState === 'loading' && 'Loading video stream...'}
+          {playerState === 'loading' && 'Preparing video stream. You can press play now.'}
           {playerState === 'ready' && 'Video is ready. Press play to start.'}
           {playerState === 'buffering' && 'Buffering video...'}
         </div>
