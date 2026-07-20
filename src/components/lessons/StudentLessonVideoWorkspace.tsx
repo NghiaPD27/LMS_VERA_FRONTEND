@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import Hls from 'hls.js'
-import { AlertTriangle, BookOpen, CheckCircle2, ImageIcon, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, BookOpen, CalendarClock, CheckCircle2, ImageIcon, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
 import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
 import { StudentQuizPanel } from './StudentQuizPanel'
-import type { Lesson, VideoProgress } from '../../types/lesson'
-import { useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
+import type { LearningState, Lesson, VideoProgress, VideoProgressSnapshot } from '../../types/lesson'
+import { useGetLessonLearningState, useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
 import { getFriendlyApiErrorMessage, isForbiddenError, isNotFoundError } from '../../utils/errorMessage'
 import { formatLessonProgressStatus } from '../../utils/lessonProgress'
 
@@ -38,20 +38,12 @@ export function StudentLessonVideoWorkspace({ lessons }: StudentLessonVideoWorks
         </div>
         <div className="max-h-[70dvh] overflow-y-auto p-2">
           {sortedLessons.map((lesson) => (
-            <button
+            <LessonRailItem
               key={lesson.id}
-              type="button"
-              className={`w-full rounded-md p-3 text-left transition-[background-color,border-color,color] ${
-                lesson.id === selectedLesson?.id
-                  ? 'bg-[hsl(var(--brand-orange-soft))] text-foreground'
-                  : 'text-muted-foreground hover:bg-[hsl(var(--brand-green-soft))] hover:text-foreground'
-              }`}
-              onClick={() => setSelectedLessonId(lesson.id)}
-              data-testid={`select-video-lesson-${lesson.id}`}
-            >
-              <p className="text-xs font-bold uppercase tracking-normal">Lesson {lesson.lessonNumber || '-'}</p>
-              <p className="mt-1 font-extrabold">{lesson.name || 'Untitled lesson'}</p>
-            </button>
+              lesson={lesson}
+              active={lesson.id === selectedLesson?.id}
+              onSelect={() => setSelectedLessonId(lesson.id)}
+            />
           ))}
         </div>
       </aside>
@@ -71,6 +63,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   const [lastProgress, setLastProgress] = useState<VideoProgress | null>(null)
   const [progressError, setProgressError] = useState<string | null>(null)
 
+  const learningStateQuery = useGetLessonLearningState(lessonId)
   const playbackQuery = useGetLessonVideoPlayback(lessonId)
   const progressMutation = useUpdateLessonVideoProgress()
 
@@ -147,6 +140,18 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
     return <LoadingState message="Loading video playback..." />
   }
 
+  if (learningStateQuery.isError && isForbiddenError(learningStateQuery.error)) {
+    return (
+      <VideoNotice
+        icon={<LockKeyhole className="h-7 w-7" />}
+        title="Lesson access locked"
+        description="You do not have access to this lesson, the course may be expired, locked, or not available yet."
+        tone="danger"
+        onRetry={() => void learningStateQuery.refetch()}
+      />
+    )
+  }
+
   if (playbackQuery.isError) {
     if (isForbiddenError(playbackQuery.error)) {
       return (
@@ -181,10 +186,12 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   }
 
   const playback = playbackQuery.data
+  const learningState = learningStateQuery.data
   const playbackUrl = playback?.playbackUrl
   const videoReady = playback?.status === 'READY' && typeof playbackUrl === 'string' && playbackUrl.length > 0
-  const watchedPercentage = lastProgress?.watchedPercentage ?? 0
-  const isQuizAvailable = lastProgress?.completed === true && lastProgress.lessonProgressStatus === 'QUIZ_AVAILABLE'
+  const progress = getCurrentProgress(learningState, lastProgress)
+  const watchedPercentage = progress?.watchedPercentage ?? 0
+  const isQuizAvailable = isQuizUnlockedByBackend(learningState, progress)
 
   if (!videoReady || !playbackUrl) {
     return (
@@ -240,9 +247,9 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
             <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(watchedPercentage, 100)}%` }} />
           </div>
           {progressError && <p className="mt-2 text-sm text-red-700">{progressError}</p>}
-          {lastProgress?.lessonProgressStatus && (
+          {progress?.lessonProgressStatus && (
             <p className="mt-2 text-sm text-muted-foreground">
-              Status: {formatLessonProgressStatus(lastProgress.lessonProgressStatus)}
+              Status: {formatLessonProgressStatus(progress.lessonProgressStatus)}
             </p>
           )}
         </div>
@@ -261,9 +268,158 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         </Button>
       </div>
 
+      <LearningStatePanel
+        learningState={learningState}
+        playbackStatus={playback.status}
+        progress={progress}
+        isLoading={learningStateQuery.isLoading}
+        isQuizAvailable={isQuizAvailable}
+      />
+
       <StudentQuizPanel lessonId={lessonId} enabled={isQuizAvailable} />
     </article>
   )
+}
+
+function LessonRailItem({
+  lesson,
+  active,
+  onSelect,
+}: {
+  lesson: Lesson
+  active: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={`w-full rounded-lg border p-3 text-left transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 ${
+        active
+          ? 'border-[hsl(var(--brand-orange))]/30 bg-[hsl(var(--brand-orange-soft))] text-foreground shadow-sm'
+          : 'border-transparent text-muted-foreground hover:border-[hsl(var(--brand-green))]/20 hover:bg-[hsl(var(--brand-green-soft))] hover:text-foreground'
+      }`}
+      onClick={onSelect}
+      data-testid={`select-video-lesson-${lesson.id}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-normal">Lesson {lesson.lessonNumber || '-'}</p>
+          <p className="mt-1 font-extrabold leading-5">{lesson.name || 'Untitled lesson'}</p>
+        </div>
+        <span className={`mt-0.5 rounded-full px-2 py-1 text-[10px] font-extrabold ${
+          active
+            ? 'bg-white text-primary'
+            : 'bg-white text-[hsl(var(--brand-green))]'
+        }`}>
+          {lesson.status || 'PUBLISHED'}
+        </span>
+      </div>
+    </button>
+  )
+}
+
+function LearningStatePanel({
+  learningState,
+  playbackStatus,
+  progress,
+  isLoading,
+  isQuizAvailable,
+}: {
+  learningState?: LearningState
+  playbackStatus?: string
+  progress?: VideoProgress | VideoProgressSnapshot
+  isLoading: boolean
+  isQuizAvailable: boolean
+}) {
+  return (
+    <section className="border-t border-border bg-[hsl(var(--brand-green-soft))]/55 p-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <LearningStateCard
+          label="Video"
+          value={isLoading ? 'Checking...' : formatLearningValue(learningState?.videoStatus || playbackStatus)}
+          tone={learningState?.videoStatus === 'READY' || playbackStatus === 'READY' ? 'success' : 'neutral'}
+        />
+        <LearningStateCard
+          label="Progress"
+          value={`${progress?.watchedPercentage ?? 0}% watched`}
+          tone={progress?.completed ? 'success' : 'neutral'}
+        />
+        <LearningStateCard
+          label="Quiz"
+          value={isQuizAvailable ? 'Available' : learningState?.hasQuiz === false ? 'Not added yet' : 'Locked'}
+          tone={isQuizAvailable ? 'success' : 'warning'}
+        />
+        <LearningStateCard
+          label="Enrollment"
+          value={learningState?.expiredAt ? `Until ${formatCompactDate(learningState.expiredAt)}` : formatLearningValue(learningState?.enrollmentStatus)}
+          tone={learningState?.enrollmentStatus === 'ACTIVE' ? 'success' : 'neutral'}
+          icon={<CalendarClock className="h-4 w-4" />}
+        />
+      </div>
+    </section>
+  )
+}
+
+function LearningStateCard({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string
+  value: string
+  tone: 'neutral' | 'success' | 'warning'
+  icon?: ReactNode
+}) {
+  const toneClass = {
+    neutral: 'border-border bg-white text-muted-foreground',
+    success: 'border-emerald-200 bg-white text-emerald-700',
+    warning: 'border-amber-200 bg-white text-amber-700',
+  }[tone]
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 ${toneClass}`}>
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-normal">
+        {icon}
+        {label}
+      </div>
+      <p className="mt-1 text-sm font-extrabold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function getCurrentProgress(learningState?: LearningState, lastProgress?: VideoProgress | null) {
+  return lastProgress || learningState?.progress
+}
+
+function isQuizUnlockedByBackend(
+  learningState?: LearningState,
+  progress?: VideoProgress | VideoProgressSnapshot
+) {
+  const progressStatus = progress?.lessonProgressStatus
+
+  return (
+    learningState?.quizAvailable === true ||
+    progressStatus === 'QUIZ_AVAILABLE' ||
+    progressStatus === 'WAITING_FOR_TEACHER' ||
+    progressStatus === 'COMPLETED'
+  )
+}
+
+function formatLearningValue(value?: string) {
+  if (!value) return 'Not started'
+  return formatLessonProgressStatus(value)
+}
+
+function formatCompactDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
 }
 
 function LessonVideoElement({

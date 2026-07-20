@@ -171,7 +171,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getLessonVideoProgress"];
         put?: never;
         post: operations["updateLessonVideoProgress"];
         delete?: never;
@@ -508,6 +508,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getLessonVideoPlayback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lessons/{lessonId}/learning-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLessonLearningState"];
         put?: never;
         post?: never;
         delete?: never;
@@ -965,6 +981,28 @@ export interface components {
             thumbnailUrl?: string;
             status?: string;
         };
+        LearningStateResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            lessonStatus?: string;
+            videoStatus?: string;
+            progress?: components["schemas"]["VideoProgressSnapshot"];
+            quizAvailable?: boolean;
+            hasQuiz?: boolean;
+            enrollmentStatus?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+        };
+        VideoProgressSnapshot: {
+            /** Format: int32 */
+            currentSecond?: number;
+            /** Format: int32 */
+            furthestWatchedSecond?: number;
+            /** Format: int32 */
+            watchedPercentage?: number;
+            completed?: boolean;
+            lessonProgressStatus?: string;
+        };
         AdminStudentResponse: {
             /** Format: int64 */
             id?: number;
@@ -1387,6 +1425,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["VideoUploadSessionResponse"];
+                };
+            };
+        };
+    };
+    getLessonVideoProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VideoProgressResponse"];
                 };
             };
         };
@@ -1997,6 +2057,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["VideoPlaybackResponse"];
+                };
+            };
+        };
+    };
+    getLessonLearningState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LearningStateResponse"];
                 };
             };
         };

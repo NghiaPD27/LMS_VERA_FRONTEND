@@ -3,6 +3,7 @@ import { lessonApi } from '../api/lessonApi'
 import type {
   CreateLessonRequest,
   CreateVideoUploadSessionRequest,
+  LearningState,
   UpsertLessonVideoRequest,
   UpdateLessonRequest,
   UpdateVideoProgressRequest
@@ -12,6 +13,8 @@ export const lessonsQueryKey = (programId: number) => ['lessons', programId] as 
 export const lessonQueryKey = (id: number) => ['lesson', id] as const
 export const lessonVideoQueryKey = (lessonId: number) => ['lesson-video', lessonId] as const
 export const videoPlaybackQueryKey = (lessonId: number) => ['video-playback', lessonId] as const
+export const lessonLearningStateQueryKey = (lessonId: number) => ['lesson-learning-state', lessonId] as const
+export const lessonVideoProgressQueryKey = (lessonId: number) => ['lesson-video-progress', lessonId] as const
 
 export const useGetProgramLessons = (programId: number) =>
   useQuery({
@@ -121,8 +124,48 @@ export const useGetLessonVideoPlayback = (lessonId?: number) =>
     retry: false,
   })
 
-export const useUpdateLessonVideoProgress = () =>
-  useMutation({
+export const useGetLessonLearningState = (lessonId?: number) =>
+  useQuery({
+    queryKey: lessonLearningStateQueryKey(lessonId || 0),
+    queryFn: () => lessonApi.getLessonLearningState(lessonId as number),
+    enabled: !!lessonId,
+    retry: false,
+  })
+
+export const useGetLessonVideoProgress = (lessonId?: number) =>
+  useQuery({
+    queryKey: lessonVideoProgressQueryKey(lessonId || 0),
+    queryFn: () => lessonApi.getLessonVideoProgress(lessonId as number),
+    enabled: !!lessonId,
+    retry: false,
+  })
+
+export const useUpdateLessonVideoProgress = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
     mutationFn: ({ lessonId, data }: { lessonId: number; data: UpdateVideoProgressRequest }) =>
       lessonApi.updateLessonVideoProgress(lessonId, data),
+    onSuccess: (progress, variables) => {
+      queryClient.setQueryData(lessonVideoProgressQueryKey(variables.lessonId), progress)
+      queryClient.setQueryData<LearningState | undefined>(
+        lessonLearningStateQueryKey(variables.lessonId),
+        (current) => ({
+          ...current,
+          lessonId: current?.lessonId ?? progress.lessonId ?? variables.lessonId,
+          progress: {
+            currentSecond: progress.currentSecond,
+            furthestWatchedSecond: progress.furthestWatchedSecond,
+            watchedPercentage: progress.watchedPercentage,
+            completed: progress.completed,
+            lessonProgressStatus: progress.lessonProgressStatus,
+          },
+          quizAvailable:
+            current?.quizAvailable === true ||
+            (progress.completed === true && progress.lessonProgressStatus === 'QUIZ_AVAILABLE'),
+        })
+      )
+      queryClient.invalidateQueries({ queryKey: lessonLearningStateQueryKey(variables.lessonId) })
+    },
   })
+}

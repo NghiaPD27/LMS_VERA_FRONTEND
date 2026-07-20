@@ -4,6 +4,7 @@ import type {
   CreateVideoUploadSessionRequest,
   Lesson,
   LessonVideo,
+  LearningState,
   UpsertLessonVideoRequest,
   UpdateLessonRequest,
   UpdateVideoProgressRequest,
@@ -65,6 +66,16 @@ export const lessonApi = {
 
   getLessonVideoPlayback: async (lessonId: number): Promise<VideoPlayback> => {
     const response = await http.get(`/lessons/${lessonId}/video-playback`)
+    return response.data
+  },
+
+  getLessonLearningState: async (lessonId: number): Promise<LearningState> => {
+    const response = await http.get(`/lessons/${lessonId}/learning-state`)
+    return response.data
+  },
+
+  getLessonVideoProgress: async (lessonId: number): Promise<VideoProgress> => {
+    const response = await http.get(`/lessons/${lessonId}/video-progress`)
     return response.data
   },
 

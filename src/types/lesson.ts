@@ -11,6 +11,8 @@ export type VideoUploadSession = components['schemas']['VideoUploadSessionRespon
 export type UpdateVideoProgressRequest = components['schemas']['UpdateVideoProgressRequest']
 export type VideoProgress = components['schemas']['VideoProgressResponse']
 export type VideoPlayback = components['schemas']['VideoPlaybackResponse']
+export type LearningState = components['schemas']['LearningStateResponse']
+export type VideoProgressSnapshot = components['schemas']['VideoProgressSnapshot']
 export type LessonVideoStatus = 'PROCESSING' | 'READY' | 'FAILED' | (string & {})
 export type LessonProgressStatus =
   | 'LOCKED'

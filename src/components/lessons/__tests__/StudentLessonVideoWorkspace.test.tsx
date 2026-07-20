@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import type { AxiosError } from 'axios'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lessonApi } from '../../../api/lessonApi'
 import { StudentLessonVideoWorkspace } from '../StudentLessonVideoWorkspace'
 import type { Lesson } from '../../../types/lesson'
@@ -17,9 +17,28 @@ const hlsMock = vi.hoisted(() => ({
 
 vi.mock('../../../api/lessonApi', () => ({
   lessonApi: {
+    getLessonLearningState: vi.fn(),
     getLessonVideoPlayback: vi.fn(),
+    getLessonVideoProgress: vi.fn(),
     updateLessonVideoProgress: vi.fn(),
   },
+}))
+
+vi.mock('../../../hooks/useQuiz', () => ({
+  useGetLessonQuiz: () => ({
+    data: undefined,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+  useStartQuizAttempt: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useSubmitQuizAttempt: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 vi.mock('hls.js', () => {
@@ -89,6 +108,24 @@ const createAxiosError = (status: number) =>
   }) as AxiosError
 
 describe('StudentLessonVideoWorkspace', () => {
+  beforeEach(() => {
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 0,
+        furthestWatchedSecond: 0,
+        watchedPercentage: 0,
+        completed: false,
+        lessonProgressStatus: 'VIDEO_AVAILABLE',
+      },
+      quizAvailable: false,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
     hlsMock.isSupported.mockReturnValue(true)
@@ -109,6 +146,7 @@ describe('StudentLessonVideoWorkspace', () => {
     const { container } = renderWorkspace()
 
     await waitFor(() => expect(mockLessonApi.getLessonVideoPlayback).toHaveBeenCalledWith(101))
+    await waitFor(() => expect(mockLessonApi.getLessonLearningState).toHaveBeenCalledWith(101))
     await waitFor(() => expect(container.querySelector('video')).toBeInTheDocument())
     await waitFor(() => expect(hlsMock.loadSource).toHaveBeenCalledWith(playbackUrl))
 
@@ -128,5 +166,35 @@ describe('StudentLessonVideoWorkspace', () => {
 
     expect(await screen.findByText('Video was not found')).toBeInTheDocument()
     expect(screen.getByText('Video was not found for this lesson.')).toBeInTheDocument()
+  })
+
+  it('keeps the quiz available after reload from backend learning state', async () => {
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 270,
+        furthestWatchedSecond: 270,
+        watchedPercentage: 90,
+        completed: true,
+        lessonProgressStatus: 'QUIZ_AVAILABLE',
+      },
+      quizAvailable: true,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    renderWorkspace()
+
+    expect(await screen.findByText('Quiz available')).toBeInTheDocument()
+    expect(screen.getByText('90% watched')).toBeInTheDocument()
   })
 })

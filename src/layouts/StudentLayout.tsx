@@ -26,8 +26,8 @@ export function StudentLayout() {
   return (
     <div className="vera-workspace-bg flex min-h-screen">
       <VeraBackgroundArt />
-      <aside className="hidden w-72 border-r border-[hsl(var(--brand-green))]/15 bg-white md:flex md:flex-col">
-        <div className="border-b border-border/80 px-6 py-5">
+      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 border-r border-[hsl(var(--brand-green))]/15 bg-white md:flex md:flex-col">
+        <div className="shrink-0 border-b border-border/80 px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] shadow-[0_10px_22px_rgba(47,143,91,0.14)]">
               <GraduationCap className="h-6 w-6" />
@@ -39,7 +39,7 @@ export function StudentLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4 py-5">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 py-5">
           {navItems.map((item) => (
             <NavLink
               key={item.href}
@@ -60,7 +60,7 @@ export function StudentLayout() {
           ))}
         </nav>
 
-        <div className="border-t border-border/80 p-4">
+        <div className="shrink-0 border-t border-border/80 p-4">
           <div className="mb-3 rounded-md border border-border/80 bg-background px-3 py-2">
             <p className="truncate text-sm font-medium text-foreground">{user?.username}</p>
             <p className="text-xs capitalize text-muted-foreground">{user?.role}</p>
@@ -73,7 +73,7 @@ export function StudentLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-border/80 bg-white px-5 py-4 md:hidden">
+        <header className="sticky top-0 z-30 border-b border-border/80 bg-white px-5 py-4 md:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold">
               <GraduationCap className="h-6 w-6 text-[hsl(var(--brand-green))]" />
