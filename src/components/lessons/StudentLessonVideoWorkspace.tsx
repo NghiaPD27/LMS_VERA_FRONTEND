@@ -314,6 +314,12 @@ function LessonVideoElement({
       nativeHlsSupport: video.canPlayType('application/vnd.apple.mpegurl') || 'not-supported',
       video: getVideoDebugState(video),
     })
+    if (playbackUrl !== normalizedPlaybackUrl) {
+      logVideoDiagnostic('playback url repaired', {
+        from: getSafeUrlForLog(playbackUrl),
+        to: getSafeUrlForLog(normalizedPlaybackUrl),
+      })
+    }
 
     if (Hls.isSupported()) {
       const hls = new Hls()
@@ -536,7 +542,7 @@ function logVideoDiagnostic(eventName: string, payload?: unknown) {
 function normalizePlaybackUrl(url: string) {
   let normalizedUrl = url.trim()
 
-  normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+  normalizedUrl = normalizedUrl.replace(/https\/\//gi, 'https://').replace(/http\/\//gi, 'http://')
 
   const currentOrigin =
     typeof window !== 'undefined' && window.location.origin !== 'null' ? window.location.origin : undefined
@@ -559,7 +565,7 @@ function normalizePlaybackUrl(url: string) {
       if (normalizedUrl.startsWith('/')) {
         normalizedUrl = normalizedUrl.slice(1)
       }
-      normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+      normalizedUrl = normalizedUrl.replace(/https\/\//gi, 'https://').replace(/http\/\//gi, 'http://')
     }
   }
 
@@ -571,7 +577,7 @@ function normalizePlaybackUrl(url: string) {
   const malformedProtocolMatches = [...normalizedUrl.matchAll(/https?\/\//gi)]
   if (!/^https?:\/\//i.test(normalizedUrl) && malformedProtocolMatches.length > 0) {
     normalizedUrl = normalizedUrl.slice(malformedProtocolMatches[malformedProtocolMatches.length - 1].index)
-    normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+    normalizedUrl = normalizedUrl.replace(/https\/\//gi, 'https://').replace(/http\/\//gi, 'http://')
   }
 
   return normalizedUrl
