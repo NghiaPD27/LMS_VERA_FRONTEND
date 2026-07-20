@@ -51,6 +51,11 @@ export const lessonApi = {
     return response.data
   },
 
+  getLessonVideo: async (lessonId: number): Promise<LessonVideo> => {
+    const response = await http.get(`/lessons/${lessonId}/video`)
+    return response.data
+  },
+
   syncLessonVideo: async (lessonId: number): Promise<LessonVideo> => {
     const response = await http.post(`/lessons/${lessonId}/video/sync`)
     return response.data

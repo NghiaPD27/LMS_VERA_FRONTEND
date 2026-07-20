@@ -123,7 +123,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getLessonVideo"];
         put?: never;
         post: operations["upsertLessonVideo"];
         delete?: never;
@@ -1353,6 +1353,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LessonResponse"];
+                };
+            };
+        };
+    };
+    getLessonVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LessonVideoResponse"];
                 };
             };
         };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { Upload } from 'tus-js-client'
 import { AlertTriangle, CheckCircle2, CloudUpload, FileVideo, RefreshCw, Settings2 } from 'lucide-react'
 import {
@@ -9,13 +9,16 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Button } from '../common/Button'
+import { ErrorState } from '../common/ErrorState'
 import type { Lesson, LessonVideo, UpsertLessonVideoRequest } from '../../types/lesson'
 import {
   useCreateLessonVideoUploadSession,
+  useGetLessonVideo,
   useSyncLessonVideo,
   useUpsertLessonVideo
 } from '../../hooks/useLessons'
-import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
+import { getFriendlyApiErrorMessage, isNotFoundError } from '../../utils/errorMessage'
+import { formatDateTime } from '../../utils/formatters'
 
 interface LessonVideoManagerProps {
   lesson: Lesson | null
@@ -35,6 +38,7 @@ const getStatusStage = (status?: string): UploadStage => {
 }
 
 export function LessonVideoManager({ lesson, programId, isOpen, onClose }: LessonVideoManagerProps) {
+  const lessonId = lesson?.id
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentVideo, setCurrentVideo] = useState<LessonVideo | null>(null)
@@ -51,10 +55,11 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
   const uploadRef = useRef<Upload | null>(null)
   const pollTimerRef = useRef<number | null>(null)
   const createSessionMutation = useCreateLessonVideoUploadSession()
+  const lessonVideoQuery = useGetLessonVideo(lessonId, isOpen && !!lessonId)
   const syncVideoMutation = useSyncLessonVideo(programId)
   const upsertVideoMutation = useUpsertLessonVideo(programId)
 
-  const lessonId = lesson?.id
+  const videoMissing = lessonVideoQuery.isError && isNotFoundError(lessonVideoQuery.error)
   const isBusy =
     stage === 'uploading' ||
     stage === 'processing' ||
@@ -80,7 +85,32 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
     }
   }, [isOpen])
 
-  const clearPolling = () => {
+  useEffect(() => {
+    if (!isOpen) return
+
+    clearPolling()
+    setSelectedFile(null)
+    setUploadProgress(0)
+    setCurrentVideo(null)
+    setStage('idle')
+    setErrorMessage(null)
+  }, [isOpen, lessonId])
+
+  useEffect(() => {
+    if (!isOpen || !lessonVideoQuery.data) return
+
+    setCurrentVideo(lessonVideoQuery.data)
+    setStage(getStatusStage(lessonVideoQuery.data.status))
+    setErrorMessage(null)
+  }, [isOpen, lessonVideoQuery.data])
+
+  useEffect(() => {
+    if (isOpen && videoMissing && stage === 'idle') {
+      setCurrentVideo(null)
+    }
+  }, [isOpen, stage, videoMissing])
+
+  function clearPolling() {
     if (pollTimerRef.current) {
       window.clearTimeout(pollTimerRef.current)
       pollTimerRef.current = null
@@ -191,6 +221,12 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
     }
   }
 
+  const handleSyncStatus = async () => {
+    if (!lessonId) return
+    setErrorMessage(null)
+    await syncAndPoll(lessonId)
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[92dvh] max-w-3xl overflow-y-auto">
@@ -211,16 +247,52 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
                   {lesson?.name || 'Selected lesson'}
                 </h3>
               </div>
-              <VideoStateBadge stage={stage} status={currentVideo?.status} />
+              <div className="flex flex-wrap items-center gap-2">
+                <VideoStateBadge stage={stage} status={currentVideo?.status} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!lessonId || isBusy || lessonVideoQuery.isLoading}
+                  onClick={() => void handleSyncStatus()}
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncVideoMutation.isPending ? 'animate-spin' : ''}`} />
+                  Sync status
+                </Button>
+              </div>
             </div>
 
-            {currentVideo && (
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                <VideoMeta label="Bunny Video ID" value={currentVideo.bunnyVideoId} />
-                <VideoMeta label="Library ID" value={currentVideo.libraryId} />
-                <VideoMeta label="Duration" value={currentVideo.durationSeconds ? `${currentVideo.durationSeconds}s` : '-'} />
-                <VideoMeta label="Updated" value={currentVideo.updatedAt || '-'} />
-              </dl>
+            <div className="mt-4">
+              {lessonVideoQuery.isLoading ? (
+                <CurrentVideoShell>
+                  <RefreshCw className="h-5 w-5 animate-spin text-[hsl(var(--brand-green))]" />
+                  <div>
+                    <p className="font-extrabold text-foreground">Checking current video...</p>
+                    <p className="text-sm text-muted-foreground">Vera is loading the video attached to this lesson.</p>
+                  </div>
+                </CurrentVideoShell>
+              ) : lessonVideoQuery.isError && !videoMissing ? (
+                <ErrorState
+                  message={getFriendlyApiErrorMessage(lessonVideoQuery.error, 'Failed to load current video')}
+                  onRetry={lessonVideoQuery.refetch}
+                />
+              ) : currentVideo ? (
+                <CurrentVideoDetails video={currentVideo} />
+              ) : (
+                <CurrentVideoShell>
+                  <FileVideo className="h-5 w-5 text-slate-500" />
+                  <div>
+                    <p className="font-extrabold text-foreground">No video yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      This lesson does not have a video attached. Upload a file or save existing video metadata below.
+                    </p>
+                  </div>
+                </CurrentVideoShell>
+              )}
+            </div>
+
+            {videoMissing && !currentVideo && (
+              <p className="mt-3 text-sm text-muted-foreground">A video can be added with upload or manual metadata.</p>
             )}
           </section>
 
@@ -230,7 +302,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
               <div>
                 <h3 className="font-extrabold text-foreground">Upload video</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Select a video file. Vera creates a secure upload session and tracks when the video is ready.
+                  Select a file to create or replace the video attached to this lesson. Vera creates a secure upload session and tracks when the video is ready.
                 </p>
               </div>
             </div>
@@ -292,7 +364,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
               <div>
                 <h3 className="font-extrabold text-foreground">Manual video metadata</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Advanced fallback for admins when a video already exists in the video library.
+                  Advanced fallback for admins when the lesson video already exists in the video library and should be attached here.
                 </p>
               </div>
             </div>
@@ -369,6 +441,54 @@ function VideoStateBadge({ stage, status }: { stage: UploadStage; status?: strin
   )
 }
 
+function CurrentVideoDetails({ video }: { video: LessonVideo }) {
+  return (
+    <div className="rounded-lg border border-border bg-white p-4">
+      <div className="grid gap-4 lg:grid-cols-[180px_1fr]">
+        <div className="overflow-hidden rounded-md border border-border bg-slate-50">
+          {video.thumbnailUrl ? (
+            <img
+              src={video.thumbnailUrl}
+              alt=""
+              className="aspect-video h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-video items-center justify-center text-slate-500">
+              <FileVideo className="h-8 w-8" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-extrabold text-foreground">Current video</p>
+              <p className="text-sm text-muted-foreground">This is the video currently attached to the lesson.</p>
+            </div>
+            <VideoStateBadge stage={getStatusStage(video.status)} status={video.status} />
+          </div>
+          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            <VideoMeta label="Bunny Video ID" value={video.bunnyVideoId} />
+            <VideoMeta label="Library ID" value={video.libraryId} />
+            <VideoMeta label="Duration" value={formatDuration(video.durationSeconds)} />
+            <VideoMeta label="Created" value={formatDateTime(video.createdAt)} />
+            <VideoMeta label="Updated" value={formatDateTime(video.updatedAt)} />
+            <VideoMeta label="Thumbnail URL" value={video.thumbnailUrl} />
+          </dl>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CurrentVideoShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-dashed border-border bg-white p-4">
+      {children}
+    </div>
+  )
+}
+
 function VideoMeta({ label, value }: { label: string; value?: string | number }) {
   return (
     <div className="rounded-md border border-border bg-white p-3">
@@ -376,6 +496,16 @@ function VideoMeta({ label, value }: { label: string; value?: string | number })
       <dd className="mt-1 break-words text-sm font-bold text-foreground">{value || '-'}</dd>
     </div>
   )
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return '-'
+
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  if (minutes <= 0) return `${seconds}s`
+
+  return `${minutes}m ${remainingSeconds}s`
 }
 
 function ManualField({

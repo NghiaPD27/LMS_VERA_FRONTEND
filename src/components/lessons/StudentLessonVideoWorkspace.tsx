@@ -69,13 +69,20 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   const currentSecondRef = useRef(0)
   const furthestSecondRef = useRef(0)
   const suppressProgressUntilRef = useRef(0)
+  const progressRef = useRef<VideoProgress | VideoProgressSnapshot | undefined>(undefined)
+  const seekGuardTimerRef = useRef<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [lastProgress, setLastProgress] = useState<VideoProgress | null>(null)
   const [progressError, setProgressError] = useState<string | null>(null)
+  const [seekGuardMessage, setSeekGuardMessage] = useState<string | null>(null)
 
   const learningStateQuery = useGetLessonLearningState(lessonId)
   const playbackQuery = useGetLessonVideoPlayback(lessonId)
   const progressMutation = useUpdateLessonVideoProgress()
+  const learningState = learningStateQuery.data
+  const progress = getCurrentProgress(learningState, lastProgress)
+  const watchedPercentage = progress?.watchedPercentage ?? 0
+  const isQuizAvailable = isQuizUnlockedByBackend(learningState, progress)
 
   useEffect(() => {
     currentSecondRef.current = 0
@@ -83,6 +90,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
     setIsPlaying(false)
     setLastProgress(null)
     setProgressError(null)
+    setSeekGuardMessage(null)
   }, [lessonId])
 
   const reportProgress = useCallback(async () => {
@@ -133,6 +141,43 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
       document.removeEventListener('visibilitychange', flushProgress)
     }
   }, [reportProgress])
+
+  useEffect(() => {
+    progressRef.current = progress
+  }, [progress])
+
+  useEffect(() => {
+    return () => {
+      if (seekGuardTimerRef.current) {
+        window.clearTimeout(seekGuardTimerRef.current)
+      }
+    }
+  }, [])
+
+  const getSeekLimit = useCallback(() => {
+    const currentProgress = progressRef.current
+    return {
+      completed: currentProgress?.completed === true,
+      maxSeekSecond: Math.max(
+        currentProgress?.furthestWatchedSecond ?? 0,
+        furthestSecondRef.current
+      ),
+    }
+  }, [])
+
+  const handleBlockedSeek = useCallback((fallbackSecond: number) => {
+    currentSecondRef.current = fallbackSecond
+    setSeekGuardMessage('You need to watch up to this point before seeking further ahead.')
+
+    if (seekGuardTimerRef.current) {
+      window.clearTimeout(seekGuardTimerRef.current)
+    }
+
+    seekGuardTimerRef.current = window.setTimeout(() => {
+      setSeekGuardMessage(null)
+      seekGuardTimerRef.current = null
+    }, 3500)
+  }, [])
 
   if (!lesson) {
     return (
@@ -196,12 +241,8 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   }
 
   const playback = playbackQuery.data
-  const learningState = learningStateQuery.data
   const playbackUrl = playback?.playbackUrl
   const videoReady = playback?.status === 'READY' && typeof playbackUrl === 'string' && playbackUrl.length > 0
-  const progress = getCurrentProgress(learningState, lastProgress)
-  const watchedPercentage = progress?.watchedPercentage ?? 0
-  const isQuizAvailable = isQuizUnlockedByBackend(learningState, progress)
 
   if (!videoReady || !playbackUrl) {
     return (
@@ -227,6 +268,8 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         playbackUrl={playbackUrl}
         thumbnailUrl={playback.thumbnailUrl}
         videoRef={videoRef}
+        getSeekLimit={getSeekLimit}
+        onBlockedSeek={handleBlockedSeek}
         onPlaying={() => setIsPlaying(true)}
         onPause={() => {
           setIsPlaying(false)
@@ -241,9 +284,14 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
           }
           void reportProgress()
         }}
-        onTimeUpdate={(currentTime) => {
+        onTimeUpdate={(currentTime, isSeeking) => {
           currentSecondRef.current = currentTime
-          furthestSecondRef.current = Math.max(furthestSecondRef.current, currentTime)
+          if (!isSeeking) {
+            furthestSecondRef.current = Math.max(furthestSecondRef.current, currentTime)
+            if (seekGuardMessage) {
+              setSeekGuardMessage(null)
+            }
+          }
         }}
       />
 
@@ -256,6 +304,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
           <div className="h-3 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(watchedPercentage, 100)}%` }} />
           </div>
+          {seekGuardMessage && <p className="mt-2 text-sm font-semibold text-amber-700">{seekGuardMessage}</p>}
           {progressError && <p className="mt-2 text-sm text-red-700">{progressError}</p>}
           {progress?.lessonProgressStatus && (
             <p className="mt-2 text-sm text-muted-foreground">
@@ -459,6 +508,8 @@ function LessonVideoElement({
   playbackUrl,
   thumbnailUrl,
   videoRef,
+  getSeekLimit,
+  onBlockedSeek,
   onPlaying,
   onPause,
   onEnded,
@@ -467,10 +518,12 @@ function LessonVideoElement({
   playbackUrl: string
   thumbnailUrl?: string | undefined
   videoRef: RefObject<HTMLVideoElement | null>
+  getSeekLimit: () => { completed: boolean; maxSeekSecond: number }
+  onBlockedSeek: (fallbackSecond: number) => void
   onPlaying: () => void
   onPause: () => void
   onEnded: () => void
-  onTimeUpdate: (currentTime: number) => void
+  onTimeUpdate: (currentTime: number, isSeeking: boolean) => void
 }) {
   const [videoError, setVideoError] = useState<string | null>(null)
   const [playerState, setPlayerState] = useState<'loading' | 'ready' | 'buffering' | 'playing'>('loading')
@@ -483,6 +536,7 @@ function LessonVideoElement({
     () => (thumbnailUrl ? normalizePlaybackUrl(thumbnailUrl) : undefined),
     [thumbnailUrl]
   )
+  const seekCorrectionRef = useRef(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -706,6 +760,27 @@ function LessonVideoElement({
             logVideoDiagnostic('video.pause', { video: getVideoDebugState(event.currentTarget) })
             onPause()
           }}
+          onSeeking={(event) => {
+            if (seekCorrectionRef.current) {
+              seekCorrectionRef.current = false
+              return
+            }
+
+            const { completed, maxSeekSecond } = getSeekLimit()
+            const seekToleranceSeconds = 1.5
+            if (completed || event.currentTarget.currentTime <= maxSeekSecond + seekToleranceSeconds) {
+              return
+            }
+
+            const fallbackSecond = Math.max(0, maxSeekSecond)
+            logVideoDiagnostic('blocked forward seek', {
+              requestedSecond: Number(event.currentTarget.currentTime.toFixed(2)),
+              fallbackSecond: Number(fallbackSecond.toFixed(2)),
+            })
+            seekCorrectionRef.current = true
+            event.currentTarget.currentTime = fallbackSecond
+            onBlockedSeek(fallbackSecond)
+          }}
           onEnded={(event) => {
             logVideoDiagnostic('video.ended', { video: getVideoDebugState(event.currentTarget) })
             onEnded()
@@ -718,7 +793,7 @@ function LessonVideoElement({
                 logVideoDiagnostic('video.first-timeupdate', { video: getVideoDebugState(event.currentTarget) })
               }
             }
-            onTimeUpdate(event.currentTarget.currentTime)
+            onTimeUpdate(event.currentTarget.currentTime, event.currentTarget.seeking)
           }}
         />
       </div>

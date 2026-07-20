@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { AxiosError } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -112,6 +112,15 @@ const createAxiosError = (status: number) =>
 
 describe('StudentLessonVideoWorkspace', () => {
   beforeEach(() => {
+    mockLessonApi.updateLessonVideoProgress.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      currentSecond: 0,
+      furthestWatchedSecond: 0,
+      watchedPercentage: 0,
+      completed: false,
+      lessonProgressStatus: 'VIDEO_IN_PROGRESS',
+    })
     mockLessonApi.getLessonLearningState.mockResolvedValue({
       lessonId: 101,
       lessonStatus: 'PUBLISHED',
@@ -251,5 +260,98 @@ describe('StudentLessonVideoWorkspace', () => {
     expect(await screen.findByText('Lesson path locked')).toBeInTheDocument()
     expect(mockLessonApi.getLessonVideoPlayback).not.toHaveBeenCalled()
     expect(mockLessonApi.getLessonLearningState).not.toHaveBeenCalled()
+  })
+
+  it('blocks forward seeking beyond the furthest watched second', async () => {
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 15,
+        furthestWatchedSecond: 30,
+        watchedPercentage: 10,
+        completed: false,
+        lessonProgressStatus: 'VIDEO_IN_PROGRESS',
+      },
+      quizAvailable: false,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    const { container } = renderWorkspace()
+
+    const video = await waitFor(() => {
+      const element = container.querySelector('video')
+      expect(element).toBeInTheDocument()
+      return element as HTMLVideoElement
+    })
+
+    video.currentTime = 60
+    fireEvent.seeking(video)
+
+    expect(video.currentTime).toBe(30)
+    expect(screen.getByText('You need to watch up to this point before seeking further ahead.')).toBeInTheDocument()
+
+    fireEvent.pause(video)
+
+    await waitFor(() =>
+      expect(mockLessonApi.updateLessonVideoProgress).toHaveBeenCalledWith(101, {
+        currentSecond: 30,
+        furthestWatchedSecond: 30,
+      })
+    )
+    expect(mockLessonApi.updateLessonVideoProgress).not.toHaveBeenCalledWith(
+      101,
+      expect.objectContaining({
+        currentSecond: 60,
+      })
+    )
+  })
+
+  it('allows free seeking after the lesson video is completed', async () => {
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 270,
+        furthestWatchedSecond: 270,
+        watchedPercentage: 100,
+        completed: true,
+        lessonProgressStatus: 'COMPLETED',
+      },
+      quizAvailable: true,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    const { container } = renderWorkspace()
+
+    const video = await waitFor(() => {
+      const element = container.querySelector('video')
+      expect(element).toBeInTheDocument()
+      return element as HTMLVideoElement
+    })
+
+    video.currentTime = 295
+    fireEvent.seeking(video)
+
+    expect(video.currentTime).toBe(295)
+    expect(screen.queryByText('You need to watch up to this point before seeking further ahead.')).not.toBeInTheDocument()
   })
 })

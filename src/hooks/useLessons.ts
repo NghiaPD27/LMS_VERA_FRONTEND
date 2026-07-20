@@ -83,6 +83,14 @@ export const useCreateLessonVideoUploadSession = () =>
       lessonApi.createLessonVideoUploadSession(lessonId, data),
   })
 
+export const useGetLessonVideo = (lessonId?: number, enabled = true) =>
+  useQuery({
+    queryKey: lessonVideoQueryKey(lessonId || 0),
+    queryFn: () => lessonApi.getLessonVideo(lessonId as number),
+    enabled: !!lessonId && enabled,
+    retry: false,
+  })
+
 export const useSyncLessonVideo = (programId?: number) => {
   const queryClient = useQueryClient()
 
