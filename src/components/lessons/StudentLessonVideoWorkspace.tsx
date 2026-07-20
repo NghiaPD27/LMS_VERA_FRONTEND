@@ -294,13 +294,31 @@ function LessonVideoElement({
 
     if (Hls.isSupported()) {
       const hls = new Hls()
+      let recoveredNetworkError = false
+      let recoveredMediaError = false
+
       // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
-      hls.loadSource(playbackUrl)
       hls.attachMedia(video)
+      hls.loadSource(playbackUrl)
       hls.on(Hls.Events.ERROR, (_event, data) => {
-        if (data.fatal) {
-          setVideoError('Video playback failed. Refresh the page or try again later.')
+        if (!data.fatal) return
+
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetworkError) {
+          recoveredNetworkError = true
+          hls.startLoad()
+          return
         }
+
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !recoveredMediaError) {
+          recoveredMediaError = true
+          hls.recoverMediaError()
+          return
+        }
+
+        if (import.meta.env.DEV) {
+          console.error('[LessonVideoPlayer] HLS playback error', data)
+        }
+        setVideoError(getHlsErrorMessage(data))
       })
 
       return () => {
@@ -340,6 +358,23 @@ function LessonVideoElement({
       />
     </div>
   )
+}
+
+function getHlsErrorMessage(data: { type?: string; details?: string; response?: { code?: number } }) {
+  const statusCode = data.response?.code
+  const detail = data.details ? ` (${data.details})` : ''
+
+  if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+    return statusCode
+      ? `Video stream request failed with status ${statusCode}${detail}.`
+      : `Video stream could not be loaded${detail}.`
+  }
+
+  if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+    return `This video stream could not be decoded${detail}.`
+  }
+
+  return `Video playback failed${detail}.`
 }
 
 function VideoNotice({
