@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { AxiosError } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lessonApi } from '../../../api/lessonApi'
@@ -79,10 +80,12 @@ const lessons: Lesson[] = [
     lessonNumber: 1,
     content: 'Practice greetings.',
     status: 'PUBLISHED',
+    lessonProgressStatus: 'VIDEO_IN_PROGRESS',
+    locked: false,
   },
 ]
 
-const renderWorkspace = () => {
+const renderWorkspace = (workspaceLessons = lessons) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -92,7 +95,7 @@ const renderWorkspace = () => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <StudentLessonVideoWorkspace lessons={lessons} />
+      <StudentLessonVideoWorkspace lessons={workspaceLessons} />
     </QueryClientProvider>
   )
 }
@@ -118,7 +121,7 @@ describe('StudentLessonVideoWorkspace', () => {
         furthestWatchedSecond: 0,
         watchedPercentage: 0,
         completed: false,
-        lessonProgressStatus: 'VIDEO_AVAILABLE',
+        lessonProgressStatus: 'VIDEO_IN_PROGRESS',
       },
       quizAvailable: false,
       hasQuiz: true,
@@ -196,5 +199,57 @@ describe('StudentLessonVideoWorkspace', () => {
 
     expect(await screen.findByText('Quiz available')).toBeInTheDocument()
     expect(screen.getByText('90% watched')).toBeInTheDocument()
+  })
+
+  it('renders locked lessons in the path without selecting them', async () => {
+    const user = userEvent.setup()
+    const lockedLesson: Lesson = {
+      id: 102,
+      programId: 1,
+      name: 'Ordering coffee',
+      lessonNumber: 2,
+      content: 'Practice ordering.',
+      status: 'PUBLISHED',
+      lessonProgressStatus: 'LOCKED',
+      locked: true,
+    }
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+
+    renderWorkspace([...lessons, lockedLesson])
+
+    expect(await screen.findByText('Opening conversations')).toBeInTheDocument()
+    expect(screen.getByText('Ordering coffee')).toBeInTheDocument()
+    expect(screen.getByTestId('select-video-lesson-102')).toBeDisabled()
+
+    await user.click(screen.getByTestId('select-video-lesson-102'))
+
+    expect(mockLessonApi.getLessonVideoPlayback).toHaveBeenCalledWith(101)
+    expect(mockLessonApi.getLessonVideoPlayback).not.toHaveBeenCalledWith(102)
+    expect(mockLessonApi.getLessonLearningState).not.toHaveBeenCalledWith(102)
+  })
+
+  it('does not call lesson video APIs when every lesson is locked', async () => {
+    renderWorkspace([
+      {
+        id: 102,
+        programId: 1,
+        name: 'Ordering coffee',
+        lessonNumber: 2,
+        content: 'Practice ordering.',
+        status: 'PUBLISHED',
+        lessonProgressStatus: 'LOCKED',
+        locked: true,
+      },
+    ])
+
+    expect(await screen.findByText('Lesson path locked')).toBeInTheDocument()
+    expect(mockLessonApi.getLessonVideoPlayback).not.toHaveBeenCalled()
+    expect(mockLessonApi.getLessonLearningState).not.toHaveBeenCalled()
   })
 })

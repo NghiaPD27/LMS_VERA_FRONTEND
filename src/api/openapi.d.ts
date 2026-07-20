@@ -714,6 +714,8 @@ export interface components {
             lessonNumber?: number;
             content?: string;
             status?: string;
+            lessonProgressStatus?: string;
+            locked?: boolean;
         };
         UpsertLessonVideoRequest: {
             bunnyVideoId: string;

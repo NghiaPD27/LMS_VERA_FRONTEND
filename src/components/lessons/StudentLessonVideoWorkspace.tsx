@@ -19,15 +19,21 @@ export function StudentLessonVideoWorkspace({ lessons }: StudentLessonVideoWorks
     () => [...lessons].sort((a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0)),
     [lessons]
   )
-  const [selectedLessonId, setSelectedLessonId] = useState<number | undefined>(sortedLessons[0]?.id)
+  const firstUnlockedLessonId = sortedLessons.find((lesson) => !isLessonLocked(lesson))?.id
+  const [selectedLessonId, setSelectedLessonId] = useState<number | undefined>(firstUnlockedLessonId)
 
   useEffect(() => {
-    if (!selectedLessonId && sortedLessons[0]?.id) {
-      setSelectedLessonId(sortedLessons[0].id)
-    }
-  }, [selectedLessonId, sortedLessons])
+    const selectedLessonIsPlayable = sortedLessons.some(
+      (lesson) => lesson.id === selectedLessonId && !isLessonLocked(lesson)
+    )
 
-  const selectedLesson = sortedLessons.find((lesson) => lesson.id === selectedLessonId) || sortedLessons[0]
+    if (!selectedLessonIsPlayable) {
+      setSelectedLessonId(firstUnlockedLessonId)
+    }
+  }, [firstUnlockedLessonId, selectedLessonId, sortedLessons])
+
+  const selectedLesson = sortedLessons.find((lesson) => lesson.id === selectedLessonId && !isLessonLocked(lesson))
+  const allLessonsLocked = sortedLessons.length > 0 && !firstUnlockedLessonId
 
   return (
     <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
@@ -41,14 +47,18 @@ export function StudentLessonVideoWorkspace({ lessons }: StudentLessonVideoWorks
             <LessonRailItem
               key={lesson.id}
               lesson={lesson}
-              active={lesson.id === selectedLesson?.id}
-              onSelect={() => setSelectedLessonId(lesson.id)}
+              active={!isLessonLocked(lesson) && lesson.id === selectedLesson?.id}
+              onSelect={() => {
+                if (!isLessonLocked(lesson)) {
+                  setSelectedLessonId(lesson.id)
+                }
+              }}
             />
           ))}
         </div>
       </aside>
 
-      <LessonVideoPlayer lesson={selectedLesson} />
+      {allLessonsLocked ? <LockedLessonPathNotice /> : <LessonVideoPlayer lesson={selectedLesson} />}
     </div>
   )
 }
@@ -290,11 +300,16 @@ function LessonRailItem({
   active: boolean
   onSelect: () => void
 }) {
+  const locked = isLessonLocked(lesson)
+
   return (
     <button
       type="button"
-      className={`w-full rounded-lg border p-3 text-left transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 ${
-        active
+      disabled={locked}
+      className={`w-full rounded-lg border p-3 text-left transition-[background-color,border-color,color,transform] ${
+        locked
+          ? 'cursor-not-allowed border-transparent bg-slate-50 text-muted-foreground opacity-85'
+          : active
           ? 'border-[hsl(var(--brand-orange))]/30 bg-[hsl(var(--brand-orange-soft))] text-foreground shadow-sm'
           : 'border-transparent text-muted-foreground hover:border-[hsl(var(--brand-green))]/20 hover:bg-[hsl(var(--brand-green-soft))] hover:text-foreground'
       }`}
@@ -306,16 +321,34 @@ function LessonRailItem({
           <p className="text-xs font-bold uppercase tracking-normal">Lesson {lesson.lessonNumber || '-'}</p>
           <p className="mt-1 font-extrabold leading-5">{lesson.name || 'Untitled lesson'}</p>
         </div>
-        <span className={`mt-0.5 rounded-full px-2 py-1 text-[10px] font-extrabold ${
-          active
-            ? 'bg-white text-primary'
-            : 'bg-white text-[hsl(var(--brand-green))]'
+        <span className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-extrabold ${
+          locked
+            ? 'bg-white text-slate-500'
+            : active
+              ? 'bg-white text-primary'
+              : 'bg-white text-[hsl(var(--brand-green))]'
         }`}>
-          {lesson.status || 'PUBLISHED'}
+          {locked && <LockKeyhole className="h-3 w-3" />}
+          {locked ? 'Locked' : formatLessonProgressStatus(lesson.lessonProgressStatus || lesson.status)}
         </span>
       </div>
     </button>
   )
+}
+
+function LockedLessonPathNotice() {
+  return (
+    <VideoNotice
+      icon={<LockKeyhole className="h-7 w-7" />}
+      title="Lesson path locked"
+      description="These lessons are visible in your course path, but none are unlocked for video access yet."
+      tone="neutral"
+    />
+  )
+}
+
+function isLessonLocked(lesson?: Lesson) {
+  return lesson?.locked === true || lesson?.lessonProgressStatus === 'LOCKED'
 }
 
 function LearningStatePanel({

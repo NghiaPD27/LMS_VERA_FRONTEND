@@ -16,9 +16,10 @@ export type VideoProgressSnapshot = components['schemas']['VideoProgressSnapshot
 export type LessonVideoStatus = 'PROCESSING' | 'READY' | 'FAILED' | (string & {})
 export type LessonProgressStatus =
   | 'LOCKED'
-  | 'VIDEO_AVAILABLE'
+  | 'VIDEO_IN_PROGRESS'
   | 'QUIZ_AVAILABLE'
   | 'WAITING_FOR_TEACHER'
+  | 'WAITING_FOR_CHECKPOINT'
   | 'COMPLETED'
   | (string & {})
 

@@ -88,7 +88,7 @@ export const MyLessonsPage: React.FC = () => {
                   Lessons
                 </h1>
                 <p className="lms-section-description">
-                  Lessons currently available in this program.
+                  Your full lesson path for this program.
                 </p>
               </div>
             </div>
