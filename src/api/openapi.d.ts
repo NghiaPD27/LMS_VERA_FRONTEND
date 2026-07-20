@@ -52,6 +52,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/quizzes/{quizId}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["startQuizAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quiz-attempts/{attemptId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitQuizAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/programs": {
         parameters: {
             query?: never;
@@ -142,6 +174,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["updateLessonVideoProgress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lessons/{lessonId}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLessonQuiz"];
+        put?: never;
+        post: operations["upsertLessonQuiz"];
         delete?: never;
         options?: never;
         head?: never;
@@ -599,6 +647,41 @@ export interface components {
             /** Format: date-time */
             paidAt?: string;
         };
+        QuizAttemptResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            quizId?: number;
+            /** Format: int64 */
+            lessonId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            /** Format: int32 */
+            attemptNumber?: number;
+            submitted?: boolean;
+            /** Format: int32 */
+            correctCount?: number;
+            /** Format: int32 */
+            totalQuestions?: number;
+            /** Format: int32 */
+            scorePercent?: number;
+            /** Format: int32 */
+            bestScorePercent?: number;
+            lessonProgressStatus?: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            submittedAt?: string;
+        };
+        SubmitQuizAnswerRequest: {
+            /** Format: int64 */
+            questionId: number;
+            /** Format: int64 */
+            selectedOptionId: number;
+        };
+        SubmitQuizAttemptRequest: {
+            answers: components["schemas"]["SubmitQuizAnswerRequest"][];
+        };
         CreateLessonRequest: {
             name: string;
             /** Format: int32 */
@@ -680,6 +763,42 @@ export interface components {
             lessonProgressStatus?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        QuizOptionRequest: {
+            optionText: string;
+            correct?: boolean;
+        };
+        QuizQuestionRequest: {
+            questionText: string;
+            options: components["schemas"]["QuizOptionRequest"][];
+        };
+        UpsertQuizRequest: {
+            title: string;
+            questions: components["schemas"]["QuizQuestionRequest"][];
+        };
+        QuizOptionResponse: {
+            /** Format: int64 */
+            id?: number;
+            optionText?: string;
+            /** Format: int32 */
+            position?: number;
+            correct?: boolean;
+        };
+        QuizQuestionResponse: {
+            /** Format: int64 */
+            id?: number;
+            questionText?: string;
+            /** Format: int32 */
+            position?: number;
+            options?: components["schemas"]["QuizOptionResponse"][];
+        };
+        QuizResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            lessonId?: number;
+            title?: string;
+            questions?: components["schemas"]["QuizQuestionResponse"][];
         };
         EnrollStudentRequest: {
             /** Format: int64 */
@@ -1054,6 +1173,54 @@ export interface operations {
             };
         };
     };
+    startQuizAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizAttemptResponse"];
+                };
+            };
+        };
+    };
+    submitQuizAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitQuizAttemptRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizAttemptResponse"];
+                };
+            };
+        };
+    };
     getPrograms: {
         parameters: {
             query?: {
@@ -1246,6 +1413,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["VideoProgressResponse"];
+                };
+            };
+        };
+    };
+    getLessonQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizResponse"];
+                };
+            };
+        };
+    };
+    upsertLessonQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertQuizRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizResponse"];
                 };
             };
         };

@@ -11,6 +11,7 @@ import {
 import { LessonTable } from '../../components/lessons/LessonTable'
 import { LessonForm, type LessonFormValues } from '../../components/lessons/LessonForm'
 import { LessonVideoManager } from '../../components/lessons/LessonVideoManager'
+import { LessonQuizManager } from '../../components/lessons/LessonQuizManager'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
@@ -49,6 +50,7 @@ export const ProgramDetailPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
   const [videoLesson, setVideoLesson] = useState<Lesson | null>(null)
+  const [quizLesson, setQuizLesson] = useState<Lesson | null>(null)
   const [deletingLessonId, setDeletingLessonId] = useState<number | null>(null)
   const [formServerError, setFormServerError] = useState<string | null>(null)
 
@@ -197,6 +199,7 @@ export const ProgramDetailPage: React.FC = () => {
             lessons={sortedLessons}
             onEdit={handleEditClick}
             onVideo={setVideoLesson}
+            onQuiz={setQuizLesson}
             onPublish={handlePublishClick}
             onDelete={handleDeleteClick}
           />
@@ -216,6 +219,11 @@ export const ProgramDetailPage: React.FC = () => {
         programId={pId}
         isOpen={!!videoLesson}
         onClose={() => setVideoLesson(null)}
+      />
+      <LessonQuizManager
+        lesson={quizLesson}
+        isOpen={!!quizLesson}
+        onClose={() => setQuizLesson(null)}
       />
     </section>
   )

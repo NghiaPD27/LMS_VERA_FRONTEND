@@ -3,9 +3,11 @@ import { AlertTriangle, BookOpen, CheckCircle2, LockKeyhole, PlayCircle, Refresh
 import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
+import { StudentQuizPanel } from './StudentQuizPanel'
 import type { Lesson, VideoProgress } from '../../types/lesson'
 import { useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
 import { getFriendlyApiErrorMessage, isForbiddenError } from '../../utils/errorMessage'
+import { formatLessonProgressStatus } from '../../utils/lessonProgress'
 
 interface StudentLessonVideoWorkspaceProps {
   lessons: Lesson[]
@@ -230,7 +232,9 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
           </div>
           {progressError && <p className="mt-2 text-sm text-red-700">{progressError}</p>}
           {lastProgress?.lessonProgressStatus && (
-            <p className="mt-2 text-sm text-muted-foreground">Status: {lastProgress.lessonProgressStatus}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Status: {formatLessonProgressStatus(lastProgress.lessonProgressStatus)}
+            </p>
           )}
         </div>
         <Button type="button" disabled={!isQuizAvailable} variant={isQuizAvailable ? 'default' : 'outline'}>
@@ -247,6 +251,8 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
           )}
         </Button>
       </div>
+
+      <StudentQuizPanel lessonId={lessonId} enabled={isQuizAvailable} />
     </article>
   )
 }

@@ -12,5 +12,11 @@ export type UpdateVideoProgressRequest = components['schemas']['UpdateVideoProgr
 export type VideoProgress = components['schemas']['VideoProgressResponse']
 export type VideoPlayback = components['schemas']['VideoPlaybackResponse']
 export type LessonVideoStatus = 'PROCESSING' | 'READY' | 'FAILED' | (string & {})
-export type LessonProgressStatus = 'LOCKED' | 'VIDEO_AVAILABLE' | 'QUIZ_AVAILABLE' | 'COMPLETED' | (string & {})
+export type LessonProgressStatus =
+  | 'LOCKED'
+  | 'VIDEO_AVAILABLE'
+  | 'QUIZ_AVAILABLE'
+  | 'WAITING_FOR_TEACHER'
+  | 'COMPLETED'
+  | (string & {})
 

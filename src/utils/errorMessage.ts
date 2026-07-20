@@ -39,4 +39,8 @@ export const isValidationError = (error: unknown): boolean => {
   return axios.isAxiosError(error) && error.response?.status === 400
 }
 
+export const isNotFoundError = (error: unknown): boolean => {
+  return axios.isAxiosError(error) && error.response?.status === 404
+}
+
 export const getFriendlyApiErrorMessage = getApiErrorMessage
