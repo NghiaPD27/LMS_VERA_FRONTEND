@@ -6,7 +6,7 @@ import { LoadingState } from '../common/LoadingState'
 import { StudentQuizPanel } from './StudentQuizPanel'
 import type { Lesson, VideoProgress } from '../../types/lesson'
 import { useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
-import { getFriendlyApiErrorMessage, isForbiddenError } from '../../utils/errorMessage'
+import { getFriendlyApiErrorMessage, isForbiddenError, isNotFoundError } from '../../utils/errorMessage'
 import { formatLessonProgressStatus } from '../../utils/lessonProgress'
 
 interface StudentLessonVideoWorkspaceProps {
@@ -152,8 +152,20 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         <VideoNotice
           icon={<LockKeyhole className="h-7 w-7" />}
           title="Video access locked"
-          description="This lesson is locked, expired, or not available for your current enrollment."
+          description="You do not have access to this lesson, the course may be expired, locked, or the video is not ready."
           tone="danger"
+          onRetry={() => void playbackQuery.refetch()}
+        />
+      )
+    }
+
+    if (isNotFoundError(playbackQuery.error)) {
+      return (
+        <VideoNotice
+          icon={<AlertTriangle className="h-7 w-7" />}
+          title="Video was not found"
+          description="Video was not found for this lesson."
+          tone="neutral"
           onRetry={() => void playbackQuery.refetch()}
         />
       )
@@ -195,6 +207,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
       <div className="bg-slate-950">
         <video
           ref={videoRef}
+          // Playback URL must come from the backend permission-checked response.
           src={playback.playbackUrl}
           controls
           poster={playback.thumbnailUrl}
