@@ -288,6 +288,11 @@ function LessonVideoElement({
   const [hasVideoFrame, setHasVideoFrame] = useState(false)
   const [thumbnailFailed, setThumbnailFailed] = useState(false)
   const loggedFirstFrameRef = useRef(false)
+  const normalizedPlaybackUrl = useMemo(() => normalizePlaybackUrl(playbackUrl), [playbackUrl])
+  const normalizedThumbnailUrl = useMemo(
+    () => (thumbnailUrl ? normalizePlaybackUrl(thumbnailUrl) : undefined),
+    [thumbnailUrl]
+  )
 
   useEffect(() => {
     const video = videoRef.current
@@ -301,8 +306,10 @@ function LessonVideoElement({
     video.removeAttribute('src')
     video.preload = 'metadata'
     logVideoDiagnostic('init', {
-      playbackUrl: getSafeUrlForLog(playbackUrl),
-      thumbnailUrl: thumbnailUrl ? getSafeUrlForLog(thumbnailUrl) : null,
+      rawPlaybackUrl: getSafeUrlForLog(playbackUrl),
+      normalizedPlaybackUrl: getSafeUrlForLog(normalizedPlaybackUrl),
+      rawThumbnailUrl: thumbnailUrl ? getSafeUrlForLog(thumbnailUrl) : null,
+      normalizedThumbnailUrl: normalizedThumbnailUrl ? getSafeUrlForLog(normalizedThumbnailUrl) : null,
       hlsSupported: Hls.isSupported(),
       nativeHlsSupport: video.canPlayType('application/vnd.apple.mpegurl') || 'not-supported',
       video: getVideoDebugState(video),
@@ -318,8 +325,8 @@ function LessonVideoElement({
         if (sourceLoaded) return
         sourceLoaded = true
         // Playback URL must come from the backend permission-checked response. Never construct Bunny URLs here.
-        logVideoDiagnostic('hls.loadSource', { playbackUrl: getSafeUrlForLog(playbackUrl) })
-        hls.loadSource(playbackUrl)
+        logVideoDiagnostic('hls.loadSource', { playbackUrl: getSafeUrlForLog(normalizedPlaybackUrl) })
+        hls.loadSource(normalizedPlaybackUrl)
       }
       const readyFallbackId = window.setTimeout(() => {
         logVideoDiagnostic('ready fallback timeout', { video: getVideoDebugState(video) })
@@ -383,8 +390,8 @@ function LessonVideoElement({
 
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // Safari can play HLS natively, using the same backend playbackUrl.
-      logVideoDiagnostic('native hls src assigned', { playbackUrl: getSafeUrlForLog(playbackUrl) })
-      video.src = playbackUrl
+      logVideoDiagnostic('native hls src assigned', { playbackUrl: getSafeUrlForLog(normalizedPlaybackUrl) })
+      video.src = normalizedPlaybackUrl
       setPlayerState('ready')
       return () => {
         logVideoDiagnostic('cleanup native hls player', { video: getVideoDebugState(video) })
@@ -394,7 +401,7 @@ function LessonVideoElement({
 
     logVideoDiagnostic('unsupported browser', { video: getVideoDebugState(video) })
     setVideoError('This browser cannot play this video format.')
-  }, [playbackUrl, thumbnailUrl, videoRef])
+  }, [normalizedPlaybackUrl, normalizedThumbnailUrl, playbackUrl, thumbnailUrl, videoRef])
 
   const handlePlayClick = async () => {
     const video = videoRef.current
@@ -418,15 +425,15 @@ function LessonVideoElement({
         </div>
       )}
       <div className="relative aspect-video overflow-hidden bg-slate-950">
-        {thumbnailUrl && !thumbnailFailed ? (
+        {normalizedThumbnailUrl && !thumbnailFailed ? (
           <img
-            src={thumbnailUrl}
+            src={normalizedThumbnailUrl}
             alt=""
             className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
               hasVideoFrame ? 'opacity-0' : 'opacity-70'
             }`}
             onError={() => {
-              logVideoDiagnostic('thumbnail error', { thumbnailUrl: getSafeUrlForLog(thumbnailUrl) })
+              logVideoDiagnostic('thumbnail error', { thumbnailUrl: getSafeUrlForLog(normalizedThumbnailUrl) })
               setThumbnailFailed(true)
             }}
           />
@@ -460,7 +467,7 @@ function LessonVideoElement({
         <video
           ref={videoRef}
           controls
-          poster={thumbnailUrl}
+          poster={normalizedThumbnailUrl}
           className={`relative z-10 aspect-video w-full bg-transparent transition-opacity ${
             hasVideoFrame || playerState === 'playing' ? 'opacity-100' : 'opacity-0'
           }`}
@@ -524,6 +531,50 @@ function LessonVideoElement({
 
 function logVideoDiagnostic(eventName: string, payload?: unknown) {
   console.info('[LessonVideoPlayer]', eventName, sanitizeVideoLogValue(payload))
+}
+
+function normalizePlaybackUrl(url: string) {
+  let normalizedUrl = url.trim()
+
+  normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+
+  const currentOrigin =
+    typeof window !== 'undefined' && window.location.origin !== 'null' ? window.location.origin : undefined
+
+  if (currentOrigin) {
+    const duplicateOriginPrefixes = [
+      `${currentOrigin}https://`,
+      `${currentOrigin}http://`,
+      `${currentOrigin}https//`,
+      `${currentOrigin}http//`,
+      `${currentOrigin}/https://`,
+      `${currentOrigin}/http://`,
+      `${currentOrigin}/https//`,
+      `${currentOrigin}/http//`,
+    ]
+
+    const duplicatePrefix = duplicateOriginPrefixes.find((prefix) => normalizedUrl.startsWith(prefix))
+    if (duplicatePrefix) {
+      normalizedUrl = normalizedUrl.slice(currentOrigin.length)
+      if (normalizedUrl.startsWith('/')) {
+        normalizedUrl = normalizedUrl.slice(1)
+      }
+      normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+    }
+  }
+
+  const protocolMatches = [...normalizedUrl.matchAll(/https?:\/\//gi)]
+  if (protocolMatches.length > 1) {
+    normalizedUrl = normalizedUrl.slice(protocolMatches[protocolMatches.length - 1].index)
+  }
+
+  const malformedProtocolMatches = [...normalizedUrl.matchAll(/https?\/\//gi)]
+  if (!/^https?:\/\//i.test(normalizedUrl) && malformedProtocolMatches.length > 0) {
+    normalizedUrl = normalizedUrl.slice(malformedProtocolMatches[malformedProtocolMatches.length - 1].index)
+    normalizedUrl = normalizedUrl.replace(/^https\/\//i, 'https://').replace(/^http\/\//i, 'http://')
+  }
+
+  return normalizedUrl
 }
 
 function sanitizeVideoLogValue(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
