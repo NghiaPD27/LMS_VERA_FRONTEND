@@ -1,21 +1,16 @@
-﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, ClipboardCheck, ClipboardList, GraduationCap, KeyRound, LayoutDashboard, LogOut, ReceiptText, Users } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { ClipboardCheck, GraduationCap, KeyRound, LogOut } from 'lucide-react'
 import { Button } from '../components/common/Button'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
 import { useCurrentUser, useLogout } from '../hooks/useAuth'
 import { cn } from '@/utils/cn'
 
 const navItems = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Users', href: '/admin/users', icon: Users },
-  { label: 'Programs', href: '/admin/programs', icon: BookOpen },
-  { label: 'Purchases', href: '/admin/purchases', icon: ReceiptText },
-  { label: 'Enrollments', href: '/admin/enrollments', icon: ClipboardList },
-  { label: 'Checkpoints', href: '/admin/checkpoints', icon: ClipboardCheck },
+  { label: 'Checkpoints', href: '/evaluator', icon: ClipboardCheck },
   { label: 'Change Password', href: '/change-password', icon: KeyRound },
 ]
 
-export function AdminLayout() {
+export function EvaluatorLayout() {
   const { data: user } = useCurrentUser()
   const { mutateAsync: logout } = useLogout()
   const navigate = useNavigate()
@@ -36,7 +31,7 @@ export function AdminLayout() {
             </div>
             <div>
               <p className="text-lg font-bold text-foreground">LMS Vera</p>
-              <p className="text-xs text-muted-foreground">Admin workspace</p>
+              <p className="text-xs text-muted-foreground">Evaluator workspace</p>
             </div>
           </div>
         </div>
@@ -51,8 +46,8 @@ export function AdminLayout() {
                 cn(
                   'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition-[background-color,color,transform] hover:-translate-y-0.5',
                   isActive
-                    ? 'bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] shadow-sm'
-                    : 'text-muted-foreground hover:bg-[hsl(var(--brand-orange-soft))] hover:text-foreground'
+                    ? 'bg-[hsl(var(--brand-orange-soft))] text-primary shadow-sm'
+                    : 'text-muted-foreground hover:bg-[hsl(var(--brand-green-soft))] hover:text-foreground'
                 )
               }
             >

@@ -109,6 +109,30 @@ const usersDb: UserState[] = [
       firstLoginAt: new Date().toISOString(),
       expiredAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
     }
+  },
+  {
+    id: '4',
+    username: 'evaluator',
+    email: 'evaluator@vera.com',
+    enabled: true,
+    role: 'evaluator',
+    password: 'password123',
+    mustChangePassword: false,
+    profile: {
+      userId: 4,
+      username: 'evaluator',
+      email: 'evaluator@vera.com',
+      firstName: 'Evan',
+      lastName: 'Tran',
+      phoneNumber: '1112223333',
+    },
+    accountAccess: {
+      userId: 4,
+      status: 'active',
+      mustChangePassword: false,
+      firstLoginAt: new Date().toISOString(),
+      expiredAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+    }
   }
 ]
 
@@ -187,6 +211,50 @@ const teacherBookingsDb: components['schemas']['TeacherBookingResponse'][] = [
   }
 ]
 const teacherEarningsDb: components['schemas']['TeacherEarningResponse'][] = []
+const checkpointEligibleDb: components['schemas']['CheckpointEligibleStudentResponse'][] = [
+  {
+    studentId: 3,
+    studentName: 'John Smith',
+    enrollmentId: 1,
+    programId: 1,
+    programName: 'Foundation English',
+    blockNumber: 1,
+    startLessonNumber: 1,
+    gateLessonNumber: 5,
+    nextLessonNumber: 6,
+    gateLessonId: 5,
+    gateLessonName: 'Block 1 review',
+    eligibleAt: new Date().toISOString(),
+  }
+]
+const checkpointSessionsDb: components['schemas']['CheckpointSessionResponse'][] = [
+  {
+    id: 1,
+    checkpointId: 1,
+    programId: 1,
+    programName: 'Foundation English',
+    blockNumber: 1,
+    startLessonNumber: 1,
+    gateLessonNumber: 5,
+    nextLessonNumber: 6,
+    evaluatorId: 4,
+    evaluatorName: 'Evan Tran',
+    scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    meetLink: 'https://meet.google.com/mock-room',
+    status: 'PENDING',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    participants: [
+      {
+        id: 1,
+        enrollmentId: 1,
+        studentId: 3,
+        studentName: 'John Smith',
+        addedAt: new Date().toISOString(),
+      }
+    ],
+  }
+]
 
 // Helper to authenticate user from Bearer token
 const getSessionUser = (request: Request): UserState | null => {
@@ -242,6 +310,17 @@ const toAdminTeacher = (user: UserState): components['schemas']['AdminTeacherRes
   lastName: user.profile.lastName,
   phoneNumber: user.profile.phoneNumber || undefined,
   bio: user.profile.bio || undefined,
+  enabled: user.enabled,
+  status: user.accountAccess.status,
+})
+
+const toAdminEvaluator = (user: UserState): components['schemas']['AdminEvaluatorResponse'] => ({
+  id: Number(user.id),
+  username: user.username,
+  email: user.email,
+  firstName: user.profile.firstName,
+  lastName: user.profile.lastName,
+  phoneNumber: user.profile.phoneNumber || undefined,
   enabled: user.enabled,
   status: user.accountAccess.status,
 })
@@ -700,6 +779,21 @@ export const handlers = [
   ),
 
   // 8. POST /api/admin/evaluators
+  http.get(
+    '/api/admin/evaluators',
+    ({ request }) => {
+      const { keyword, page, size } = getPageParams(request)
+      const evaluators = usersDb
+        .filter((user) => user.role === 'evaluator')
+        .map(toAdminEvaluator)
+        .filter((evaluator) => {
+          const haystack = `${evaluator.username || ''} ${evaluator.email || ''} ${evaluator.firstName || ''} ${evaluator.lastName || ''}`.toLowerCase()
+          return !keyword || haystack.includes(keyword)
+        })
+      return HttpResponse.json(paginate(evaluators, page, size))
+    }
+  ),
+
   http.post<never, components['schemas']['CreateEvaluatorRequest'], components['schemas']['EvaluatorProfileResponse'] | { message: string }>(
     '/api/admin/evaluators',
     async ({ request }) => {
@@ -1082,6 +1176,316 @@ export const handlers = [
       }
       teacherBookingsDb.unshift(booking)
       return HttpResponse.json(booking)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['CheckpointEligibleStudentResponse'][] | { message: string }>(
+    '/api/admin/checkpoint-eligible-students',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const programId = url.searchParams.get('programId')
+      const blockNumber = url.searchParams.get('blockNumber')
+      const filtered = checkpointEligibleDb.filter((student) =>
+        (!programId || String(student.programId) === programId) &&
+        (!blockNumber || String(student.blockNumber) === blockNumber)
+      )
+      return HttpResponse.json(filtered)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['PageResponseCheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const programId = url.searchParams.get('programId')
+      const blockNumber = url.searchParams.get('blockNumber')
+      const status = url.searchParams.get('status')
+      const page = Number(url.searchParams.get('page') || 0)
+      const size = Number(url.searchParams.get('size') || 20)
+      const filtered = checkpointSessionsDb.filter((session) =>
+        (!programId || String(session.programId) === programId) &&
+        (!blockNumber || String(session.blockNumber) === blockNumber) &&
+        (!status || session.status === status)
+      )
+      return HttpResponse.json(paginate(filtered, page, size))
+    }
+  ),
+
+  http.post<never, components['schemas']['CreateCheckpointSessionRequest'], components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const evaluator = usersDb.find((item) => Number(item.id) === body.evaluatorId && item.role === 'evaluator')
+      const program = programsDb.find((item) => item.id === body.programId)
+      if (!evaluator || !program) {
+        return HttpResponse.json({ message: 'Evaluator or program not found' }, { status: 400 })
+      }
+      const participantEnrollmentIds = body.participantEnrollmentIds ?? []
+      const duplicate = checkpointSessionsDb.some((session) =>
+        session.blockNumber === body.blockNumber &&
+        session.participants?.some((participant) => participant.enrollmentId && participantEnrollmentIds.includes(participant.enrollmentId))
+      )
+      if (duplicate) {
+        return HttpResponse.json({ message: 'Enrollment already has a pending checkpoint session' }, { status: 409 })
+      }
+      const session: components['schemas']['CheckpointSessionResponse'] = {
+        id: checkpointSessionsDb.length + 1,
+        checkpointId: checkpointSessionsDb.length + 1,
+        programId: body.programId,
+        programName: program.name,
+        blockNumber: body.blockNumber,
+        startLessonNumber: (body.blockNumber - 1) * 5 + 1,
+        gateLessonNumber: body.blockNumber * 5,
+        nextLessonNumber: body.blockNumber * 5 + 1,
+        evaluatorId: body.evaluatorId,
+        evaluatorName: [evaluator.profile.firstName, evaluator.profile.lastName].filter(Boolean).join(' ') || evaluator.username,
+        scheduledAt: body.scheduledAt,
+        meetLink: body.meetLink,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        participants: participantEnrollmentIds.map((enrollmentId, index) => {
+          const eligible = checkpointEligibleDb.find((item) => item.enrollmentId === enrollmentId)
+          return {
+            id: checkpointSessionsDb.length * 100 + index + 1,
+            enrollmentId,
+            studentId: eligible?.studentId,
+            studentName: eligible?.studentName,
+            addedAt: new Date().toISOString(),
+          }
+        }),
+      }
+      checkpointSessionsDb.unshift(session)
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.get<{ id: string }, never, components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions/:id',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.patch<{ id: string }, components['schemas']['UpdateCheckpointSessionRequest'], components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions/:id',
+    async ({ params, request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      if (session.participants?.some((participant) => participant.result)) {
+        return HttpResponse.json({ message: 'Cannot edit session after results are submitted' }, { status: 409 })
+      }
+      const evaluator = body.evaluatorId
+        ? usersDb.find((item) => Number(item.id) === body.evaluatorId && item.role === 'evaluator')
+        : undefined
+      if (body.evaluatorId && !evaluator) {
+        return HttpResponse.json({ message: 'Evaluator not found' }, { status: 400 })
+      }
+      session.evaluatorId = body.evaluatorId ?? session.evaluatorId
+      session.evaluatorName = evaluator ? [evaluator.profile.firstName, evaluator.profile.lastName].filter(Boolean).join(' ') || evaluator.username : session.evaluatorName
+      session.scheduledAt = body.scheduledAt ?? session.scheduledAt
+      session.meetLink = body.meetLink ?? session.meetLink
+      session.updatedAt = new Date().toISOString()
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.patch<{ id: string }, components['schemas']['UpdateCheckpointSessionStatusRequest'], components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions/:id/status',
+    async ({ params, request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      if (session.participants?.some((participant) => participant.result)) {
+        return HttpResponse.json({ message: 'Cannot cancel session after results are submitted' }, { status: 409 })
+      }
+      session.status = body.status
+      session.updatedAt = new Date().toISOString()
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.post<{ id: string }, components['schemas']['AddCheckpointParticipantsRequest'], components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions/:id/participants',
+    async ({ params, request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      const existingEnrollmentIds = new Set(session.participants?.map((participant) => participant.enrollmentId))
+      if (body.enrollmentIds.some((enrollmentId) => existingEnrollmentIds.has(enrollmentId))) {
+        return HttpResponse.json({ message: 'Duplicate participant' }, { status: 409 })
+      }
+      const nextParticipants = body.enrollmentIds.map((enrollmentId, index) => {
+        const eligible = checkpointEligibleDb.find((item) => item.enrollmentId === enrollmentId)
+        return {
+          id: (session.participants?.length ?? 0) + index + 1,
+          enrollmentId,
+          studentId: eligible?.studentId,
+          studentName: eligible?.studentName,
+          addedAt: new Date().toISOString(),
+        }
+      })
+      session.participants = [...(session.participants ?? []), ...nextParticipants]
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.delete<{ id: string; participantId: string }, never, components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/admin/checkpoint-sessions/:id/participants/:participantId',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      const participant = session.participants?.find((item) => item.id === Number(params.participantId))
+      if (!participant) {
+        return HttpResponse.json({ message: 'Participant not found' }, { status: 404 })
+      }
+      if (participant.result) {
+        return HttpResponse.json({ message: 'Cannot remove participant after result is submitted' }, { status: 409 })
+      }
+      session.participants = session.participants?.filter((item) => item.id !== Number(params.participantId))
+      session.updatedAt = new Date().toISOString()
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['StudentCheckpointStatusResponse'] | { message: string }>(
+    '/api/student/checkpoint-status',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.participants?.some((participant) => participant.studentId === Number(user.id)))
+      const participant = session?.participants?.find((item) => item.studentId === Number(user.id))
+      if (!session || !participant) {
+        return HttpResponse.json({ message: 'Checkpoint status not found' }, { status: 404 })
+      }
+      return HttpResponse.json({
+        lessonId: Number(new URL(request.url).searchParams.get('lessonId')),
+        lessonProgressStatus: 'WAITING_FOR_CHECKPOINT',
+        checkpointId: session.checkpointId,
+        sessionId: session.id,
+        participantId: participant.id,
+        programId: session.programId,
+        programName: session.programName,
+        blockNumber: session.blockNumber,
+        gateLessonNumber: session.gateLessonNumber,
+        nextLessonNumber: session.nextLessonNumber,
+        sessionStatus: session.status,
+        scheduledAt: session.scheduledAt,
+        meetLink: session.meetLink,
+        evaluatorId: session.evaluatorId,
+        evaluatorName: session.evaluatorName,
+        lastResult: participant.result?.result,
+        lastComment: participant.result?.comment,
+        lastEvaluatedAt: participant.result?.evaluatedAt,
+      })
+    }
+  ),
+
+  http.get<never, never, components['schemas']['CheckpointSessionResponse'][] | { message: string }>(
+    '/api/evaluator/checkpoint-sessions',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'evaluator') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      return HttpResponse.json(checkpointSessionsDb.filter((session) => session.evaluatorId === Number(user.id)))
+    }
+  ),
+
+  http.get<{ id: string }, never, components['schemas']['CheckpointSessionResponse'] | { message: string }>(
+    '/api/evaluator/checkpoint-sessions/:id',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'evaluator') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) => item.id === Number(params.id) && item.evaluatorId === Number(user.id))
+      if (!session) {
+        return HttpResponse.json({ message: 'Checkpoint session not found' }, { status: 404 })
+      }
+      return HttpResponse.json(session)
+    }
+  ),
+
+  http.post<never, components['schemas']['SubmitCheckpointResultRequest'], components['schemas']['CheckpointResultResponse'] | { message: string }>(
+    '/api/evaluator/checkpoint-results',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'evaluator') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const session = checkpointSessionsDb.find((item) =>
+        item.evaluatorId === Number(user.id) && item.participants?.some((participant) => participant.id === body.participantId)
+      )
+      const participant = session?.participants?.find((item) => item.id === body.participantId)
+      if (!session || !participant) {
+        return HttpResponse.json({ message: 'Participant not found in assigned session' }, { status: 403 })
+      }
+      if (participant.result) {
+        return HttpResponse.json({ message: 'Participant already has a result' }, { status: 409 })
+      }
+      const result: components['schemas']['CheckpointResultResponse'] = {
+        id: body.participantId,
+        participantId: body.participantId,
+        evaluatorId: Number(user.id),
+        result: body.result,
+        comment: body.comment,
+        evaluatedAt: new Date().toISOString(),
+      }
+      participant.result = result
+      if (session.participants?.every((item) => item.result)) {
+        session.status = 'COMPLETED'
+        session.updatedAt = new Date().toISOString()
+      }
+      return HttpResponse.json(result)
     }
   )
 ]

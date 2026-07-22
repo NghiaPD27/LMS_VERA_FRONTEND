@@ -21,6 +21,10 @@ const teacherHookState = vi.hoisted(() => ({
   createBooking: vi.fn(),
 }))
 
+const quizHookState = vi.hoisted(() => ({
+  getLessonQuiz: vi.fn(),
+}))
+
 vi.mock('../../../api/lessonApi', () => ({
   lessonApi: {
     getLessonLearningState: vi.fn(),
@@ -31,12 +35,15 @@ vi.mock('../../../api/lessonApi', () => ({
 }))
 
 vi.mock('../../../hooks/useQuiz', () => ({
-  useGetLessonQuiz: () => ({
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    refetch: vi.fn(),
-  }),
+  useGetLessonQuiz: (lessonId?: number, enabled = true) => {
+    quizHookState.getLessonQuiz(lessonId, enabled)
+    return {
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    }
+  },
   useStartQuizAttempt: () => ({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -72,6 +79,25 @@ vi.mock('../../../hooks/useTeacher', () => ({
   useCreateStudentBooking: () => ({
     mutateAsync: teacherHookState.createBooking,
     isPending: false,
+  }),
+}))
+
+vi.mock('../../../hooks/useCheckpoint', () => ({
+  useGetStudentCheckpointStatus: (lessonId?: number, enabled = true) => ({
+    data: enabled
+      ? {
+          lessonId,
+          lessonProgressStatus: 'WAITING_FOR_CHECKPOINT',
+          sessionStatus: 'PENDING',
+          blockNumber: 1,
+          scheduledAt: '2026-07-24T10:00:00Z',
+          evaluatorName: 'Evan Tran',
+          lastResult: undefined,
+        }
+      : undefined,
+    isLoading: false,
+    isError: false,
+    error: null,
   }),
 }))
 
@@ -147,6 +173,7 @@ describe('StudentLessonVideoWorkspace', () => {
   beforeEach(() => {
     teacherHookState.getSlots.mockClear()
     teacherHookState.createBooking.mockReset()
+    quizHookState.getLessonQuiz.mockClear()
     teacherHookState.createBooking.mockResolvedValue({
       id: 77,
       lessonId: 101,
@@ -295,6 +322,39 @@ describe('StudentLessonVideoWorkspace', () => {
       })
     )
     expect(await screen.findByText('Session booked')).toBeInTheDocument()
+  })
+
+  it('renders checkpoint waiting state without mounting quiz or booking panels', async () => {
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 300,
+        furthestWatchedSecond: 300,
+        watchedPercentage: 100,
+        completed: false,
+        lessonProgressStatus: 'WAITING_FOR_CHECKPOINT',
+      },
+      quizAvailable: false,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    renderWorkspace()
+
+    expect(await screen.findByText('Waiting for checkpoint')).toBeInTheDocument()
+    expect(screen.getByText('Waiting for evaluator')).toBeInTheDocument()
+    expect(screen.queryByText('Book your review session')).not.toBeInTheDocument()
+    expect(screen.queryByText('Quiz locked')).not.toBeInTheDocument()
+    await waitFor(() => expect(quizHookState.getLessonQuiz).not.toHaveBeenCalled())
   })
 
   it('renders locked lessons in the path without selecting them', async () => {

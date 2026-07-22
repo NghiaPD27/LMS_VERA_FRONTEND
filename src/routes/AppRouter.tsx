@@ -3,6 +3,7 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { StudentLayout } from '../layouts/StudentLayout'
 import { TeacherLayout } from '../layouts/TeacherLayout'
+import { EvaluatorLayout } from '../layouts/EvaluatorLayout'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { RegisterPage } from '../pages/auth/RegisterPage'
 import { ChangePasswordPage } from '../pages/auth/ChangePasswordPage'
@@ -15,6 +16,7 @@ import { ProgramsPage } from '../pages/admin/ProgramsPage'
 import { ProgramDetailPage } from '../pages/admin/ProgramDetailPage'
 import { EnrollmentPage } from '../pages/admin/EnrollmentPage'
 import { PurchasesPage } from '../pages/admin/PurchasesPage'
+import { CheckpointPage } from '../pages/admin/CheckpointPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
@@ -24,6 +26,7 @@ import { TeacherAvailabilityPage } from '../pages/teacher/TeacherAvailabilityPag
 import { TeacherBookingsPage } from '../pages/teacher/TeacherBookingsPage'
 import { TeacherDashboardPage } from '../pages/teacher/TeacherDashboardPage'
 import { TeacherStudentsPage } from '../pages/teacher/TeacherStudentsPage'
+import { EvaluatorCheckpointDetailPage, EvaluatorCheckpointPage } from '../pages/evaluator/EvaluatorCheckpointPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
 import { ROLES } from '../utils/constants'
@@ -67,6 +70,7 @@ export const router = createBrowserRouter([
               { path: 'admin/programs/:programId', element: <ProgramDetailPage /> },
               { path: 'admin/purchases', element: <PurchasesPage /> },
               { path: 'admin/enrollments', element: <EnrollmentPage /> },
+              { path: 'admin/checkpoints', element: <CheckpointPage /> },
             ],
           },
         ],
@@ -98,6 +102,18 @@ export const router = createBrowserRouter([
               { path: 'teacher/bookings', element: <TeacherBookingsPage /> },
               { path: 'teacher/availability', element: <TeacherAvailabilityPage /> },
               { path: 'teacher/students', element: <TeacherStudentsPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RoleRoute allowedRoles={[ROLES.EVALUATOR]} />,
+        children: [
+          {
+            element: <EvaluatorLayout />,
+            children: [
+              { path: 'evaluator', element: <EvaluatorCheckpointPage /> },
+              { path: 'evaluator/checkpoints/:sessionId', element: <EvaluatorCheckpointDetailPage /> },
             ],
           },
         ],

@@ -172,7 +172,6 @@ export const useUpdateLessonVideoProgress = () => {
             current?.quizAvailable === true ||
             progress.lessonProgressStatus === 'QUIZ_AVAILABLE' ||
             progress.lessonProgressStatus === 'WAITING_FOR_TEACHER' ||
-            progress.lessonProgressStatus === 'WAITING_FOR_CHECKPOINT' ||
             progress.lessonProgressStatus === 'COMPLETED',
         })
       )

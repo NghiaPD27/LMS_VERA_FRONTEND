@@ -292,6 +292,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evaluator/checkpoint-results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitCheckpointResult"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/enrollments": {
         parameters: {
             query?: never;
@@ -443,9 +459,41 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getEvaluators"];
         put?: never;
         post: operations["createEvaluator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/checkpoint-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointSessions"];
+        put?: never;
+        post: operations["createCheckpointSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/checkpoint-sessions/{id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["addCheckpointParticipants"];
         delete?: never;
         options?: never;
         head?: never;
@@ -514,6 +562,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["extendEnrollment"];
+        trace?: never;
+    };
+    "/api/admin/checkpoint-sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateCheckpointSession"];
+        trace?: never;
+    };
+    "/api/admin/checkpoint-sessions/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateCheckpointSessionStatus"];
         trace?: never;
     };
     "/api/teacher/students": {
@@ -596,6 +676,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/student/checkpoint-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/programs": {
         parameters: {
             query?: never;
@@ -652,6 +748,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getLessonLearningState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evaluator/checkpoint-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointSessions_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evaluator/checkpoint-sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointSession_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -767,6 +895,38 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/checkpoint-eligible-students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCheckpointEligibleStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/checkpoint-sessions/{id}/participants/{participantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["removeCheckpointParticipant"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1096,6 +1256,24 @@ export interface components {
             title?: string;
             questions?: components["schemas"]["QuizQuestionResponse"][];
         };
+        SubmitCheckpointResultRequest: {
+            /** Format: int64 */
+            participantId: number;
+            result: string;
+            comment?: string;
+        };
+        CheckpointResultResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            participantId?: number;
+            /** Format: int64 */
+            evaluatorId?: number;
+            result?: string;
+            comment?: string;
+            /** Format: date-time */
+            evaluatedAt?: string;
+        };
         EnrollStudentRequest: {
             /** Format: int64 */
             studentId: number;
@@ -1198,6 +1376,62 @@ export interface components {
             lastName?: string;
             phoneNumber?: string;
         };
+        CreateCheckpointSessionRequest: {
+            /** Format: int64 */
+            programId: number;
+            /** Format: int32 */
+            blockNumber: number;
+            /** Format: int64 */
+            evaluatorId: number;
+            /** Format: date-time */
+            scheduledAt: string;
+            meetLink: string;
+            participantEnrollmentIds?: number[];
+        };
+        CheckpointParticipantResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: date-time */
+            addedAt?: string;
+            result?: components["schemas"]["CheckpointResultResponse"];
+        };
+        CheckpointSessionResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            checkpointId?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int32 */
+            blockNumber?: number;
+            /** Format: int32 */
+            startLessonNumber?: number;
+            /** Format: int32 */
+            gateLessonNumber?: number;
+            /** Format: int32 */
+            nextLessonNumber?: number;
+            /** Format: int64 */
+            evaluatorId?: number;
+            evaluatorName?: string;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            participants?: components["schemas"]["CheckpointParticipantResponse"][];
+        };
+        AddCheckpointParticipantsRequest: {
+            enrollmentIds: number[];
+        };
         UpdateLessonRequest: {
             name: string;
             /** Format: int32 */
@@ -1239,6 +1473,16 @@ export interface components {
             /** Format: int32 */
             months: number;
         };
+        UpdateCheckpointSessionRequest: {
+            /** Format: int64 */
+            evaluatorId?: number;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+        };
+        UpdateCheckpointSessionStatusRequest: {
+            status: string;
+        };
         TeacherSlotResponse: {
             /** Format: int64 */
             teacherId?: number;
@@ -1249,6 +1493,37 @@ export interface components {
             startAt?: string;
             /** Format: date-time */
             endAt?: string;
+        };
+        StudentCheckpointStatusResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            lessonProgressStatus?: string;
+            /** Format: int64 */
+            checkpointId?: number;
+            /** Format: int64 */
+            sessionId?: number;
+            /** Format: int64 */
+            participantId?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int32 */
+            blockNumber?: number;
+            /** Format: int32 */
+            gateLessonNumber?: number;
+            /** Format: int32 */
+            nextLessonNumber?: number;
+            sessionStatus?: string;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+            /** Format: int64 */
+            evaluatorId?: number;
+            evaluatorName?: string;
+            lastResult?: string;
+            lastComment?: string;
+            /** Format: date-time */
+            lastEvaluatedAt?: string;
         };
         PageResponseProgramResponse: {
             content?: components["schemas"]["ProgramResponse"][];
@@ -1373,6 +1648,28 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
+        AdminEvaluatorResponse: {
+            /** Format: int64 */
+            id?: number;
+            username?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            phoneNumber?: string;
+            enabled?: boolean;
+            status?: string;
+        };
+        PageResponseAdminEvaluatorResponse: {
+            content?: components["schemas"]["AdminEvaluatorResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
         PageResponseAdminEnrollmentResponse: {
             content?: components["schemas"]["AdminEnrollmentResponse"][];
             /** Format: int64 */
@@ -1383,6 +1680,40 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        PageResponseCheckpointSessionResponse: {
+            content?: components["schemas"]["CheckpointSessionResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        CheckpointEligibleStudentResponse: {
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int32 */
+            blockNumber?: number;
+            /** Format: int32 */
+            startLessonNumber?: number;
+            /** Format: int32 */
+            gateLessonNumber?: number;
+            /** Format: int32 */
+            nextLessonNumber?: number;
+            /** Format: int64 */
+            gateLessonId?: number;
+            gateLessonName?: string;
+            /** Format: date-time */
+            eligibleAt?: string;
         };
     };
     responses: never;
@@ -2016,6 +2347,30 @@ export interface operations {
             };
         };
     };
+    submitCheckpointResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitCheckpointResultRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointResultResponse"];
+                };
+            };
+        };
+    };
     enrollStudent: {
         parameters: {
             query?: never;
@@ -2274,6 +2629,30 @@ export interface operations {
             };
         };
     };
+    getEvaluators: {
+        parameters: {
+            query?: {
+                keyword?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseAdminEvaluatorResponse"];
+                };
+            };
+        };
+    };
     createEvaluator: {
         parameters: {
             query?: never;
@@ -2294,6 +2673,84 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EvaluatorProfileResponse"];
+                };
+            };
+        };
+    };
+    getCheckpointSessions: {
+        parameters: {
+            query?: {
+                programId?: number;
+                blockNumber?: number;
+                status?: string;
+                weekStart?: string;
+                weekEnd?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseCheckpointSessionResponse"];
+                };
+            };
+        };
+    };
+    createCheckpointSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCheckpointSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
+                };
+            };
+        };
+    };
+    addCheckpointParticipants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCheckpointParticipantsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
                 };
             };
         };
@@ -2444,6 +2901,80 @@ export interface operations {
             };
         };
     };
+    getCheckpointSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
+                };
+            };
+        };
+    };
+    updateCheckpointSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCheckpointSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
+                };
+            };
+        };
+    };
+    updateCheckpointSessionStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCheckpointSessionStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
+                };
+            };
+        };
+    };
     getTeacherStudents: {
         parameters: {
             query?: never;
@@ -2550,6 +3081,28 @@ export interface operations {
             };
         };
     };
+    getCheckpointStatus: {
+        parameters: {
+            query: {
+                lessonId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentCheckpointStatusResponse"];
+                };
+            };
+        };
+    };
     getPublicPrograms: {
         parameters: {
             query?: {
@@ -2636,6 +3189,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LearningStateResponse"];
+                };
+            };
+        };
+    };
+    getCheckpointSessions_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"][];
+                };
+            };
+        };
+    };
+    getCheckpointSession_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
                 };
             };
         };
@@ -2796,6 +3391,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageResponseAdminEnrollmentResponse"];
+                };
+            };
+        };
+    };
+    getCheckpointEligibleStudents: {
+        parameters: {
+            query?: {
+                programId?: number;
+                blockNumber?: number;
+                weekStart?: string;
+                weekEnd?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointEligibleStudentResponse"][];
+                };
+            };
+        };
+    };
+    removeCheckpointParticipant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                participantId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckpointSessionResponse"];
                 };
             };
         };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import Hls from 'hls.js'
-import { AlertTriangle, BookOpen, CalendarClock, CheckCircle2, ImageIcon, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, BookOpen, CalendarClock, CheckCircle2, ClipboardCheck, ImageIcon, LockKeyhole, PlayCircle, RefreshCw } from 'lucide-react'
 import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
@@ -8,8 +8,10 @@ import { StudentQuizPanel } from './StudentQuizPanel'
 import { TeacherBookingPanel } from './TeacherBookingPanel'
 import type { LearningState, Lesson, VideoProgress, VideoProgressSnapshot } from '../../types/lesson'
 import { useGetLessonLearningState, useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
+import { useGetStudentCheckpointStatus } from '../../hooks/useCheckpoint'
 import { getFriendlyApiErrorMessage, isForbiddenError, isNotFoundError, isValidationError } from '../../utils/errorMessage'
 import { formatLessonProgressStatus } from '../../utils/lessonProgress'
+import { formatDateTime } from '../../utils/formatters'
 
 interface StudentLessonVideoWorkspaceProps {
   lessons: Lesson[]
@@ -88,6 +90,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   const isWaitingForTeacher = lessonProgressStatus === 'WAITING_FOR_TEACHER'
   const isWaitingForCheckpoint = lessonProgressStatus === 'WAITING_FOR_CHECKPOINT'
   const isCompleted = lessonProgressStatus === 'COMPLETED'
+  const canOpenQuiz = isQuizAvailable && !isWaitingForCheckpoint
 
   useEffect(() => {
     currentSecondRef.current = 0
@@ -322,8 +325,8 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         </div>
         <Button
           type="button"
-          disabled={!isQuizAvailable && !isWaitingForTeacher && !isWaitingForCheckpoint && !isCompleted}
-          variant={isQuizAvailable || isWaitingForTeacher || isCompleted ? 'default' : 'outline'}
+          disabled={!canOpenQuiz && !isWaitingForTeacher && !isWaitingForCheckpoint && !isCompleted}
+          variant={canOpenQuiz || isWaitingForTeacher || isCompleted ? 'default' : 'outline'}
         >
           {isWaitingForTeacher ? (
             <>
@@ -340,7 +343,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
               <CheckCircle2 className="h-4 w-4" />
               Completed
             </>
-          ) : isQuizAvailable ? (
+          ) : canOpenQuiz ? (
             <>
               <CheckCircle2 className="h-4 w-4" />
               Quiz available
@@ -359,12 +362,15 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         playbackStatus={playback.status}
         progress={progress}
         isLoading={learningStateQuery.isLoading}
-        isQuizAvailable={isQuizAvailable}
+        isQuizAvailable={canOpenQuiz}
+        isWaitingForCheckpoint={isWaitingForCheckpoint}
       />
 
       <TeacherBookingPanel lessonId={lessonId} enabled={isWaitingForTeacher} />
 
-      <StudentQuizPanel lessonId={lessonId} enabled={isQuizAvailable} />
+      <CheckpointWaitingPanel lessonId={lessonId} enabled={isWaitingForCheckpoint} />
+
+      {!isWaitingForCheckpoint && <StudentQuizPanel lessonId={lessonId} enabled={canOpenQuiz} />}
     </article>
   )
 }
@@ -435,12 +441,14 @@ function LearningStatePanel({
   progress,
   isLoading,
   isQuizAvailable,
+  isWaitingForCheckpoint,
 }: {
   learningState?: LearningState
   playbackStatus?: string
   progress?: VideoProgress | VideoProgressSnapshot
   isLoading: boolean
   isQuizAvailable: boolean
+  isWaitingForCheckpoint: boolean
 }) {
   return (
     <section className="border-t border-border bg-[hsl(var(--brand-green-soft))]/55 p-5">
@@ -456,9 +464,9 @@ function LearningStatePanel({
           tone={progress?.completed ? 'success' : 'neutral'}
         />
         <LearningStateCard
-          label="Quiz"
-          value={isQuizAvailable ? 'Available' : learningState?.hasQuiz === false ? 'Not added yet' : 'Locked'}
-          tone={isQuizAvailable ? 'success' : 'warning'}
+          label={isWaitingForCheckpoint ? 'Checkpoint' : 'Quiz'}
+          value={isWaitingForCheckpoint ? 'Waiting for evaluator' : isQuizAvailable ? 'Available' : learningState?.hasQuiz === false ? 'Not added yet' : 'Locked'}
+          tone={isWaitingForCheckpoint ? 'warning' : isQuizAvailable ? 'success' : 'warning'}
         />
         <LearningStateCard
           label="Enrollment"
@@ -520,8 +528,64 @@ function isQuizUnlockedByBackend(
     learningState?.quizAvailable === true ||
     progressStatus === 'QUIZ_AVAILABLE' ||
     progressStatus === 'WAITING_FOR_TEACHER' ||
-    progressStatus === 'WAITING_FOR_CHECKPOINT' ||
     progressStatus === 'COMPLETED'
+  )
+}
+
+function CheckpointWaitingPanel({ lessonId, enabled }: { lessonId?: number; enabled: boolean }) {
+  const checkpointStatusQuery = useGetStudentCheckpointStatus(lessonId, enabled)
+
+  if (!enabled) return null
+
+  const status = checkpointStatusQuery.data
+
+  return (
+    <section className="border-t border-border bg-amber-50 p-5">
+      <div className="rounded-lg border border-amber-200 bg-white p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+            <ClipboardCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-foreground">Waiting for checkpoint</h3>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Your evaluator checkpoint is pending. The next lesson block will unlock only after the evaluator submits PASS.
+            </p>
+            {checkpointStatusQuery.isLoading ? (
+              <p className="mt-3 text-sm font-semibold text-amber-800">Checking checkpoint schedule...</p>
+            ) : checkpointStatusQuery.isError ? (
+              <p className="mt-3 text-sm text-amber-800">Checkpoint details are not available yet.</p>
+            ) : status ? (
+              <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                <CheckpointStatusMeta label="Block" value={status.blockNumber ? `Block ${status.blockNumber}` : undefined} />
+                <CheckpointStatusMeta label="Session" value={status.sessionStatus || 'Pending'} />
+                <CheckpointStatusMeta label="Evaluator" value={status.evaluatorName || (status.evaluatorId ? `Evaluator #${status.evaluatorId}` : undefined)} />
+                <CheckpointStatusMeta label="Scheduled" value={status.scheduledAt ? formatDateTime(status.scheduledAt) : undefined} />
+                <CheckpointStatusMeta label="Last result" value={status.lastResult || 'No result yet'} />
+                <CheckpointStatusMeta label="Last evaluated" value={status.lastEvaluatedAt ? formatDateTime(status.lastEvaluatedAt) : undefined} />
+                {status.meetLink && (
+                  <a className="font-extrabold text-primary hover:underline sm:col-span-2" href={status.meetLink} target="_blank" rel="noreferrer">
+                    Open checkpoint Meet
+                  </a>
+                )}
+                {status.lastComment && (
+                  <p className="rounded-md border border-amber-200 bg-amber-50 p-3 sm:col-span-2">{status.lastComment}</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CheckpointStatusMeta({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="rounded-md border border-border bg-background p-3">
+      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</p>
+      <p className="mt-1 font-extrabold text-foreground">{value || '-'}</p>
+    </div>
   )
 }
 
