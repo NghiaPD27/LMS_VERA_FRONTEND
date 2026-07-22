@@ -1,16 +1,22 @@
 import { http } from './client'
 import type {
+  AdminTeacher,
+  AdminTeacherPage,
   TeacherAssignment,
   TeacherCompensation,
   TeacherEarningsSummary,
-  TeacherPage,
   TeacherQueryParams,
   UpsertTeacherCompensationRequest,
 } from '../types/teacher'
 
 export const teacherAdminApi = {
-  getTeachers: async (params: TeacherQueryParams = {}): Promise<TeacherPage> => {
+  getTeachers: async (params: TeacherQueryParams = {}): Promise<AdminTeacherPage> => {
     const response = await http.get('/admin/teachers', { params })
+    return response.data
+  },
+
+  getTeacher: async (id: number): Promise<AdminTeacher> => {
+    const response = await http.get(`/admin/teachers/${id}`)
     return response.data
   },
 
@@ -32,4 +38,3 @@ export const teacherAdminApi = {
     return response.data
   },
 }
-

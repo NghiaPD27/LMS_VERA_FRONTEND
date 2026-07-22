@@ -9,8 +9,8 @@ import { EnrollmentStatusBadge } from '../../components/enrollments/EnrollmentSt
 import type { AdminEnrollment } from '../../types/enrollment'
 import type { Program } from '../../types/program'
 import type { AdminStudent } from '../../types/user'
-import type { TeacherProfile } from '../../types/user'
-import { useAssignTeacher, useGetAdminTeachers, useGetTeacherEarnings, useUpsertTeacherCompensation } from '../../hooks/useTeacher'
+import type { AdminTeacher } from '../../types/teacher'
+import { useAssignTeacher, useGetAdminTeacher, useGetAdminTeachers, useGetTeacherEarnings, useUpsertTeacherCompensation } from '../../hooks/useTeacher'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import {
   getEnrollmentAccessBadgeClass,
@@ -37,10 +37,10 @@ const getProgramName = (program?: Program) => {
   return program?.name || `Program #${program?.id ?? ''}`
 }
 
-const getTeacherName = (teacher?: TeacherProfile) => {
+const getTeacherName = (teacher?: AdminTeacher) => {
   if (!teacher) return 'No teacher selected'
   const fullName = [teacher.firstName, teacher.lastName].filter(Boolean).join(' ').trim()
-  return fullName || teacher.username || `Teacher #${teacher.userId}`
+  return fullName || teacher.username || `Teacher #${teacher.id}`
 }
 
 export const EnrollmentPage: React.FC = () => {
@@ -521,13 +521,14 @@ export const EnrollmentPage: React.FC = () => {
 function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment }) {
   const [expanded, setExpanded] = useState(false)
   const [keyword, setKeyword] = useState('')
-  const [selectedTeacher, setSelectedTeacher] = useState<TeacherProfile | null>(null)
+  const [selectedTeacher, setSelectedTeacher] = useState<AdminTeacher | null>(null)
   const [compensationAmount, setCompensationAmount] = useState('')
   const [compensationCurrency, setCompensationCurrency] = useState('VND')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const teacherIdForEarnings = selectedTeacher?.userId || enrollment.teacherId
+  const teacherIdForEarnings = selectedTeacher?.id || enrollment.teacherId
   const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 6 }, expanded)
+  const currentTeacherQuery = useGetAdminTeacher(enrollment.teacherId, expanded && !!enrollment.teacherId)
   const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, expanded && !!teacherIdForEarnings)
   const assignTeacherMutation = useAssignTeacher()
   const compensationMutation = useUpsertTeacherCompensation()
@@ -535,14 +536,14 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
   const teachers = teachersQuery.data?.content ?? []
 
   const assignTeacher = async () => {
-    if (!enrollment.id || !selectedTeacher?.userId) return
+    if (!enrollment.id || !selectedTeacher?.id) return
 
     try {
       setMessage(null)
       setError(null)
       await assignTeacherMutation.mutateAsync({
         enrollmentId: enrollment.id,
-        teacherId: selectedTeacher.userId,
+        teacherId: selectedTeacher.id,
       })
       setMessage(`${getTeacherName(selectedTeacher)} assigned to ${enrollment.studentName || `Student #${enrollment.studentId}`}.`)
     } catch (err) {
@@ -551,7 +552,7 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
   }
 
   const saveCompensation = async () => {
-    const teacherId = selectedTeacher?.userId || enrollment.teacherId
+    const teacherId = selectedTeacher?.id || enrollment.teacherId
     const amountPerSession = Number(compensationAmount)
 
     if (!teacherId) {
@@ -599,7 +600,8 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
           <div className="mb-3 rounded-md border border-border bg-background p-3">
             <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Current teacher</p>
             <p className="mt-1 font-extrabold text-foreground">
-              {enrollment.teacherName || (enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
+              {enrollment.teacherName ||
+                (currentTeacherQuery.data ? getTeacherName(currentTeacherQuery.data) : enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
             </p>
             {enrollment.teacherAssignedAt && (
               <p className="mt-1 text-xs text-muted-foreground">Assigned {formatDateTime(enrollment.teacherAssignedAt)}</p>
@@ -631,15 +633,15 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
             ) : (
               teachers.map((teacher) => (
                 <button
-                  key={teacher.userId}
+                  key={teacher.id}
                   type="button"
                   className={`rounded-md border p-2 text-left text-sm transition ${
-                    selectedTeacher?.userId === teacher.userId
+                    selectedTeacher?.id === teacher.id
                       ? 'border-primary bg-[hsl(var(--brand-orange-soft))] text-foreground'
                       : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
                   }`}
                   onClick={() => setSelectedTeacher(teacher)}
-                  data-testid={`select-teacher-${teacher.userId}`}
+                  data-testid={`select-teacher-${teacher.id}`}
                 >
                   <p className="font-bold">{getTeacherName(teacher)}</p>
                   <p className="text-xs">{teacher.email || teacher.username}</p>
@@ -652,7 +654,7 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
             type="button"
             className="mt-3 w-full"
             size="sm"
-            disabled={!selectedTeacher?.userId || assignTeacherMutation.isPending}
+            disabled={!selectedTeacher?.id || assignTeacherMutation.isPending}
             onClick={() => void assignTeacher()}
             data-testid={`assign-teacher-${enrollment.id}`}
           >

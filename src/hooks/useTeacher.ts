@@ -10,6 +10,7 @@ import type {
 } from '../types/teacher'
 
 export const adminTeachersQueryKey = (params: TeacherQueryParams = {}) => ['admin-teachers', params] as const
+export const adminTeacherQueryKey = (id?: number) => ['admin-teacher', id] as const
 export const teacherEarningsQueryKey = (teacherId?: number) => ['teacher-earnings', teacherId] as const
 export const teacherStudentsQueryKey = ['teacher-students'] as const
 export const teacherBookingsQueryKey = (status?: string) => ['teacher-bookings', status || 'all'] as const
@@ -20,6 +21,14 @@ export const useGetAdminTeachers = (params: TeacherQueryParams = {}, enabled = t
     queryKey: adminTeachersQueryKey(params),
     queryFn: () => teacherAdminApi.getTeachers(params),
     enabled,
+    retry: false,
+  })
+
+export const useGetAdminTeacher = (id?: number, enabled = true) =>
+  useQuery({
+    queryKey: adminTeacherQueryKey(id),
+    queryFn: () => teacherAdminApi.getTeacher(id as number),
+    enabled: !!id && enabled,
     retry: false,
   })
 
@@ -120,4 +129,3 @@ export const useCreateStudentBooking = () => {
     },
   })
 }
-

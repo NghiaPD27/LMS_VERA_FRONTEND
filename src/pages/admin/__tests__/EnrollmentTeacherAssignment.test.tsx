@@ -69,7 +69,7 @@ vi.mock('../../../hooks/useTeacher', () => ({
     data: {
       content: [
         {
-          userId: 2,
+          id: 2,
           username: 'teacher',
           email: 'teacher@vera.com',
           firstName: 'Jane',
@@ -77,6 +77,11 @@ vi.mock('../../../hooks/useTeacher', () => ({
         },
       ],
     },
+    isLoading: false,
+    isError: false,
+  }),
+  useGetAdminTeacher: () => ({
+    data: undefined,
     isLoading: false,
     isError: false,
   }),
@@ -140,4 +145,3 @@ describe('EnrollmentPage teacher assignment', () => {
     )
   })
 })
-

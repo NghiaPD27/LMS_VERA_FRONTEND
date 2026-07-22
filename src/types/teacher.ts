@@ -1,7 +1,8 @@
 import type { components } from '../api/openapi'
-import type { TeacherProfile } from './user'
 
 export type AssignTeacherRequest = components['schemas']['AssignTeacherRequest']
+export type AdminTeacher = components['schemas']['AdminTeacherResponse']
+export type AdminTeacherPage = components['schemas']['PageResponseAdminTeacherResponse']
 export type TeacherAssignment = components['schemas']['TeacherAssignmentResponse']
 export type UpsertTeacherCompensationRequest = components['schemas']['UpsertTeacherCompensationRequest']
 export type TeacherCompensation = components['schemas']['TeacherCompensationResponse']
@@ -22,12 +23,3 @@ export interface TeacherQueryParams {
   page?: number
   size?: number
 }
-
-export interface TeacherPage {
-  content?: TeacherProfile[]
-  totalElements?: number
-  totalPages?: number
-  page?: number
-  size?: number
-}
-

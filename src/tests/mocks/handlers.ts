@@ -234,14 +234,16 @@ const toAdminStudent = (user: UserState): components['schemas']['AdminStudentRes
   status: user.accountAccess.status
 })
 
-const toTeacherProfile = (user: UserState): components['schemas']['TeacherProfileResponse'] => ({
-  userId: Number(user.id),
+const toAdminTeacher = (user: UserState): components['schemas']['AdminTeacherResponse'] => ({
+  id: Number(user.id),
   username: user.username,
   email: user.email,
   firstName: user.profile.firstName,
   lastName: user.profile.lastName,
   phoneNumber: user.profile.phoneNumber || undefined,
   bio: user.profile.bio || undefined,
+  enabled: user.enabled,
+  status: user.accountAccess.status,
 })
 
 const getTeacherDisplayName = (teacher?: UserState) => {
@@ -337,12 +339,23 @@ export const handlers = [
       const { keyword, page, size } = getPageParams(request)
       const teachers = usersDb
         .filter((user) => user.role === 'teacher')
-        .map(toTeacherProfile)
+        .map(toAdminTeacher)
         .filter((teacher) => {
           const haystack = `${teacher.username || ''} ${teacher.email || ''} ${teacher.firstName || ''} ${teacher.lastName || ''}`.toLowerCase()
           return !keyword || haystack.includes(keyword)
         })
       return HttpResponse.json(paginate(teachers, page, size))
+    }
+  ),
+
+  http.get<{ id: string }, never, components['schemas']['AdminTeacherResponse'] | { message: string }>(
+    '/api/admin/teachers/:id',
+    ({ params }) => {
+      const teacher = usersDb.find((user) => user.id === params.id && user.role === 'teacher')
+      if (!teacher) {
+        return HttpResponse.json({ message: 'Teacher not found' }, { status: 404 })
+      }
+      return HttpResponse.json(toAdminTeacher(teacher))
     }
   ),
 
