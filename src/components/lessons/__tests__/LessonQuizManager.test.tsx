@@ -14,12 +14,23 @@ const hookState = vi.hoisted(() => ({
     refetch: vi.fn(),
   },
   upsertQuiz: vi.fn(),
+  deleteQuiz: vi.fn(),
 }))
 
 vi.mock('../../../hooks/useQuiz', () => ({
   useGetLessonQuiz: () => hookState.quizQuery,
+  useGetLessonQuizAttempts: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
   useUpsertLessonQuiz: () => ({
     mutateAsync: hookState.upsertQuiz,
+    isPending: false,
+  }),
+  useDeleteLessonQuiz: () => ({
+    mutateAsync: hookState.deleteQuiz,
     isPending: false,
   }),
 }))
@@ -60,6 +71,7 @@ describe('LessonQuizManager', () => {
     hookState.quizQuery.isError = false
     hookState.quizQuery.error = null
     hookState.quizQuery.refetch.mockReset()
+    hookState.deleteQuiz.mockReset()
     hookState.upsertQuiz.mockImplementation(async ({ data }: { data: UpsertQuizRequest }) => ({
       id: 11,
       lessonId: 101,

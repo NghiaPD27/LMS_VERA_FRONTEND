@@ -7,6 +7,7 @@ import { TeacherBookingsPage } from '../TeacherBookingsPage'
 
 const hookState = vi.hoisted(() => ({
   createAvailability: vi.fn(),
+  deleteAvailability: vi.fn(),
   reviewBooking: vi.fn(),
   bookingsStatus: undefined as string | undefined,
 }))
@@ -14,6 +15,18 @@ const hookState = vi.hoisted(() => ({
 vi.mock('../../../hooks/useTeacher', () => ({
   useCreateTeacherAvailability: () => ({
     mutateAsync: hookState.createAvailability,
+    isPending: false,
+  }),
+  useGetTeacherAvailability: () => ({
+    data: [],
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useDeleteTeacherAvailability: () => ({
+    mutateAsync: hookState.deleteAvailability,
     isPending: false,
   }),
   useGetTeacherBookings: (status?: string) => {
@@ -55,6 +68,7 @@ const createAxiosError = (status: number, message: string) =>
 describe('Teacher workspace', () => {
   beforeEach(() => {
     hookState.createAvailability.mockReset()
+    hookState.deleteAvailability.mockReset()
     hookState.reviewBooking.mockReset()
     hookState.bookingsStatus = undefined
   })
@@ -95,4 +109,3 @@ describe('Teacher workspace', () => {
     expect(await screen.findByText('Teacher compensation must be configured before review')).toBeInTheDocument()
   })
 })
-

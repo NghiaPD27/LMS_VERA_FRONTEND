@@ -18,7 +18,9 @@ const hlsMock = vi.hoisted(() => ({
 
 const teacherHookState = vi.hoisted(() => ({
   getSlots: vi.fn(),
+  getBookings: vi.fn(),
   createBooking: vi.fn(),
+  cancelBooking: vi.fn(),
 }))
 
 const quizHookState = vi.hoisted(() => ({
@@ -55,6 +57,17 @@ vi.mock('../../../hooks/useQuiz', () => ({
 }))
 
 vi.mock('../../../hooks/useTeacher', () => ({
+  useGetStudentBookings: (params = {}, enabled = true) => {
+    teacherHookState.getBookings(params, enabled)
+    return {
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    }
+  },
   useGetStudentTeacherSlots: (lessonId?: number, enabled = true) => {
     teacherHookState.getSlots(lessonId, enabled)
     return {
@@ -78,6 +91,10 @@ vi.mock('../../../hooks/useTeacher', () => ({
   },
   useCreateStudentBooking: () => ({
     mutateAsync: teacherHookState.createBooking,
+    isPending: false,
+  }),
+  useCancelStudentBooking: () => ({
+    mutateAsync: teacherHookState.cancelBooking,
     isPending: false,
   }),
 }))
@@ -172,7 +189,9 @@ const createAxiosError = (status: number) =>
 describe('StudentLessonVideoWorkspace', () => {
   beforeEach(() => {
     teacherHookState.getSlots.mockClear()
+    teacherHookState.getBookings.mockClear()
     teacherHookState.createBooking.mockReset()
+    teacherHookState.cancelBooking.mockReset()
     quizHookState.getLessonQuiz.mockClear()
     teacherHookState.createBooking.mockResolvedValue({
       id: 77,

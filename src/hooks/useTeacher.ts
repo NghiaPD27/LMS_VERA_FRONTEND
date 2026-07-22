@@ -5,6 +5,8 @@ import { teacherApi } from '../api/teacherApi'
 import type {
   CreateAvailabilityRequest,
   ReviewBookingRequest,
+  StudentBookingQueryParams,
+  TeacherAvailabilityQueryParams,
   TeacherQueryParams,
   UpsertTeacherCompensationRequest,
 } from '../types/teacher'
@@ -14,7 +16,9 @@ export const adminTeacherQueryKey = (id?: number) => ['admin-teacher', id] as co
 export const teacherEarningsQueryKey = (teacherId?: number) => ['teacher-earnings', teacherId] as const
 export const teacherStudentsQueryKey = ['teacher-students'] as const
 export const teacherBookingsQueryKey = (status?: string) => ['teacher-bookings', status || 'all'] as const
+export const teacherAvailabilityQueryKey = (params: TeacherAvailabilityQueryParams = {}) => ['teacher-availability', params] as const
 export const studentTeacherSlotsQueryKey = (lessonId?: number) => ['student-teacher-slots', lessonId] as const
+export const studentBookingsQueryKey = (params: StudentBookingQueryParams = {}) => ['student-bookings', params] as const
 
 export const useGetAdminTeachers = (params: TeacherQueryParams = {}, enabled = true) =>
   useQuery({
@@ -75,7 +79,27 @@ export const useCreateTeacherAvailability = () => {
   return useMutation({
     mutationFn: (data: CreateAvailabilityRequest) => teacherApi.createAvailability(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher-availability'] })
       queryClient.invalidateQueries({ queryKey: teacherBookingsQueryKey() })
+    },
+  })
+}
+
+export const useGetTeacherAvailability = (params: TeacherAvailabilityQueryParams = {}) =>
+  useQuery({
+    queryKey: teacherAvailabilityQueryKey(params),
+    queryFn: () => teacherApi.getAvailability(params),
+    retry: false,
+  })
+
+export const useDeleteTeacherAvailability = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => teacherApi.deleteAvailability(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher-availability'] })
+      queryClient.invalidateQueries({ queryKey: ['student-teacher-slots'] })
     },
   })
 }
@@ -126,6 +150,29 @@ export const useCreateStudentBooking = () => {
         queryClient.invalidateQueries({ queryKey: ['lesson-learning-state', booking.lessonId] })
       }
       queryClient.invalidateQueries({ queryKey: ['student-enrollments'] })
+    },
+  })
+}
+
+export const useGetStudentBookings = (params: StudentBookingQueryParams = {}, enabled = true) =>
+  useQuery({
+    queryKey: studentBookingsQueryKey(params),
+    queryFn: () => studentTeacherApi.getBookings(params),
+    enabled,
+    retry: false,
+  })
+
+export const useCancelStudentBooking = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => studentTeacherApi.cancelBooking(id),
+    onSuccess: (booking) => {
+      queryClient.invalidateQueries({ queryKey: ['student-bookings'] })
+      queryClient.invalidateQueries({ queryKey: studentTeacherSlotsQueryKey(booking.lessonId) })
+      if (booking.lessonId) {
+        queryClient.invalidateQueries({ queryKey: ['lesson-learning-state', booking.lessonId] })
+      }
     },
   })
 }

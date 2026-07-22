@@ -37,6 +37,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
             <TableHead>Name</TableHead>
             <TableHead>Content</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Readiness</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -52,6 +53,21 @@ export const LessonTable: React.FC<LessonTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <LessonStatusBadge status={lesson.status} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
+                    <ReadinessBadge
+                      label={lesson.hasVideo ? getVideoLabel(lesson.videoStatus) : 'Missing video'}
+                      tone={lesson.hasVideo ? getVideoTone(lesson.videoStatus) : 'warning'}
+                    />
+                    <ReadinessBadge
+                      label={lesson.hasQuiz ? `Quiz ${lesson.questionCount ?? 0} questions` : 'Missing quiz'}
+                      tone={lesson.hasQuiz ? 'success' : 'warning'}
+                    />
+                    {typeof lesson.videoDurationSeconds === 'number' && lesson.videoDurationSeconds > 0 && (
+                      <ReadinessBadge label={`${Math.round(lesson.videoDurationSeconds / 60)} min`} tone="neutral" />
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
@@ -104,5 +120,28 @@ export const LessonTable: React.FC<LessonTableProps> = ({
       </Table>
     </div>
   )
+}
+
+function ReadinessBadge({ label, tone }: { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' }) {
+  const className = {
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    warning: 'border-amber-200 bg-amber-50 text-amber-800',
+    danger: 'border-red-200 bg-red-50 text-red-800',
+    neutral: 'border-slate-200 bg-slate-50 text-slate-700',
+  }[tone]
+
+  return <span className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${className}`}>{label}</span>
+}
+
+function getVideoLabel(status?: string) {
+  if (!status) return 'Video attached'
+  return `Video ${status.toLowerCase()}`
+}
+
+function getVideoTone(status?: string): 'success' | 'warning' | 'danger' | 'neutral' {
+  if (status === 'READY') return 'success'
+  if (status === 'FAILED') return 'danger'
+  if (status === 'PROCESSING') return 'warning'
+  return 'neutral'
 }
 

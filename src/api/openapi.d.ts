@@ -91,7 +91,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getAvailability"];
         put?: never;
         post: operations["createAvailability"];
         delete?: never;
@@ -123,7 +123,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getBookings"];
         put?: never;
         post: operations["createBooking"];
         delete?: never;
@@ -270,7 +270,7 @@ export interface paths {
         get: operations["getLessonQuiz"];
         put?: never;
         post: operations["upsertLessonQuiz"];
-        delete?: never;
+        delete: operations["deleteLessonQuiz"];
         options?: never;
         head?: never;
         patch?: never;
@@ -404,6 +404,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/teachers": {
         parameters: {
             query?: never;
@@ -500,6 +516,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/student/bookings/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["cancelBooking"];
+        trace?: never;
+    };
     "/api/lessons/{id}": {
         parameters: {
             query?: never;
@@ -539,13 +571,29 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getUser"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/api/admin/purchases/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updatePurchaseStatus"];
         trace?: never;
     };
     "/api/admin/enrollments/{id}/extend": {
@@ -804,6 +852,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/teachers/{teacherId}/earnings": {
         parameters: {
             query?: never;
@@ -884,6 +948,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/purchases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAdminPurchase"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/purchases/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPurchaseEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/lessons/{lessonId}/quiz-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLessonQuizAttempts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/enrollments": {
         parameters: {
             query?: never;
@@ -911,6 +1023,22 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teacher/availability/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["cancelAvailability"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1064,6 +1192,7 @@ export interface components {
             startAt?: string;
             /** Format: date-time */
             endAt?: string;
+            status?: string;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -1094,6 +1223,7 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             paidAt?: string;
+            adminNote?: string;
         };
         CreateBookingRequest: {
             /** Format: int64 */
@@ -1154,6 +1284,13 @@ export interface components {
             status?: string;
             lessonProgressStatus?: string;
             locked?: boolean;
+            hasVideo?: boolean;
+            videoStatus?: string;
+            /** Format: int32 */
+            videoDurationSeconds?: number;
+            hasQuiz?: boolean;
+            /** Format: int32 */
+            questionCount?: number;
         };
         UpsertLessonVideoRequest: {
             bunnyVideoId: string;
@@ -1287,11 +1424,19 @@ export interface components {
             studentId?: number;
             /** Format: int64 */
             programId?: number;
+            programName?: string;
             status?: string;
             /** Format: date-time */
             enrolledAt?: string;
             /** Format: date-time */
             expiredAt?: string;
+            /** Format: int32 */
+            progressPercent?: number;
+            /** Format: int32 */
+            currentLessonNumber?: number;
+            currentLessonName?: string;
+            currentLessonStatus?: string;
+            nextAction?: string;
         };
         RegisterStudentRequest: {
             username: string;
@@ -1329,15 +1474,27 @@ export interface components {
             oldPassword?: string;
             newPassword?: string;
         };
-        CreateTeacherRequest: {
-            username: string;
-            /** Format: email */
-            email: string;
-            password: string;
-            firstName: string;
-            lastName: string;
+        ResetPasswordRequest: {
+            temporaryPassword: string;
+        };
+        AccountAccessResponse: {
+            /** Format: int64 */
+            userId?: number;
+            status?: string;
+            mustChangePassword?: boolean;
+            /** Format: date-time */
+            firstLoginAt?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+        };
+        EvaluatorProfileResponse: {
+            /** Format: int64 */
+            userId?: number;
+            username?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
             phoneNumber?: string;
-            bio?: string;
         };
         TeacherProfileResponse: {
             /** Format: int64 */
@@ -1346,6 +1503,28 @@ export interface components {
             email?: string;
             firstName?: string;
             lastName?: string;
+            phoneNumber?: string;
+            bio?: string;
+        };
+        UserResponse: {
+            /** Format: int64 */
+            id?: number;
+            username?: string;
+            email?: string;
+            enabled?: boolean;
+            role?: string;
+            studentProfile?: components["schemas"]["StudentProfileResponse"];
+            teacherProfile?: components["schemas"]["TeacherProfileResponse"];
+            evaluatorProfile?: components["schemas"]["EvaluatorProfileResponse"];
+            accountAccess?: components["schemas"]["AccountAccessResponse"];
+        };
+        CreateTeacherRequest: {
+            username: string;
+            /** Format: email */
+            email: string;
+            password: string;
+            firstName: string;
+            lastName: string;
             phoneNumber?: string;
             bio?: string;
         };
@@ -1365,15 +1544,6 @@ export interface components {
             password: string;
             firstName: string;
             lastName: string;
-            phoneNumber?: string;
-        };
-        EvaluatorProfileResponse: {
-            /** Format: int64 */
-            userId?: number;
-            username?: string;
-            email?: string;
-            firstName?: string;
-            lastName?: string;
             phoneNumber?: string;
         };
         CreateCheckpointSessionRequest: {
@@ -1427,6 +1597,11 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+            /** Format: int32 */
+            participantCount?: number;
+            /** Format: int32 */
+            resultSubmittedCount?: number;
+            canManage?: boolean;
             participants?: components["schemas"]["CheckpointParticipantResponse"][];
         };
         AddCheckpointParticipantsRequest: {
@@ -1447,27 +1622,9 @@ export interface components {
             enabled?: boolean;
             status?: string;
         };
-        AccountAccessResponse: {
-            /** Format: int64 */
-            userId?: number;
-            status?: string;
-            mustChangePassword?: boolean;
-            /** Format: date-time */
-            firstLoginAt?: string;
-            /** Format: date-time */
-            expiredAt?: string;
-        };
-        UserResponse: {
-            /** Format: int64 */
-            id?: number;
-            username?: string;
-            email?: string;
-            enabled?: boolean;
-            role?: string;
-            studentProfile?: components["schemas"]["StudentProfileResponse"];
-            teacherProfile?: components["schemas"]["TeacherProfileResponse"];
-            evaluatorProfile?: components["schemas"]["EvaluatorProfileResponse"];
-            accountAccess?: components["schemas"]["AccountAccessResponse"];
+        UpdatePurchaseStatusRequest: {
+            status: string;
+            note?: string;
         };
         ExtendEnrollmentRequest: {
             /** Format: int32 */
@@ -1482,6 +1639,25 @@ export interface components {
         };
         UpdateCheckpointSessionStatusRequest: {
             status: string;
+        };
+        TeacherAvailabilitySlotResponse: {
+            /** Format: int64 */
+            availabilityId?: number;
+            /** Format: int64 */
+            teacherId?: number;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date-time */
+            endAt?: string;
+            status?: string;
+            /** Format: int64 */
+            bookingId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            lessonId?: number;
+            lessonName?: string;
         };
         TeacherSlotResponse: {
             /** Format: int64 */
@@ -1569,6 +1745,26 @@ export interface components {
             completed?: boolean;
             lessonProgressStatus?: string;
         };
+        AdminUserSummaryResponse: {
+            /** Format: int64 */
+            id?: number;
+            username?: string;
+            email?: string;
+            role?: string;
+            enabled?: boolean;
+            status?: string;
+        };
+        PageResponseAdminUserSummaryResponse: {
+            content?: components["schemas"]["AdminUserSummaryResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
         AdminTeacherResponse: {
             /** Format: int64 */
             id?: number;
@@ -1636,6 +1832,11 @@ export interface components {
             enrolledAt?: string;
             /** Format: date-time */
             expiredAt?: string;
+            /** Format: int64 */
+            teacherId?: number;
+            teacherName?: string;
+            /** Format: date-time */
+            teacherAssignedAt?: string;
         };
         PageResponsePurchaseResponse: {
             content?: components["schemas"]["PurchaseResponse"][];
@@ -1647,6 +1848,17 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        PurchaseEventResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            purchaseId?: number;
+            oldStatus?: string;
+            newStatus?: string;
+            note?: string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         AdminEvaluatorResponse: {
             /** Format: int64 */
@@ -1897,6 +2109,30 @@ export interface operations {
             };
         };
     };
+    getAvailability: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherAvailabilitySlotResponse"][];
+                };
+            };
+        };
+    };
     createAvailability: {
         parameters: {
             query?: never;
@@ -1961,6 +2197,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
+    getBookings: {
+        parameters: {
+            query?: {
+                lessonId?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherBookingResponse"][];
                 };
             };
         };
@@ -2325,6 +2584,26 @@ export interface operations {
             };
         };
     };
+    deleteLessonQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     publishLesson: {
         parameters: {
             query?: never;
@@ -2508,6 +2787,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserResponse"];
+                };
             };
         };
     };
@@ -2755,6 +3060,28 @@ export interface operations {
             };
         };
     };
+    cancelBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherBookingResponse"];
+                };
+            };
+        };
+    };
     getLesson: {
         parameters: {
             query?: never;
@@ -2849,6 +3176,28 @@ export interface operations {
             };
         };
     };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
     updateUser: {
         parameters: {
             query?: never;
@@ -2871,6 +3220,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    updatePurchaseStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePurchaseStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"];
                 };
             };
         };
@@ -3255,6 +3630,32 @@ export interface operations {
             };
         };
     };
+    getUsers: {
+        parameters: {
+            query?: {
+                role?: string;
+                keyword?: string;
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseAdminUserSummaryResponse"];
+                };
+            };
+        };
+    };
     getTeacherEarnings: {
         parameters: {
             query?: never;
@@ -3369,6 +3770,72 @@ export interface operations {
             };
         };
     };
+    getAdminPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
+    getPurchaseEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PurchaseEventResponse"][];
+                };
+            };
+        };
+    };
+    getLessonQuizAttempts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizAttemptResponse"][];
+                };
+            };
+        };
+    };
     getAdminEnrollments: {
         parameters: {
             query?: {
@@ -3416,6 +3883,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CheckpointEligibleStudentResponse"][];
+                };
+            };
+        };
+    };
+    cancelAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherAvailabilityResponse"];
                 };
             };
         };

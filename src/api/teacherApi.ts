@@ -4,6 +4,8 @@ import type {
   ReviewBookingRequest,
   TeacherAssignment,
   TeacherAvailability,
+  TeacherAvailabilityQueryParams,
+  TeacherAvailabilitySlot,
   TeacherBooking,
   TeacherReview,
 } from '../types/teacher'
@@ -12,6 +14,15 @@ export const teacherApi = {
   createAvailability: async (data: CreateAvailabilityRequest): Promise<TeacherAvailability> => {
     const response = await http.post('/teacher/availability', data)
     return response.data
+  },
+
+  getAvailability: async (params: TeacherAvailabilityQueryParams = {}): Promise<TeacherAvailabilitySlot[]> => {
+    const response = await http.get('/teacher/availability', { params })
+    return response.data
+  },
+
+  deleteAvailability: async (id: number): Promise<void> => {
+    await http.delete(`/teacher/availability/${id}`)
   },
 
   getStudents: async (): Promise<TeacherAssignment[]> => {
@@ -29,4 +40,3 @@ export const teacherApi = {
     return response.data
   },
 }
-

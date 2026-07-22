@@ -90,13 +90,33 @@ export function StudentDashboardPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Program</p>
-                      <h3 className="mt-1 text-lg font-extrabold text-foreground">Program #{enrollment.programId}</h3>
+                      <h3 className="mt-1 text-lg font-extrabold text-foreground">{enrollment.programName || `Program #${enrollment.programId}`}</h3>
                     </div>
                     <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
                       {getEnrollmentAccessLabel(enrollment)}
                     </span>
                   </div>
                   <dl className="mt-4 space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-muted-foreground">Progress</dt>
+                      <dd className="text-right font-semibold text-primary">
+                        {typeof enrollment.progressPercent === 'number' ? `${Math.max(0, Math.min(100, enrollment.progressPercent))}%` : 'Not started'}
+                      </dd>
+                    </div>
+                    {(enrollment.currentLessonName || enrollment.currentLessonNumber) && (
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Current</dt>
+                        <dd className="text-right font-semibold text-foreground">
+                          {enrollment.currentLessonName || `Lesson ${enrollment.currentLessonNumber}`}
+                        </dd>
+                      </div>
+                    )}
+                    {enrollment.nextAction && (
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Next</dt>
+                        <dd className="text-right font-semibold text-foreground">{formatNextAction(enrollment.nextAction)}</dd>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-3">
                       <dt className="text-muted-foreground">Enrolled</dt>
                       <dd className="text-right font-semibold text-foreground">{formatDateTime(enrollment.enrolledAt)}</dd>
@@ -127,4 +147,11 @@ export function StudentDashboardPage() {
       </div>
     </section>
   )
+}
+
+function formatNextAction(value: string) {
+  return value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, (char) => char.toUpperCase())
 }

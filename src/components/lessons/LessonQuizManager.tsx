@@ -11,8 +11,8 @@ import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
 import type { Lesson } from '../../types/lesson'
-import type { Quiz, UpsertQuizRequest } from '../../types/quiz'
-import { useGetLessonQuiz, useUpsertLessonQuiz } from '../../hooks/useQuiz'
+import type { Quiz, QuizAttempt, UpsertQuizRequest } from '../../types/quiz'
+import { useDeleteLessonQuiz, useGetLessonQuiz, useGetLessonQuizAttempts, useUpsertLessonQuiz } from '../../hooks/useQuiz'
 import { getFriendlyApiErrorMessage, isNotFoundError } from '../../utils/errorMessage'
 
 interface LessonQuizManagerProps {
@@ -108,14 +108,16 @@ const toRequest = (draft: QuizDraft): UpsertQuizRequest => ({
 export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManagerProps) {
   const lessonId = lesson?.id
   const quizQuery = useGetLessonQuiz(lessonId, isOpen)
+  const quizMissing = quizQuery.isError && isNotFoundError(quizQuery.error)
+  const attemptsQuery = useGetLessonQuizAttempts(lessonId, isOpen && !!lessonId && !quizMissing)
   const upsertQuizMutation = useUpsertLessonQuiz()
+  const deleteQuizMutation = useDeleteLessonQuiz()
   const [draft, setDraft] = useState<QuizDraft>(createEmptyQuiz)
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0)
   const [clientError, setClientError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const quizMissing = quizQuery.isError && isNotFoundError(quizQuery.error)
-  const isBusy = upsertQuizMutation.isPending
+  const isBusy = upsertQuizMutation.isPending || deleteQuizMutation.isPending
 
   useEffect(() => {
     if (!isOpen) {
@@ -273,6 +275,21 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
     }
   }
 
+  const handleDeleteQuiz = async () => {
+    if (!lessonId) return
+
+    try {
+      setClientError(null)
+      setSuccessMessage(null)
+      await deleteQuizMutation.mutateAsync(lessonId)
+      setDraft(createEmptyQuiz())
+      setSelectedQuestionIndex(0)
+      setSuccessMessage('Quiz deleted. Add a new title and questions when ready.')
+    } catch (error) {
+      setClientError(getFriendlyApiErrorMessage(error, 'Failed to delete quiz. It may already have student attempts.'))
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-6xl overflow-hidden rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
@@ -313,6 +330,36 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
                   </div>
                 </div>
               </section>
+
+              {!quizMissing && (
+                <section className="grid gap-3 rounded-lg border border-border bg-white p-4 md:grid-cols-[1fr_auto] md:items-start">
+                  <div>
+                    <h3 className="font-extrabold text-foreground">Student attempts</h3>
+                    {attemptsQuery.isLoading ? (
+                      <p className="mt-1 text-sm text-muted-foreground">Loading attempts...</p>
+                    ) : attemptsQuery.isError ? (
+                      <p className="mt-1 text-sm text-red-700">{getFriendlyApiErrorMessage(attemptsQuery.error, 'Failed to load quiz attempts')}</p>
+                    ) : (attemptsQuery.data ?? []).length === 0 ? (
+                      <p className="mt-1 text-sm text-muted-foreground">No students have attempted this quiz yet.</p>
+                    ) : (
+                      <div className="mt-3 grid gap-2 md:grid-cols-3">
+                        <QuizStat value={attemptsQuery.data?.length ?? 0} label="Attempts" />
+                        <QuizStat value={getSubmittedAttemptCount(attemptsQuery.data ?? [])} label="Submitted" />
+                        <QuizStat value={`${getAverageScore(attemptsQuery.data ?? [])}%`} label="Avg score" />
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isBusy}
+                    onClick={() => void handleDeleteQuiz()}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {deleteQuizMutation.isPending ? 'Deleting...' : 'Delete quiz'}
+                  </Button>
+                </section>
+              )}
 
               {quizMissing && (
                 <QuizMessage tone="warning" icon={<HelpCircle className="mt-0.5 h-5 w-5 shrink-0" />}>
@@ -526,6 +573,18 @@ function QuizStat({ value, label }: { value: string | number; label: string }) {
       <p className="text-xs font-bold text-muted-foreground">{label}</p>
     </div>
   )
+}
+
+function getSubmittedAttemptCount(attempts: QuizAttempt[]) {
+  return attempts.filter((attempt) => attempt.submitted).length
+}
+
+function getAverageScore(attempts: QuizAttempt[]) {
+  const scoredAttempts = attempts.filter((attempt) => typeof attempt.scorePercent === 'number')
+  if (scoredAttempts.length === 0) return 0
+
+  const total = scoredAttempts.reduce((sum, attempt) => sum + (attempt.scorePercent ?? 0), 0)
+  return Math.round(total / scoredAttempts.length)
 }
 
 function QuestionStatusBadge({ valid }: { valid: boolean }) {

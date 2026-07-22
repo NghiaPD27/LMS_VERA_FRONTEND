@@ -10,6 +10,7 @@ export type TeacherEarning = components['schemas']['TeacherEarningResponse']
 export type TeacherEarningsSummary = components['schemas']['TeacherEarningsSummaryResponse']
 export type CreateAvailabilityRequest = components['schemas']['CreateAvailabilityRequest']
 export type TeacherAvailability = components['schemas']['TeacherAvailabilityResponse']
+export type TeacherAvailabilitySlot = components['schemas']['TeacherAvailabilitySlotResponse']
 export type TeacherBooking = components['schemas']['TeacherBookingResponse']
 export type TeacherSlot = components['schemas']['TeacherSlotResponse']
 export type CreateBookingRequest = components['schemas']['CreateBookingRequest']
@@ -22,4 +23,15 @@ export interface TeacherQueryParams {
   keyword?: string
   page?: number
   size?: number
+}
+
+export interface TeacherAvailabilityQueryParams {
+  from?: string
+  to?: string
+  status?: string
+}
+
+export interface StudentBookingQueryParams {
+  lessonId?: number
+  status?: string
 }

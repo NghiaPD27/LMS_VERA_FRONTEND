@@ -12,6 +12,15 @@ export const quizApi = {
     return response.data
   },
 
+  deleteLessonQuiz: async (lessonId: number): Promise<void> => {
+    await http.delete(`/lessons/${lessonId}/quiz`)
+  },
+
+  getLessonQuizAttempts: async (lessonId: number): Promise<QuizAttempt[]> => {
+    const response = await http.get(`/admin/lessons/${lessonId}/quiz-attempts`)
+    return response.data
+  },
+
   startQuizAttempt: async (quizId: number): Promise<QuizAttempt> => {
     const response = await http.post(`/quizzes/${quizId}/attempts`)
     return response.data

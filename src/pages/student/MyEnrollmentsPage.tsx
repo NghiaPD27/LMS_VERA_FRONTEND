@@ -75,7 +75,7 @@ export const MyEnrollmentsPage: React.FC = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-muted-foreground">Program</p>
-                    <h2 className="mt-1 text-xl font-extrabold text-foreground">Program #{enrollment.programId}</h2>
+                    <h2 className="mt-1 text-xl font-extrabold text-foreground">{enrollment.programName || `Program #${enrollment.programId}`}</h2>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <EnrollmentStatusBadge status={enrollment.status} />
@@ -100,6 +100,14 @@ export const MyEnrollmentsPage: React.FC = () => {
                   </div>
                 </dl>
 
+                <EnrollmentProgressSummary
+                  progressPercent={enrollment.progressPercent}
+                  currentLessonName={enrollment.currentLessonName}
+                  currentLessonNumber={enrollment.currentLessonNumber}
+                  currentLessonStatus={enrollment.currentLessonStatus}
+                  nextAction={enrollment.nextAction}
+                />
+
                 {canStudy ? (
                   <Button
                     variant="outline"
@@ -123,5 +131,54 @@ export const MyEnrollmentsPage: React.FC = () => {
       )}
     </section>
   )
+}
+
+function EnrollmentProgressSummary({
+  progressPercent,
+  currentLessonName,
+  currentLessonNumber,
+  currentLessonStatus,
+  nextAction,
+}: {
+  progressPercent?: number
+  currentLessonName?: string
+  currentLessonNumber?: number
+  currentLessonStatus?: string
+  nextAction?: string
+}) {
+  const percent = typeof progressPercent === 'number' ? Math.max(0, Math.min(100, progressPercent)) : undefined
+
+  return (
+    <div className="mt-5 rounded-lg border border-border bg-background p-4">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="font-bold text-foreground">Progress</span>
+        <span className="font-extrabold text-primary">{percent !== undefined ? `${percent}%` : 'Not started'}</span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${percent ?? 0}%` }} />
+      </div>
+      {(currentLessonName || currentLessonNumber || currentLessonStatus || nextAction) && (
+        <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
+          <p>
+            <span className="font-semibold text-foreground">Current: </span>
+            {currentLessonName || (currentLessonNumber ? `Lesson ${currentLessonNumber}` : currentLessonStatus || 'Learning path')}
+          </p>
+          {nextAction && (
+            <p>
+              <span className="font-semibold text-foreground">Next: </span>
+              {formatNextAction(nextAction)}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function formatNextAction(value: string) {
+  return value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, (char) => char.toUpperCase())
 }
 

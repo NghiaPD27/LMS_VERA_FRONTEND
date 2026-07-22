@@ -589,7 +589,9 @@ function AdminCheckpointSessionCard({
   isBusy: boolean
 }) {
   const hasResult = session.participants?.some((participant) => participant.result)
-  const canManage = session.status === 'PENDING' && !hasResult
+  const canManage = session.canManage ?? (session.status === 'PENDING' && !hasResult)
+  const participantCount = session.participantCount ?? session.participants?.length ?? 0
+  const resultSubmittedCount = session.resultSubmittedCount ?? session.participants?.filter((participant) => participant.result).length ?? 0
 
   return (
     <article className="rounded-lg border border-border bg-white p-4">
@@ -599,6 +601,9 @@ function AdminCheckpointSessionCard({
           <h3 className="mt-1 text-lg font-extrabold text-foreground">{session.programName || `Program #${session.programId ?? '-'}`}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {session.evaluatorName || `Evaluator #${session.evaluatorId ?? '-'}`} - {formatDateTime(session.scheduledAt)}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-muted-foreground">
+            {resultSubmittedCount}/{participantCount} results submitted
           </p>
         </div>
         <span className="w-fit rounded-full border border-border bg-background px-3 py-1 text-xs font-extrabold text-foreground">
@@ -721,4 +726,3 @@ function toDateTimeLocalValue(value?: string) {
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
   return offsetDate.toISOString().slice(0, 16)
 }
-
