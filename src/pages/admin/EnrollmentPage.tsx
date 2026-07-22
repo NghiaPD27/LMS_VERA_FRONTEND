@@ -9,13 +9,15 @@ import { EnrollmentStatusBadge } from '../../components/enrollments/EnrollmentSt
 import type { AdminEnrollment } from '../../types/enrollment'
 import type { Program } from '../../types/program'
 import type { AdminStudent } from '../../types/user'
+import type { TeacherProfile } from '../../types/user'
+import { useAssignTeacher, useGetAdminTeachers, useGetTeacherEarnings, useUpsertTeacherCompensation } from '../../hooks/useTeacher'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import {
   getEnrollmentAccessBadgeClass,
   getEnrollmentAccessLabel
 } from '../../utils/enrollmentAccess'
-import { formatDateTime } from '../../utils/formatters'
-import { CalendarPlus, Search, UserPlus } from 'lucide-react'
+import { formatCurrency, formatDateTime } from '../../utils/formatters'
+import { CalendarPlus, DollarSign, ReceiptText, Search, UserCheck, UserPlus } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -33,6 +35,12 @@ const getStudentName = (student?: AdminStudent) => {
 
 const getProgramName = (program?: Program) => {
   return program?.name || `Program #${program?.id ?? ''}`
+}
+
+const getTeacherName = (teacher?: TeacherProfile) => {
+  if (!teacher) return 'No teacher selected'
+  const fullName = [teacher.firstName, teacher.lastName].filter(Boolean).join(' ').trim()
+  return fullName || teacher.username || `Teacher #${teacher.userId}`
 }
 
 export const EnrollmentPage: React.FC = () => {
@@ -472,6 +480,7 @@ export const EnrollmentPage: React.FC = () => {
                           </Button>
                         </div>
                       )}
+                      <TeacherAssignmentPanel enrollment={enrollment} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -506,5 +515,226 @@ export const EnrollmentPage: React.FC = () => {
         </div>
       </div>
     </section>
+  )
+}
+
+function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment }) {
+  const [expanded, setExpanded] = useState(false)
+  const [keyword, setKeyword] = useState('')
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherProfile | null>(null)
+  const [compensationAmount, setCompensationAmount] = useState('')
+  const [compensationCurrency, setCompensationCurrency] = useState('VND')
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const teacherIdForEarnings = selectedTeacher?.userId || enrollment.teacherId
+  const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 6 }, expanded)
+  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, expanded && !!teacherIdForEarnings)
+  const assignTeacherMutation = useAssignTeacher()
+  const compensationMutation = useUpsertTeacherCompensation()
+
+  const teachers = teachersQuery.data?.content ?? []
+
+  const assignTeacher = async () => {
+    if (!enrollment.id || !selectedTeacher?.userId) return
+
+    try {
+      setMessage(null)
+      setError(null)
+      await assignTeacherMutation.mutateAsync({
+        enrollmentId: enrollment.id,
+        teacherId: selectedTeacher.userId,
+      })
+      setMessage(`${getTeacherName(selectedTeacher)} assigned to ${enrollment.studentName || `Student #${enrollment.studentId}`}.`)
+    } catch (err) {
+      setError(getFriendlyApiErrorMessage(err, 'Failed to assign teacher'))
+    }
+  }
+
+  const saveCompensation = async () => {
+    const teacherId = selectedTeacher?.userId || enrollment.teacherId
+    const amountPerSession = Number(compensationAmount)
+
+    if (!teacherId) {
+      setError('Choose a teacher before saving compensation.')
+      return
+    }
+
+    if (!Number.isFinite(amountPerSession) || amountPerSession < 0) {
+      setError('Compensation must be zero or greater.')
+      return
+    }
+
+    try {
+      setMessage(null)
+      setError(null)
+      await compensationMutation.mutateAsync({
+        teacherId,
+        data: {
+          amountPerSession,
+          currency: compensationCurrency || 'VND',
+        },
+      })
+      setMessage(`Compensation saved for ${selectedTeacher ? getTeacherName(selectedTeacher) : enrollment.teacherName || `Teacher #${teacherId}`}.`)
+    } catch (err) {
+      setError(getFriendlyApiErrorMessage(err, 'Failed to save teacher compensation'))
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md text-left">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full justify-center"
+        onClick={() => setExpanded((current) => !current)}
+        data-testid={`manage-teacher-${enrollment.id}`}
+      >
+        <UserCheck className="h-4 w-4" />
+        Teacher assignment
+      </Button>
+
+      {expanded && (
+        <div className="mt-2 rounded-lg border border-border bg-white p-3 shadow-sm">
+          <div className="mb-3 rounded-md border border-border bg-background p-3">
+            <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Current teacher</p>
+            <p className="mt-1 font-extrabold text-foreground">
+              {enrollment.teacherName || (enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
+            </p>
+            {enrollment.teacherAssignedAt && (
+              <p className="mt-1 text-xs text-muted-foreground">Assigned {formatDateTime(enrollment.teacherAssignedAt)}</p>
+            )}
+          </div>
+
+          <label htmlFor={`teacher-search-${enrollment.id}`} className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
+            Search teacher
+          </label>
+          <div className="relative mt-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              id={`teacher-search-${enrollment.id}`}
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              className="lms-input h-9 pl-9 text-sm"
+              placeholder="Name or email"
+              data-testid={`teacher-search-${enrollment.id}`}
+            />
+          </div>
+
+          <div className="mt-3 grid max-h-56 gap-2 overflow-y-auto">
+            {teachersQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading teachers...</p>
+            ) : teachersQuery.isError ? (
+              <p className="text-sm text-red-700">{getFriendlyApiErrorMessage(teachersQuery.error, 'Failed to load teachers')}</p>
+            ) : teachers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No teachers found.</p>
+            ) : (
+              teachers.map((teacher) => (
+                <button
+                  key={teacher.userId}
+                  type="button"
+                  className={`rounded-md border p-2 text-left text-sm transition ${
+                    selectedTeacher?.userId === teacher.userId
+                      ? 'border-primary bg-[hsl(var(--brand-orange-soft))] text-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                  onClick={() => setSelectedTeacher(teacher)}
+                  data-testid={`select-teacher-${teacher.userId}`}
+                >
+                  <p className="font-bold">{getTeacherName(teacher)}</p>
+                  <p className="text-xs">{teacher.email || teacher.username}</p>
+                </button>
+              ))
+            )}
+          </div>
+
+          <Button
+            type="button"
+            className="mt-3 w-full"
+            size="sm"
+            disabled={!selectedTeacher?.userId || assignTeacherMutation.isPending}
+            onClick={() => void assignTeacher()}
+            data-testid={`assign-teacher-${enrollment.id}`}
+          >
+            {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign selected teacher'}
+          </Button>
+
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-extrabold text-foreground">
+              <DollarSign className="h-4 w-4" />
+              Compensation
+            </div>
+            <div className="grid grid-cols-[1fr_86px] gap-2">
+              <input
+                type="number"
+                min={0}
+                value={compensationAmount}
+                onChange={(event) => setCompensationAmount(event.target.value)}
+                className="lms-input h-9 text-sm"
+                placeholder="Amount/session"
+                data-testid={`teacher-compensation-amount-${enrollment.id}`}
+              />
+              <input
+                value={compensationCurrency}
+                onChange={(event) => setCompensationCurrency(event.target.value.toUpperCase())}
+                className="lms-input h-9 text-sm"
+                placeholder="VND"
+                data-testid={`teacher-compensation-currency-${enrollment.id}`}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-2 w-full"
+              size="sm"
+              disabled={compensationMutation.isPending}
+              onClick={() => void saveCompensation()}
+              data-testid={`save-teacher-compensation-${enrollment.id}`}
+            >
+              {compensationMutation.isPending ? 'Saving...' : 'Save compensation'}
+            </Button>
+          </div>
+
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-extrabold text-foreground">
+              <ReceiptText className="h-4 w-4" />
+              Earnings
+            </div>
+            {!teacherIdForEarnings ? (
+              <p className="text-sm text-muted-foreground">Choose or assign a teacher to view earnings.</p>
+            ) : earningsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading earnings...</p>
+            ) : earningsQuery.isError ? (
+              <p className="text-sm text-red-700">{getFriendlyApiErrorMessage(earningsQuery.error, 'Failed to load earnings')}</p>
+            ) : (
+              <div className="rounded-md border border-border bg-background p-3">
+                <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Total earned</p>
+                <p className="mt-1 text-lg font-extrabold text-foreground">
+                  {formatCurrency(earningsQuery.data?.totalEarned ?? 0, earningsQuery.data?.currency || 'VND')}
+                </p>
+                <div className="mt-3 max-h-36 space-y-2 overflow-y-auto text-xs text-muted-foreground">
+                  {(earningsQuery.data?.earnings || []).length === 0 ? (
+                    <p>No earnings yet.</p>
+                  ) : (
+                    earningsQuery.data?.earnings?.map((earning) => (
+                      <div key={earning.id || earning.bookingId} className="rounded border border-border bg-white p-2">
+                        <p className="font-bold text-foreground">
+                          {formatCurrency(earning.amount ?? 0, earning.currency || earningsQuery.data?.currency || 'VND')}
+                        </p>
+                        <p>{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</p>
+                        <p>{formatDateTime(earning.earnedAt)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {message && <div className="mt-3 lms-alert-success text-sm">{message}</div>}
+          {error && <div className="mt-3 lms-alert-error text-sm">{error}</div>}
+        </div>
+      )}
+    </div>
   )
 }

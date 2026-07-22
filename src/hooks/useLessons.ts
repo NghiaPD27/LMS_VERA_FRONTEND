@@ -170,7 +170,10 @@ export const useUpdateLessonVideoProgress = () => {
           },
           quizAvailable:
             current?.quizAvailable === true ||
-            (progress.completed === true && progress.lessonProgressStatus === 'QUIZ_AVAILABLE'),
+            progress.lessonProgressStatus === 'QUIZ_AVAILABLE' ||
+            progress.lessonProgressStatus === 'WAITING_FOR_TEACHER' ||
+            progress.lessonProgressStatus === 'WAITING_FOR_CHECKPOINT' ||
+            progress.lessonProgressStatus === 'COMPLETED',
         })
       )
       queryClient.invalidateQueries({ queryKey: lessonLearningStateQueryKey(variables.lessonId) })

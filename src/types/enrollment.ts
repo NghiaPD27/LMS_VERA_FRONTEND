@@ -3,7 +3,11 @@
 export type Enrollment = components['schemas']['EnrollmentResponse']
 export type EnrollStudentRequest = components['schemas']['EnrollStudentRequest']
 export type UpdateEnrollmentRequest = components['schemas']['UpdateEnrollmentRequest']
-export type AdminEnrollment = components['schemas']['AdminEnrollmentResponse']
+export type AdminEnrollment = components['schemas']['AdminEnrollmentResponse'] & {
+  teacherId?: number
+  teacherName?: string
+  teacherAssignedAt?: string
+}
 export type AdminEnrollmentPage = components['schemas']['PageResponseAdminEnrollmentResponse']
 export type ExtendEnrollmentRequest = components['schemas']['ExtendEnrollmentRequest']
 export type EnrollmentStatus = 'ACTIVE' | 'COMPLETED'

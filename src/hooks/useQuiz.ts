@@ -39,6 +39,9 @@ export const useSubmitQuizAttempt = () => {
       quizApi.submitQuizAttempt(attemptId, data),
     onSuccess: (attempt, variables) => {
       queryClient.setQueryData(quizAttemptQueryKey(variables.attemptId), attempt)
+      if (attempt.lessonId) {
+        queryClient.invalidateQueries({ queryKey: ['lesson-learning-state', attempt.lessonId] })
+      }
     },
   })
 }

@@ -20,6 +20,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/teachers/{teacherId}/compensation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["upsertTeacherCompensation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/enrollments/{enrollmentId}/teacher-assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["assignTeacher"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/webhooks/sepay": {
         parameters: {
             query?: never;
@@ -36,6 +68,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/teacher/bookings/{bookingId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reviewBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teacher/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createAvailability"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/student/purchases": {
         parameters: {
             query?: never;
@@ -46,6 +110,22 @@ export interface paths {
         get: operations["getStudentPurchases"];
         put?: never;
         post: operations["createStudentPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/student/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createBooking"];
         delete?: never;
         options?: never;
         head?: never;
@@ -436,6 +516,54 @@ export interface paths {
         patch: operations["extendEnrollment"];
         trace?: never;
     };
+    "/api/teacher/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTeacherStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teacher/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTeacherBookings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/student/teacher-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTeacherSlots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/student/purchases/{id}": {
         parameters: {
             query?: never;
@@ -548,6 +676,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/teachers/{teacherId}/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTeacherEarnings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/students/{id}": {
         parameters: {
             query?: never;
@@ -632,8 +776,120 @@ export interface components {
             currency?: string;
             salesStatus?: string;
         };
+        UpsertTeacherCompensationRequest: {
+            amountPerSession: number;
+            currency?: string;
+        };
+        TeacherCompensationResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            teacherId?: number;
+            amountPerSession?: number;
+            currency?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        AssignTeacherRequest: {
+            /** Format: int64 */
+            teacherId: number;
+        };
+        TeacherAssignmentResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int64 */
+            teacherId?: number;
+            teacherName?: string;
+            /** Format: date-time */
+            assignedAt?: string;
+        };
         SepayWebhookResponse: {
             success?: boolean;
+        };
+        ReviewBookingRequest: {
+            result: string;
+            comment?: string;
+        };
+        TeacherBookingResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            teacherId?: number;
+            teacherName?: string;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            lessonId?: number;
+            lessonName?: string;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date-time */
+            endAt?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        TeacherEarningResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            teacherId?: number;
+            /** Format: int64 */
+            bookingId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            lessonId?: number;
+            lessonName?: string;
+            amount?: number;
+            currency?: string;
+            status?: string;
+            /** Format: date-time */
+            earnedAt?: string;
+        };
+        TeacherReviewResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            bookingId?: number;
+            result?: string;
+            comment?: string;
+            /** Format: date-time */
+            reviewedAt?: string;
+            booking?: components["schemas"]["TeacherBookingResponse"];
+            earning?: components["schemas"]["TeacherEarningResponse"];
+        };
+        CreateAvailabilityRequest: {
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+        };
+        TeacherAvailabilityResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            teacherId?: number;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         CreatePurchaseRequest: {
             /** Format: int64 */
@@ -662,6 +918,12 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             paidAt?: string;
+        };
+        CreateBookingRequest: {
+            /** Format: int64 */
+            lessonId: number;
+            /** Format: date-time */
+            slotStartAt: string;
         };
         QuizAttemptResponse: {
             /** Format: int64 */
@@ -961,6 +1223,17 @@ export interface components {
             /** Format: int32 */
             months: number;
         };
+        TeacherSlotResponse: {
+            /** Format: int64 */
+            teacherId?: number;
+            teacherName?: string;
+            /** Format: int64 */
+            availabilityId?: number;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date-time */
+            endAt?: string;
+        };
         PageResponseProgramResponse: {
             content?: components["schemas"]["ProgramResponse"][];
             /** Format: int64 */
@@ -1004,6 +1277,13 @@ export interface components {
             watchedPercentage?: number;
             completed?: boolean;
             lessonProgressStatus?: string;
+        };
+        TeacherEarningsSummaryResponse: {
+            /** Format: int64 */
+            teacherId?: number;
+            totalEarned?: number;
+            currency?: string;
+            earnings?: components["schemas"]["TeacherEarningResponse"][];
         };
         AdminStudentResponse: {
             /** Format: int64 */
@@ -1142,6 +1422,58 @@ export interface operations {
             };
         };
     };
+    upsertTeacherCompensation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                teacherId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertTeacherCompensationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherCompensationResponse"];
+                };
+            };
+        };
+    };
+    assignTeacher: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollmentId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignTeacherRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherAssignmentResponse"];
+                };
+            };
+        };
+    };
     handleSepayWebhook: {
         parameters: {
             query?: never;
@@ -1165,6 +1497,56 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SepayWebhookResponse"];
+                };
+            };
+        };
+    };
+    reviewBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewBookingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherReviewResponse"];
+                };
+            };
+        };
+    };
+    createAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAvailabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherAvailabilityResponse"];
                 };
             };
         };
@@ -1209,6 +1591,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
+    createBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBookingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherBookingResponse"];
                 };
             };
         };
@@ -1975,6 +2381,70 @@ export interface operations {
             };
         };
     };
+    getTeacherStudents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherAssignmentResponse"][];
+                };
+            };
+        };
+    };
+    getTeacherBookings: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherBookingResponse"][];
+                };
+            };
+        };
+    };
+    getTeacherSlots: {
+        parameters: {
+            query: {
+                lessonId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherSlotResponse"][];
+                };
+            };
+        };
+    };
     getStudentPurchase: {
         parameters: {
             query?: never;
@@ -2123,6 +2593,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    getTeacherEarnings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                teacherId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherEarningsSummaryResponse"];
                 };
             };
         };

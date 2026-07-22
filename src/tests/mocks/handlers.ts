@@ -125,7 +125,13 @@ const programsDb: components['schemas']['ProgramResponse'][] = [
   }
 ]
 
-let enrollmentsDb: components['schemas']['AdminEnrollmentResponse'][] = [
+type MockAdminEnrollment = components['schemas']['AdminEnrollmentResponse'] & {
+  teacherId?: number
+  teacherName?: string
+  teacherAssignedAt?: string
+}
+
+let enrollmentsDb: MockAdminEnrollment[] = [
   {
     id: 1,
     studentId: 3,
@@ -133,9 +139,54 @@ let enrollmentsDb: components['schemas']['AdminEnrollmentResponse'][] = [
     studentEmail: 'student@vera.com',
     programId: 1,
     programName: 'Foundation English',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    teacherId: 2,
+    teacherName: 'Jane Doe',
+    teacherAssignedAt: new Date().toISOString(),
   }
 ]
+
+let teacherAssignmentsDb: components['schemas']['TeacherAssignmentResponse'][] = [
+  {
+    id: 1,
+    enrollmentId: 1,
+    studentId: 3,
+    studentName: 'John Smith',
+    programId: 1,
+    programName: 'Foundation English',
+    teacherId: 2,
+    teacherName: 'Jane Doe',
+    assignedAt: new Date().toISOString(),
+  }
+]
+let teacherCompensationsDb: components['schemas']['TeacherCompensationResponse'][] = []
+const teacherAvailabilitiesDb: components['schemas']['TeacherAvailabilityResponse'][] = [
+  {
+    id: 1,
+    teacherId: 2,
+    startAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    endAt: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+  }
+]
+const teacherBookingsDb: components['schemas']['TeacherBookingResponse'][] = [
+  {
+    id: 1,
+    studentId: 3,
+    studentName: 'John Smith',
+    teacherId: 2,
+    teacherName: 'Jane Doe',
+    enrollmentId: 1,
+    lessonId: 1,
+    lessonName: 'Welcome lesson',
+    startAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    endAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
+    status: 'BOOKED',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+]
+const teacherEarningsDb: components['schemas']['TeacherEarningResponse'][] = []
 
 // Helper to authenticate user from Bearer token
 const getSessionUser = (request: Request): UserState | null => {
@@ -182,6 +233,21 @@ const toAdminStudent = (user: UserState): components['schemas']['AdminStudentRes
   enabled: user.enabled,
   status: user.accountAccess.status
 })
+
+const toTeacherProfile = (user: UserState): components['schemas']['TeacherProfileResponse'] => ({
+  userId: Number(user.id),
+  username: user.username,
+  email: user.email,
+  firstName: user.profile.firstName,
+  lastName: user.profile.lastName,
+  phoneNumber: user.profile.phoneNumber || undefined,
+  bio: user.profile.bio || undefined,
+})
+
+const getTeacherDisplayName = (teacher?: UserState) => {
+  if (!teacher) return undefined
+  return [teacher.profile.firstName, teacher.profile.lastName].filter(Boolean).join(' ') || teacher.username
+}
 
 export const handlers = [
   http.get<never, never, components['schemas']['PageResponseProgramResponse']>(
@@ -262,6 +328,21 @@ export const handlers = [
           return !keyword || haystack.includes(keyword)
         })
       return HttpResponse.json(paginate(students, page, size))
+    }
+  ),
+
+  http.get(
+    '/api/admin/teachers',
+    ({ request }) => {
+      const { keyword, page, size } = getPageParams(request)
+      const teachers = usersDb
+        .filter((user) => user.role === 'teacher')
+        .map(toTeacherProfile)
+        .filter((teacher) => {
+          const haystack = `${teacher.username || ''} ${teacher.email || ''} ${teacher.firstName || ''} ${teacher.lastName || ''}`.toLowerCase()
+          return !keyword || haystack.includes(keyword)
+        })
+      return HttpResponse.json(paginate(teachers, page, size))
     }
   ),
 
@@ -745,6 +826,249 @@ export const handlers = [
         enrolledAt: enrollment.enrolledAt,
         expiredAt: enrollment.expiredAt,
       })
+    }
+  ),
+
+  http.put<{ enrollmentId: string }, components['schemas']['AssignTeacherRequest'], components['schemas']['TeacherAssignmentResponse'] | { message: string }>(
+    '/api/admin/enrollments/:enrollmentId/teacher-assignment',
+    async ({ params, request }) => {
+      const enrollmentId = Number(params.enrollmentId)
+      const body = await request.json()
+      const enrollment = enrollmentsDb.find((item) => item.id === enrollmentId)
+      const teacher = usersDb.find((user) => Number(user.id) === body.teacherId && user.role === 'teacher')
+      if (!enrollment || !teacher) {
+        return HttpResponse.json({ message: 'Enrollment or teacher not found' }, { status: 404 })
+      }
+
+      const assignment: components['schemas']['TeacherAssignmentResponse'] = {
+        id: teacherAssignmentsDb.length + 1,
+        enrollmentId,
+        studentId: enrollment.studentId,
+        studentName: enrollment.studentName,
+        programId: enrollment.programId,
+        programName: enrollment.programName,
+        teacherId: body.teacherId,
+        teacherName: getTeacherDisplayName(teacher),
+        assignedAt: new Date().toISOString(),
+      }
+      teacherAssignmentsDb = [
+        assignment,
+        ...teacherAssignmentsDb.filter((item) => item.enrollmentId !== enrollmentId),
+      ]
+      enrollment.teacherId = assignment.teacherId
+      enrollment.teacherName = assignment.teacherName
+      enrollment.teacherAssignedAt = assignment.assignedAt
+      return HttpResponse.json(assignment)
+    }
+  ),
+
+  http.put<{ teacherId: string }, components['schemas']['UpsertTeacherCompensationRequest'], components['schemas']['TeacherCompensationResponse'] | { message: string }>(
+    '/api/admin/teachers/:teacherId/compensation',
+    async ({ params, request }) => {
+      const teacherId = Number(params.teacherId)
+      const body = await request.json()
+      const teacher = usersDb.find((user) => Number(user.id) === teacherId && user.role === 'teacher')
+      if (!teacher) {
+        return HttpResponse.json({ message: 'Teacher not found' }, { status: 404 })
+      }
+      if (body.amountPerSession === undefined || body.amountPerSession < 0) {
+        return HttpResponse.json({ message: 'Amount per session must be zero or greater' }, { status: 400 })
+      }
+
+      const compensation: components['schemas']['TeacherCompensationResponse'] = {
+        id: teacherId,
+        teacherId,
+        amountPerSession: body.amountPerSession,
+        currency: body.currency || 'VND',
+        updatedAt: new Date().toISOString(),
+      }
+      teacherCompensationsDb = [
+        compensation,
+        ...teacherCompensationsDb.filter((item) => item.teacherId !== teacherId),
+      ]
+      return HttpResponse.json(compensation)
+    }
+  ),
+
+  http.get<{ teacherId: string }, never, components['schemas']['TeacherEarningsSummaryResponse'] | { message: string }>(
+    '/api/admin/teachers/:teacherId/earnings',
+    ({ params }) => {
+      const teacherId = Number(params.teacherId)
+      const earnings = teacherEarningsDb.filter((earning) => earning.teacherId === teacherId)
+      const currency = earnings[0]?.currency || teacherCompensationsDb.find((item) => item.teacherId === teacherId)?.currency || 'VND'
+      return HttpResponse.json({
+        teacherId,
+        totalEarned: earnings.reduce((total, earning) => total + (earning.amount || 0), 0),
+        currency,
+        earnings,
+      })
+    }
+  ),
+
+  http.post<never, components['schemas']['CreateAvailabilityRequest'], components['schemas']['TeacherAvailabilityResponse'] | { message: string }>(
+    '/api/teacher/availability',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const start = new Date(body.startAt)
+      const end = new Date(body.endAt)
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end.getTime() <= start.getTime()) {
+        return HttpResponse.json({ message: 'Invalid availability range' }, { status: 400 })
+      }
+
+      const availability: components['schemas']['TeacherAvailabilityResponse'] = {
+        id: teacherAvailabilitiesDb.length + 1,
+        teacherId: Number(user.id),
+        startAt: body.startAt,
+        endAt: body.endAt,
+        createdAt: new Date().toISOString(),
+      }
+      teacherAvailabilitiesDb.unshift(availability)
+      return HttpResponse.json(availability)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['TeacherAssignmentResponse'][] | { message: string }>(
+    '/api/teacher/students',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      return HttpResponse.json(teacherAssignmentsDb.filter((assignment) => assignment.teacherId === Number(user.id)))
+    }
+  ),
+
+  http.get<never, never, components['schemas']['TeacherBookingResponse'][] | { message: string }>(
+    '/api/teacher/bookings',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const status = url.searchParams.get('status')
+      const bookings = teacherBookingsDb.filter((booking) =>
+        booking.teacherId === Number(user.id) && (!status || booking.status === status)
+      )
+      return HttpResponse.json(bookings)
+    }
+  ),
+
+  http.post<{ bookingId: string }, components['schemas']['ReviewBookingRequest'], components['schemas']['TeacherReviewResponse'] | { message: string }>(
+    '/api/teacher/bookings/:bookingId/review',
+    async ({ params, request }) => {
+      const user = getSessionUser(request)
+      const booking = teacherBookingsDb.find((item) => item.id === Number(params.bookingId))
+      const body = await request.json()
+      if (!user || user.role !== 'teacher' || !booking || booking.teacherId !== Number(user.id)) {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const compensation = teacherCompensationsDb.find((item) => item.teacherId === Number(user.id))
+      if (!compensation) {
+        return HttpResponse.json({ message: 'Teacher compensation must be configured before review' }, { status: 400 })
+      }
+
+      booking.status = 'COMPLETED'
+      booking.updatedAt = new Date().toISOString()
+      const earning: components['schemas']['TeacherEarningResponse'] = {
+        id: teacherEarningsDb.length + 1,
+        teacherId: Number(user.id),
+        bookingId: booking.id,
+        studentId: booking.studentId,
+        studentName: booking.studentName,
+        lessonId: booking.lessonId,
+        lessonName: booking.lessonName,
+        amount: compensation.amountPerSession,
+        currency: compensation.currency || 'VND',
+        status: 'EARNED',
+        earnedAt: new Date().toISOString(),
+      }
+      teacherEarningsDb.unshift(earning)
+      return HttpResponse.json({
+        id: Number(params.bookingId),
+        bookingId: booking.id,
+        result: body.result,
+        comment: body.comment,
+        reviewedAt: new Date().toISOString(),
+        booking,
+        earning,
+      })
+    }
+  ),
+
+  http.get<never, never, components['schemas']['TeacherSlotResponse'][] | { message: string }>(
+    '/api/student/teacher-slots',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const lessonId = Number(url.searchParams.get('lessonId'))
+      const assignment = teacherAssignmentsDb.find((item) => item.studentId === Number(user.id))
+      if (!lessonId || !assignment?.teacherId) {
+        return HttpResponse.json({ message: 'Teacher is not assigned yet' }, { status: 403 })
+      }
+      const bookedStarts = new Set(teacherBookingsDb.map((booking) => booking.startAt))
+      return HttpResponse.json(
+        teacherAvailabilitiesDb
+          .filter((availability) => availability.teacherId === assignment.teacherId && !bookedStarts.has(availability.startAt))
+          .map((availability) => ({
+            teacherId: assignment.teacherId,
+            teacherName: assignment.teacherName,
+            availabilityId: availability.id,
+            startAt: availability.startAt,
+            endAt: availability.endAt,
+          }))
+      )
+    }
+  ),
+
+  http.post<never, components['schemas']['CreateBookingRequest'], components['schemas']['TeacherBookingResponse'] | { message: string }>(
+    '/api/student/bookings',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const assignment = teacherAssignmentsDb.find((item) => item.studentId === Number(user.id))
+      if (!assignment?.teacherId) {
+        return HttpResponse.json({ message: 'Teacher is not assigned yet' }, { status: 403 })
+      }
+      const existingActive = teacherBookingsDb.find(
+        (booking) => booking.studentId === Number(user.id) && booking.lessonId === body.lessonId && booking.status === 'BOOKED'
+      )
+      if (existingActive) {
+        return HttpResponse.json({ message: 'You already have a booked session for this lesson' }, { status: 409 })
+      }
+      const availability = teacherAvailabilitiesDb.find(
+        (item) => item.teacherId === assignment.teacherId && item.startAt === body.slotStartAt
+      )
+      if (!availability) {
+        return HttpResponse.json({ message: 'Slot is no longer available' }, { status: 409 })
+      }
+      const booking: components['schemas']['TeacherBookingResponse'] = {
+        id: teacherBookingsDb.length + 1,
+        studentId: Number(user.id),
+        studentName: assignment.studentName,
+        teacherId: assignment.teacherId,
+        teacherName: assignment.teacherName,
+        enrollmentId: assignment.enrollmentId,
+        lessonId: body.lessonId,
+        lessonName: `Lesson #${body.lessonId}`,
+        startAt: body.slotStartAt,
+        endAt: availability.endAt,
+        status: 'BOOKED',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      teacherBookingsDb.unshift(booking)
+      return HttpResponse.json(booking)
     }
   )
 ]

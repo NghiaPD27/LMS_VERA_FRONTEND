@@ -16,6 +16,11 @@ const hlsMock = vi.hoisted(() => ({
   mediaAttachedHandler: undefined as (() => void) | undefined,
 }))
 
+const teacherHookState = vi.hoisted(() => ({
+  getSlots: vi.fn(),
+  createBooking: vi.fn(),
+}))
+
 vi.mock('../../../api/lessonApi', () => ({
   lessonApi: {
     getLessonLearningState: vi.fn(),
@@ -38,6 +43,34 @@ vi.mock('../../../hooks/useQuiz', () => ({
   }),
   useSubmitQuizAttempt: () => ({
     mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+}))
+
+vi.mock('../../../hooks/useTeacher', () => ({
+  useGetStudentTeacherSlots: (lessonId?: number, enabled = true) => {
+    teacherHookState.getSlots(lessonId, enabled)
+    return {
+      data: enabled
+        ? [
+            {
+              teacherId: 2,
+              teacherName: 'Jane Doe',
+              availabilityId: 11,
+              startAt: '2026-07-23T10:00:00Z',
+              endAt: '2026-07-23T11:00:00Z',
+            },
+          ]
+        : [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    }
+  },
+  useCreateStudentBooking: () => ({
+    mutateAsync: teacherHookState.createBooking,
     isPending: false,
   }),
 }))
@@ -112,6 +145,17 @@ const createAxiosError = (status: number) =>
 
 describe('StudentLessonVideoWorkspace', () => {
   beforeEach(() => {
+    teacherHookState.getSlots.mockClear()
+    teacherHookState.createBooking.mockReset()
+    teacherHookState.createBooking.mockResolvedValue({
+      id: 77,
+      lessonId: 101,
+      teacherId: 2,
+      teacherName: 'Jane Doe',
+      startAt: '2026-07-23T10:00:00Z',
+      endAt: '2026-07-23T11:00:00Z',
+      status: 'BOOKED',
+    })
     mockLessonApi.updateLessonVideoProgress.mockResolvedValue({
       lessonId: 101,
       lessonVideoId: 501,
@@ -208,6 +252,49 @@ describe('StudentLessonVideoWorkspace', () => {
 
     expect(await screen.findByText('Quiz available')).toBeInTheDocument()
     expect(screen.getByText('90% watched')).toBeInTheDocument()
+  })
+
+  it('renders teacher booking when backend moves lesson to waiting for teacher', async () => {
+    const user = userEvent.setup()
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 300,
+        furthestWatchedSecond: 300,
+        watchedPercentage: 100,
+        completed: true,
+        lessonProgressStatus: 'WAITING_FOR_TEACHER',
+      },
+      quizAvailable: true,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    renderWorkspace()
+
+    expect(await screen.findByText('Book your review session')).toBeInTheDocument()
+    expect(await screen.findByText('Jane Doe')).toBeInTheDocument()
+    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, true))
+
+    await user.click(screen.getByText(/Jul 23, 2026/i))
+    await user.click(screen.getByRole('button', { name: /book session/i }))
+
+    await waitFor(() =>
+      expect(teacherHookState.createBooking).toHaveBeenCalledWith({
+        lessonId: 101,
+        slotStartAt: '2026-07-23T10:00:00Z',
+      })
+    )
+    expect(await screen.findByText('Session booked')).toBeInTheDocument()
   })
 
   it('renders locked lessons in the path without selecting them', async () => {

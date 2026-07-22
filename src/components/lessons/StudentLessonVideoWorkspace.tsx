@@ -5,9 +5,10 @@ import { Button } from '../common/Button'
 import { ErrorState } from '../common/ErrorState'
 import { LoadingState } from '../common/LoadingState'
 import { StudentQuizPanel } from './StudentQuizPanel'
+import { TeacherBookingPanel } from './TeacherBookingPanel'
 import type { LearningState, Lesson, VideoProgress, VideoProgressSnapshot } from '../../types/lesson'
 import { useGetLessonLearningState, useGetLessonVideoPlayback, useUpdateLessonVideoProgress } from '../../hooks/useLessons'
-import { getFriendlyApiErrorMessage, isForbiddenError, isNotFoundError } from '../../utils/errorMessage'
+import { getFriendlyApiErrorMessage, isForbiddenError, isNotFoundError, isValidationError } from '../../utils/errorMessage'
 import { formatLessonProgressStatus } from '../../utils/lessonProgress'
 
 interface StudentLessonVideoWorkspaceProps {
@@ -82,7 +83,11 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
   const learningState = learningStateQuery.data
   const progress = getCurrentProgress(learningState, lastProgress)
   const watchedPercentage = progress?.watchedPercentage ?? 0
+  const lessonProgressStatus = getLessonProgressStatus(learningState, progress)
   const isQuizAvailable = isQuizUnlockedByBackend(learningState, progress)
+  const isWaitingForTeacher = lessonProgressStatus === 'WAITING_FOR_TEACHER'
+  const isWaitingForCheckpoint = lessonProgressStatus === 'WAITING_FOR_CHECKPOINT'
+  const isCompleted = lessonProgressStatus === 'COMPLETED'
 
   useEffect(() => {
     currentSecondRef.current = 0
@@ -114,8 +119,11 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
     } catch (error) {
       suppressProgressUntilRef.current = Date.now() + 15000
       setProgressError(getFriendlyApiErrorMessage(error, 'Could not save video progress'))
+      if (isValidationError(error)) {
+        void learningStateQuery.refetch()
+      }
     }
-  }, [lessonId, playbackQuery.data?.playbackUrl, progressMutation])
+  }, [learningStateQuery, lessonId, playbackQuery.data?.playbackUrl, progressMutation])
 
   useEffect(() => {
     if (!isPlaying) return
@@ -312,8 +320,27 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
             </p>
           )}
         </div>
-        <Button type="button" disabled={!isQuizAvailable} variant={isQuizAvailable ? 'default' : 'outline'}>
-          {isQuizAvailable ? (
+        <Button
+          type="button"
+          disabled={!isQuizAvailable && !isWaitingForTeacher && !isWaitingForCheckpoint && !isCompleted}
+          variant={isQuizAvailable || isWaitingForTeacher || isCompleted ? 'default' : 'outline'}
+        >
+          {isWaitingForTeacher ? (
+            <>
+              <CalendarClock className="h-4 w-4" />
+              Book teacher
+            </>
+          ) : isWaitingForCheckpoint ? (
+            <>
+              <CalendarClock className="h-4 w-4" />
+              Waiting checkpoint
+            </>
+          ) : isCompleted ? (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+              Completed
+            </>
+          ) : isQuizAvailable ? (
             <>
               <CheckCircle2 className="h-4 w-4" />
               Quiz available
@@ -334,6 +361,8 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
         isLoading={learningStateQuery.isLoading}
         isQuizAvailable={isQuizAvailable}
       />
+
+      <TeacherBookingPanel lessonId={lessonId} enabled={isWaitingForTeacher} />
 
       <StudentQuizPanel lessonId={lessonId} enabled={isQuizAvailable} />
     </article>
@@ -474,6 +503,13 @@ function getCurrentProgress(learningState?: LearningState, lastProgress?: VideoP
   return lastProgress || learningState?.progress
 }
 
+function getLessonProgressStatus(
+  learningState?: LearningState,
+  progress?: VideoProgress | VideoProgressSnapshot
+) {
+  return progress?.lessonProgressStatus || learningState?.progress?.lessonProgressStatus
+}
+
 function isQuizUnlockedByBackend(
   learningState?: LearningState,
   progress?: VideoProgress | VideoProgressSnapshot
@@ -484,6 +520,7 @@ function isQuizUnlockedByBackend(
     learningState?.quizAvailable === true ||
     progressStatus === 'QUIZ_AVAILABLE' ||
     progressStatus === 'WAITING_FOR_TEACHER' ||
+    progressStatus === 'WAITING_FOR_CHECKPOINT' ||
     progressStatus === 'COMPLETED'
   )
 }
