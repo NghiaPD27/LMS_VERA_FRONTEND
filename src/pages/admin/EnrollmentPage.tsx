@@ -26,6 +26,13 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const getStudentName = (student?: AdminStudent) => {
   if (!student) return 'No student selected'
@@ -53,8 +60,9 @@ export const EnrollmentPage: React.FC = () => {
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [rowError, setRowError] = useState<string | null>(null)
-  const [extendEnrollmentId, setExtendEnrollmentId] = useState<number | null>(null)
+  const [extendEnrollment, setExtendEnrollment] = useState<AdminEnrollment | null>(null)
   const [extendMonths, setExtendMonths] = useState('1')
+  const [teacherEnrollment, setTeacherEnrollment] = useState<AdminEnrollment | null>(null)
 
   const studentsQuery = useGetStudents({
     keyword: studentKeyword || undefined,
@@ -145,7 +153,7 @@ export const EnrollmentPage: React.FC = () => {
         data: { months }
       })
       setActionMessage(`${enrollment.programName || `Program #${enrollment.programId}`} access extended by ${months} month${months > 1 ? 's' : ''}.`)
-      setExtendEnrollmentId(null)
+      setExtendEnrollment(null)
       setExtendMonths('1')
     } catch (err) {
       setRowError(getFriendlyApiErrorMessage(err, 'Failed to extend enrollment'))
@@ -406,6 +414,7 @@ export const EnrollmentPage: React.FC = () => {
                 <TableHead>Program</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Access</TableHead>
+                <TableHead>Teacher</TableHead>
                 <TableHead>Enrolled</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -427,6 +436,16 @@ export const EnrollmentPage: React.FC = () => {
                       {getEnrollmentAccessLabel(enrollment)}
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <div className="max-w-[180px]">
+                      <p className="truncate font-semibold text-foreground">
+                        {enrollment.teacherName || (enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned')}
+                      </p>
+                      {enrollment.teacherAssignedAt && (
+                        <p className="text-xs text-muted-foreground">{formatDateTime(enrollment.teacherAssignedAt)}</p>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{formatDateTime(enrollment.enrolledAt)}</TableCell>
                   <TableCell>{formatDateTime(enrollment.expiredAt)}</TableCell>
                   <TableCell className="text-right">
@@ -447,7 +466,20 @@ export const EnrollmentPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setExtendEnrollmentId(enrollment.id ?? null)
+                            setTeacherEnrollment(enrollment)
+                            setRowError(null)
+                          }}
+                          data-testid={`manage-teacher-${enrollment.id}`}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                          Teacher
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setExtendEnrollment(enrollment)
                             setExtendMonths('1')
                             setRowError(null)
                           }}
@@ -457,30 +489,6 @@ export const EnrollmentPage: React.FC = () => {
                           Extend
                         </Button>
                       </div>
-                      {extendEnrollmentId === enrollment.id && (
-                        <div className="flex w-full max-w-xs items-center justify-end gap-2 rounded-md border border-border bg-background p-2">
-                          <input
-                            type="number"
-                            min={1}
-                            value={extendMonths}
-                            onChange={(event) => setExtendMonths(event.target.value)}
-                            className="lms-input h-9 w-20"
-                            aria-label="Extension months"
-                            data-testid={`extend-months-${enrollment.id}`}
-                          />
-                          <span className="text-xs text-muted-foreground">months</span>
-                          <Button
-                            type="button"
-                            size="sm"
-                            disabled={extendEnrollmentMutation.isPending}
-                            onClick={() => handleExtendEnrollment(enrollment)}
-                            data-testid={`confirm-extend-enrollment-${enrollment.id}`}
-                          >
-                            {extendEnrollmentMutation.isPending ? 'Extending...' : 'Save'}
-                          </Button>
-                        </div>
-                      )}
-                      <TeacherAssignmentPanel enrollment={enrollment} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -514,12 +522,79 @@ export const EnrollmentPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={!!extendEnrollment} onOpenChange={(open) => !open && setExtendEnrollment(null)}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
+          <DialogHeader className="border-b border-border px-6 py-5">
+            <DialogTitle>Extend enrollment</DialogTitle>
+            <DialogDescription>
+              Add access time for this enrollment without changing the table layout.
+            </DialogDescription>
+          </DialogHeader>
+          {extendEnrollment && (
+            <div className="space-y-4 p-6">
+              <div className="rounded-lg border border-border bg-background p-4 text-sm">
+                <TeacherMeta label="Student" value={extendEnrollment.studentName || `Student #${extendEnrollment.studentId ?? '-'}`} />
+                <div className="mt-3">
+                  <TeacherMeta label="Program" value={extendEnrollment.programName || `Program #${extendEnrollment.programId ?? '-'}`} />
+                </div>
+                <div className="mt-3">
+                  <TeacherMeta label="Current expiry" value={formatDateTime(extendEnrollment.expiredAt)} />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="extend-months-modal" className="text-sm font-bold text-foreground">Months to add</label>
+                <input
+                  id="extend-months-modal"
+                  type="number"
+                  min={1}
+                  value={extendMonths}
+                  onChange={(event) => setExtendMonths(event.target.value)}
+                  className="lms-input mt-1"
+                  data-testid={`extend-months-${extendEnrollment.id}`}
+                />
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={() => setExtendEnrollment(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={extendEnrollmentMutation.isPending}
+                  onClick={() => handleExtendEnrollment(extendEnrollment)}
+                  data-testid={`confirm-extend-enrollment-${extendEnrollment.id}`}
+                >
+                  {extendEnrollmentMutation.isPending ? 'Extending...' : 'Save extension'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!teacherEnrollment} onOpenChange={(open) => !open && setTeacherEnrollment(null)}>
+        <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-5xl overflow-hidden rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
+          <div className="max-h-[92dvh] overflow-y-auto">
+            <DialogHeader className="border-b border-border bg-white px-6 py-5">
+              <DialogTitle>Teacher assignment</DialogTitle>
+              <DialogDescription>
+                Assign a teacher, configure compensation, and review earnings without changing the enrollment row layout.
+              </DialogDescription>
+            </DialogHeader>
+            {teacherEnrollment && (
+              <TeacherAssignmentPanel
+                enrollment={teacherEnrollment}
+                onClose={() => setTeacherEnrollment(null)}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
 
-function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment }) {
-  const [expanded, setExpanded] = useState(false)
+function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnrollment; onClose: () => void }) {
   const [keyword, setKeyword] = useState('')
   const [selectedTeacher, setSelectedTeacher] = useState<AdminTeacher | null>(null)
   const [compensationAmount, setCompensationAmount] = useState('')
@@ -527,9 +602,9 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const teacherIdForEarnings = selectedTeacher?.id || enrollment.teacherId
-  const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 6 }, expanded)
-  const currentTeacherQuery = useGetAdminTeacher(enrollment.teacherId, expanded && !!enrollment.teacherId)
-  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, expanded && !!teacherIdForEarnings)
+  const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 8 }, true)
+  const currentTeacherQuery = useGetAdminTeacher(enrollment.teacherId, !!enrollment.teacherId)
+  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, !!teacherIdForEarnings)
   const assignTeacherMutation = useAssignTeacher()
   const compensationMutation = useUpsertTeacherCompensation()
 
@@ -582,33 +657,34 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
   }
 
   return (
-    <div className="w-full max-w-md text-left">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="w-full justify-center"
-        onClick={() => setExpanded((current) => !current)}
-        data-testid={`manage-teacher-${enrollment.id}`}
-      >
-        <UserCheck className="h-4 w-4" />
-        Teacher assignment
-      </Button>
+    <div className="grid gap-5 p-6 lg:grid-cols-[1fr_340px]">
+      <section className="space-y-4">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Enrollment</p>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <TeacherMeta label="Student" value={enrollment.studentName || `Student #${enrollment.studentId ?? '-'}`} />
+            <TeacherMeta label="Program" value={enrollment.programName || `Program #${enrollment.programId ?? '-'}`} />
+            <TeacherMeta label="Status" value={enrollment.status || '-'} />
+            <TeacherMeta label="Expires" value={formatDateTime(enrollment.expiredAt)} />
+          </div>
+        </div>
 
-      {expanded && (
-        <div className="mt-2 rounded-lg border border-border bg-white p-3 shadow-sm">
-          <div className="mb-3 rounded-md border border-border bg-background p-3">
-            <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Current teacher</p>
-            <p className="mt-1 font-extrabold text-foreground">
-              {enrollment.teacherName ||
-                (currentTeacherQuery.data ? getTeacherName(currentTeacherQuery.data) : enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
-            </p>
-            {enrollment.teacherAssignedAt && (
-              <p className="mt-1 text-xs text-muted-foreground">Assigned {formatDateTime(enrollment.teacherAssignedAt)}</p>
-            )}
+        <div className="rounded-lg border border-border bg-white p-4">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="font-extrabold text-foreground">Choose teacher</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Search by name, username, or email.</p>
+            </div>
+            <div className="rounded-md border border-border bg-background px-3 py-2 text-sm">
+              <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Current</p>
+              <p className="font-extrabold text-foreground">
+                {enrollment.teacherName ||
+                  (currentTeacherQuery.data ? getTeacherName(currentTeacherQuery.data) : enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
+              </p>
+            </div>
           </div>
 
-          <label htmlFor={`teacher-search-${enrollment.id}`} className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
+          <label htmlFor={`teacher-search-${enrollment.id}`} className="text-sm font-bold text-foreground">
             Search teacher
           </label>
           <div className="relative mt-1">
@@ -623,7 +699,7 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
             />
           </div>
 
-          <div className="mt-3 grid max-h-56 gap-2 overflow-y-auto">
+          <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
             {teachersQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">Loading teachers...</p>
             ) : teachersQuery.isError ? (
@@ -643,8 +719,15 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
                   onClick={() => setSelectedTeacher(teacher)}
                   data-testid={`select-teacher-${teacher.id}`}
                 >
-                  <p className="font-bold">{getTeacherName(teacher)}</p>
-                  <p className="text-xs">{teacher.email || teacher.username}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-bold">{getTeacherName(teacher)}</p>
+                      <p className="truncate text-xs">{teacher.email || teacher.username}</p>
+                    </div>
+                    <span className="rounded-full border border-border bg-white px-2 py-0.5 text-[10px] font-extrabold">
+                      {teacher.enabled === false ? 'Disabled' : teacher.status || 'Active'}
+                    </span>
+                  </div>
                 </button>
               ))
             )}
@@ -652,17 +735,19 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
 
           <Button
             type="button"
-            className="mt-3 w-full"
-            size="sm"
+            className="mt-4 w-full"
             disabled={!selectedTeacher?.id || assignTeacherMutation.isPending}
             onClick={() => void assignTeacher()}
             data-testid={`assign-teacher-${enrollment.id}`}
           >
             {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign selected teacher'}
           </Button>
+        </div>
+      </section>
 
-          <div className="mt-4 border-t border-border pt-3">
-            <div className="mb-2 flex items-center gap-2 text-sm font-extrabold text-foreground">
+      <aside className="space-y-4">
+        <div className="rounded-lg border border-border bg-white p-4">
+          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-foreground">
               <DollarSign className="h-4 w-4" />
               Compensation
             </div>
@@ -688,17 +773,16 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
               type="button"
               variant="outline"
               className="mt-2 w-full"
-              size="sm"
               disabled={compensationMutation.isPending}
               onClick={() => void saveCompensation()}
               data-testid={`save-teacher-compensation-${enrollment.id}`}
             >
               {compensationMutation.isPending ? 'Saving...' : 'Save compensation'}
             </Button>
-          </div>
+        </div>
 
-          <div className="mt-4 border-t border-border pt-3">
-            <div className="mb-2 flex items-center gap-2 text-sm font-extrabold text-foreground">
+        <div className="rounded-lg border border-border bg-white p-4">
+          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-foreground">
               <ReceiptText className="h-4 w-4" />
               Earnings
             </div>
@@ -731,12 +815,24 @@ function TeacherAssignmentPanel({ enrollment }: { enrollment: AdminEnrollment })
                 </div>
               </div>
             )}
-          </div>
-
-          {message && <div className="mt-3 lms-alert-success text-sm">{message}</div>}
-          {error && <div className="mt-3 lms-alert-error text-sm">{error}</div>}
         </div>
-      )}
+
+        {message && <div className="lms-alert-success text-sm">{message}</div>}
+        {error && <div className="lms-alert-error text-sm">{error}</div>}
+
+        <Button type="button" variant="outline" className="w-full" onClick={onClose}>
+          Close
+        </Button>
+      </aside>
+        </div>
+  )
+}
+
+function TeacherMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</p>
+      <p className="mt-1 font-semibold text-foreground">{value}</p>
     </div>
   )
 }
