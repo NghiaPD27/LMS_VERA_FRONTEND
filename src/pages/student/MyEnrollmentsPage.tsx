@@ -1,4 +1,5 @@
 ﻿import React from 'react'
+import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useGetMyEnrollments } from '../../hooks/useEnrollments'
@@ -21,6 +22,9 @@ import { ArrowRight, CalendarClock, ClipboardList } from 'lucide-react'
 export const MyEnrollmentsPage: React.FC = () => {
   const navigate = useNavigate()
   const { data: enrollments, isLoading, isError, error, refetch } = useGetMyEnrollments()
+  const refetchEnrollments = useCallback(() => {
+    void refetch()
+  }, [refetch])
 
   if (isLoading) {
     return <LoadingState message="Loading your enrollments..." />
@@ -109,7 +113,7 @@ export const MyEnrollmentsPage: React.FC = () => {
                   nextAction={enrollment.nextAction}
                 />
 
-                <StudentFinalAssessmentPanel enrollmentId={enrollment.id} />
+                <StudentFinalAssessmentPanel enrollmentId={enrollment.id} onForbidden={refetchEnrollments} />
 
                 {canStudy ? (
                   <Button

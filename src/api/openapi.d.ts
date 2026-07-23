@@ -1076,6 +1076,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/reports/student-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStudentProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/student-progress/{enrollmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStudentProgressDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/purchases": {
         parameters: {
             query?: never;
@@ -1180,6 +1228,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getCheckpointEligibleStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/audit-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAuditLog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2149,6 +2229,94 @@ export interface components {
             /** Format: date-time */
             teacherAssignedAt?: string;
         };
+        AdminStudentProgressResponse: {
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            studentEmail?: string;
+            studentEnabled?: boolean;
+            accountStatus?: string;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            enrollmentStatus?: string;
+            /** Format: date-time */
+            enrolledAt?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+            /** Format: int32 */
+            progressPercent?: number;
+            /** Format: int32 */
+            currentLessonNumber?: number;
+            currentLessonName?: string;
+            currentLessonStatus?: string;
+            nextAction?: string;
+            /** Format: int64 */
+            teacherId?: number;
+            teacherName?: string;
+            /** Format: date-time */
+            teacherAssignedAt?: string;
+        };
+        PageResponseAdminStudentProgressResponse: {
+            content?: components["schemas"]["AdminStudentProgressResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        AdminStudentLessonProgressResponse: {
+            /** Format: int64 */
+            lessonId?: number;
+            /** Format: int32 */
+            lessonNumber?: number;
+            lessonName?: string;
+            lessonStatus?: string;
+            progressStatus?: string;
+        };
+        AdminStudentProgressDetailResponse: {
+            summary?: components["schemas"]["AdminStudentProgressResponse"];
+            lessons?: components["schemas"]["AdminStudentLessonProgressResponse"][];
+        };
+        AdminDashboardResponse: {
+            /** Format: int64 */
+            totalStudents?: number;
+            /** Format: int64 */
+            totalTeachers?: number;
+            /** Format: int64 */
+            totalEvaluators?: number;
+            /** Format: int64 */
+            activeAccounts?: number;
+            /** Format: int64 */
+            suspendedAccounts?: number;
+            /** Format: int64 */
+            expiredAccounts?: number;
+            /** Format: int64 */
+            totalEnrollments?: number;
+            /** Format: int64 */
+            activeEnrollments?: number;
+            /** Format: int64 */
+            expiredActiveEnrollments?: number;
+            /** Format: int64 */
+            completedEnrollments?: number;
+            /** Format: int64 */
+            waitingReassessmentEnrollments?: number;
+            /** Format: int64 */
+            pendingPurchases?: number;
+            /** Format: int64 */
+            paidPurchases?: number;
+            /** Format: int64 */
+            bookedTeacherBookings?: number;
+            /** Format: int64 */
+            pendingCheckpointSessions?: number;
+            /** Format: int64 */
+            pendingFinalAssessmentSessions?: number;
+        };
         PageResponsePurchaseResponse: {
             content?: components["schemas"]["PurchaseResponse"][];
             /** Format: int64 */
@@ -2268,6 +2436,31 @@ export interface components {
             gateLessonName?: string;
             /** Format: date-time */
             eligibleAt?: string;
+        };
+        AuditLogResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            actorId?: number;
+            actorUsername?: string;
+            action?: string;
+            targetType?: string;
+            /** Format: int64 */
+            targetId?: number;
+            details?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        PageResponseAuditLogResponse: {
+            content?: components["schemas"]["AuditLogResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
         };
     };
     responses: never;
@@ -4372,6 +4565,78 @@ export interface operations {
             };
         };
     };
+    getStudentProgress: {
+        parameters: {
+            query?: {
+                programId?: number;
+                enrollmentStatus?: string;
+                accountStatus?: string;
+                teacherId?: number;
+                expiryFrom?: string;
+                expiryTo?: string;
+                keyword?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseAdminStudentProgressResponse"];
+                };
+            };
+        };
+    };
+    getStudentProgressDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollmentId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminStudentProgressDetailResponse"];
+                };
+            };
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminDashboardResponse"];
+                };
+            };
+        };
+    };
     getAdminPurchases: {
         parameters: {
             query?: {
@@ -4535,6 +4800,57 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CheckpointEligibleStudentResponse"][];
+                };
+            };
+        };
+    };
+    getAuditLogs: {
+        parameters: {
+            query?: {
+                action?: string;
+                actorId?: number;
+                targetType?: string;
+                targetId?: number;
+                from?: string;
+                to?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseAuditLogResponse"];
+                };
+            };
+        };
+    };
+    getAuditLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AuditLogResponse"];
                 };
             };
         };

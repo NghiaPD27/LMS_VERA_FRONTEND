@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Award, CheckCircle2, ExternalLink, RefreshCw, TriangleAlert } from 'lucide-react'
 import { Button } from '../common/Button'
 import { PurchasePaymentPanel } from '../purchases/PurchasePaymentPanel'
@@ -9,14 +9,15 @@ import {
 } from '../../hooks/useFinalAssessment'
 import type { FinalAssessmentRetakePayment } from '../../types/finalAssessment'
 import type { Purchase } from '../../types/purchase'
-import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
+import { getFriendlyApiErrorMessage, isForbiddenError } from '../../utils/errorMessage'
 import { formatDateTime } from '../../utils/formatters'
 
 interface StudentFinalAssessmentPanelProps {
   enrollmentId?: number
+  onForbidden?: () => void
 }
 
-export function StudentFinalAssessmentPanel({ enrollmentId }: StudentFinalAssessmentPanelProps) {
+export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: StudentFinalAssessmentPanelProps) {
   const statusQuery = useGetStudentFinalAssessmentStatus(enrollmentId, !!enrollmentId)
   const paymentsQuery = useGetFinalAssessmentRetakePayments({ enrollmentId }, !!enrollmentId)
   const createPaymentMutation = useCreateFinalAssessmentRetakePayment()
@@ -35,6 +36,13 @@ export function StudentFinalAssessmentPanel({ enrollmentId }: StudentFinalAssess
       status.retakeRequired ||
       status.enrollmentStatus === 'WAITING_FOR_REASSESSMENT' ||
       !!activePayment)
+  const forbiddenError = isForbiddenError(statusQuery.error) || isForbiddenError(paymentsQuery.error)
+
+  useEffect(() => {
+    if (forbiddenError) {
+      onForbidden?.()
+    }
+  }, [forbiddenError, onForbidden])
 
   const createRetakePayment = async () => {
     if (!enrollmentId) return
@@ -54,6 +62,14 @@ export function StudentFinalAssessmentPanel({ enrollmentId }: StudentFinalAssess
     return (
       <div className="mt-5 rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
         Checking final assessment status...
+      </div>
+    )
+  }
+
+  if (forbiddenError) {
+    return (
+      <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+        You do not have permission to access this final assessment status. Enrollment data is being refreshed.
       </div>
     )
   }

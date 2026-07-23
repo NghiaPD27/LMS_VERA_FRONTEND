@@ -18,6 +18,8 @@ import { EnrollmentPage } from '../pages/admin/EnrollmentPage'
 import { PurchasesPage } from '../pages/admin/PurchasesPage'
 import { CheckpointPage } from '../pages/admin/CheckpointPage'
 import { FinalAssessmentPage } from '../pages/admin/FinalAssessmentPage'
+import { StudentProgressReportPage } from '../pages/admin/StudentProgressReportPage'
+import { AuditLogsPage } from '../pages/admin/AuditLogsPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
@@ -72,8 +74,10 @@ export const router = createBrowserRouter([
               { path: 'admin/programs/:programId', element: <ProgramDetailPage /> },
               { path: 'admin/purchases', element: <PurchasesPage /> },
               { path: 'admin/enrollments', element: <EnrollmentPage /> },
+              { path: 'admin/student-progress', element: <StudentProgressReportPage /> },
               { path: 'admin/checkpoints', element: <CheckpointPage /> },
               { path: 'admin/final-assessments', element: <FinalAssessmentPage /> },
+              { path: 'admin/audit-logs', element: <AuditLogsPage /> },
             ],
           },
         ],

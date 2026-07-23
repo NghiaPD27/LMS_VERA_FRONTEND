@@ -255,6 +255,29 @@ const checkpointSessionsDb: components['schemas']['CheckpointSessionResponse'][]
     ],
   }
 ]
+const finalRetakePaymentsDb: components['schemas']['FinalAssessmentRetakePaymentResponse'][] = []
+const auditLogsDb: components['schemas']['AuditLogResponse'][] = [
+  {
+    id: 1,
+    actorId: 4,
+    actorUsername: 'evaluator',
+    action: 'CHECKPOINT_RESULT_SUBMITTED',
+    targetType: 'CHECKPOINT_PARTICIPANT',
+    targetId: 1,
+    details: 'Evaluator submitted PASS for checkpoint participant #1.',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    actorId: 1,
+    actorUsername: 'admin',
+    action: 'ENROLLMENT_EXTENDED',
+    targetType: 'ENROLLMENT',
+    targetId: 1,
+    details: 'Enrollment access was extended by admin.',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  }
+]
 
 // Helper to authenticate user from Bearer token
 const getSessionUser = (request: Request): UserState | null => {
@@ -288,6 +311,31 @@ const getPageParams = (request: Request) => {
     keyword: url.searchParams.get('keyword')?.toLowerCase().trim() || '',
     page: Number(url.searchParams.get('page') || 0),
     size: Number(url.searchParams.get('size') || 20)
+  }
+}
+
+const toAdminStudentProgress = (enrollment: MockAdminEnrollment): components['schemas']['AdminStudentProgressResponse'] => {
+  const student = usersDb.find((user) => Number(user.id) === enrollment.studentId)
+  return {
+    enrollmentId: enrollment.id,
+    studentId: enrollment.studentId,
+    studentName: enrollment.studentName,
+    studentEmail: enrollment.studentEmail,
+    studentEnabled: student?.enabled,
+    accountStatus: student?.accountAccess.status?.toUpperCase(),
+    programId: enrollment.programId,
+    programName: enrollment.programName,
+    enrollmentStatus: enrollment.status,
+    enrolledAt: enrollment.enrolledAt,
+    expiredAt: enrollment.expiredAt,
+    progressPercent: 42,
+    currentLessonNumber: 3,
+    currentLessonName: 'Speaking checkpoint prep',
+    currentLessonStatus: 'PUBLISHED',
+    nextAction: 'Continue video lesson',
+    teacherId: enrollment.teacherId,
+    teacherName: enrollment.teacherName,
+    teacherAssignedAt: enrollment.teacherAssignedAt,
   }
 }
 
@@ -1486,6 +1534,192 @@ export const handlers = [
         session.updatedAt = new Date().toISOString()
       }
       return HttpResponse.json(result)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['AdminDashboardResponse'] | { message: string }>(
+    '/api/admin/reports/dashboard',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      return HttpResponse.json({
+        totalStudents: usersDb.filter((item) => item.role === 'student').length,
+        totalTeachers: usersDb.filter((item) => item.role === 'teacher').length,
+        totalEvaluators: usersDb.filter((item) => item.role === 'evaluator').length,
+        activeAccounts: usersDb.filter((item) => item.accountAccess.status === 'active').length,
+        suspendedAccounts: usersDb.filter((item) => item.accountAccess.status === 'suspended').length,
+        expiredAccounts: usersDb.filter((item) => item.accountAccess.status === 'expired').length,
+        totalEnrollments: enrollmentsDb.length,
+        activeEnrollments: enrollmentsDb.filter((item) => item.status === 'ACTIVE').length,
+        expiredActiveEnrollments: enrollmentsDb.filter((item) => item.status === 'ACTIVE' && item.expiredAt && new Date(item.expiredAt).getTime() < Date.now()).length,
+        completedEnrollments: enrollmentsDb.filter((item) => item.status === 'COMPLETED').length,
+        waitingReassessmentEnrollments: enrollmentsDb.filter((item) => item.status === 'WAITING_FOR_REASSESSMENT').length,
+        pendingPurchases: 1,
+        paidPurchases: 1,
+        bookedTeacherBookings: teacherBookingsDb.filter((item) => item.status === 'BOOKED').length,
+        pendingCheckpointSessions: checkpointSessionsDb.filter((item) => item.status === 'PENDING').length,
+        pendingFinalAssessmentSessions: 0,
+      })
+    }
+  ),
+
+  http.get<never, never, components['schemas']['PageResponseAdminStudentProgressResponse'] | { message: string }>(
+    '/api/admin/reports/student-progress',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const page = Number(url.searchParams.get('page') || 0)
+      const size = Number(url.searchParams.get('size') || 10)
+      const keyword = url.searchParams.get('keyword')?.toLowerCase().trim() || ''
+      const programId = url.searchParams.get('programId')
+      const enrollmentStatus = url.searchParams.get('enrollmentStatus')
+      const accountStatus = url.searchParams.get('accountStatus')
+      const teacherId = url.searchParams.get('teacherId')
+      const filtered = enrollmentsDb
+        .map(toAdminStudentProgress)
+        .filter((item) =>
+          (!keyword || [item.studentName, item.studentEmail, item.programName].some((value) => value?.toLowerCase().includes(keyword))) &&
+          (!programId || String(item.programId) === programId) &&
+          (!enrollmentStatus || item.enrollmentStatus === enrollmentStatus) &&
+          (!accountStatus || item.accountStatus === accountStatus) &&
+          (!teacherId || String(item.teacherId) === teacherId)
+        )
+      return HttpResponse.json(paginate(filtered, page, size))
+    }
+  ),
+
+  http.get<{ enrollmentId: string }, never, components['schemas']['AdminStudentProgressDetailResponse'] | { message: string }>(
+    '/api/admin/reports/student-progress/:enrollmentId',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const enrollment = enrollmentsDb.find((item) => item.id === Number(params.enrollmentId))
+      if (!enrollment) {
+        return HttpResponse.json({ message: 'Enrollment not found' }, { status: 404 })
+      }
+      return HttpResponse.json({
+        summary: toAdminStudentProgress(enrollment),
+        lessons: [1, 2, 3, 4, 5].map((lessonNumber) => ({
+          lessonId: lessonNumber,
+          lessonNumber,
+          lessonName: `Lesson ${lessonNumber}`,
+          lessonStatus: 'PUBLISHED',
+          progressStatus: lessonNumber < 3 ? 'COMPLETED' : lessonNumber === 3 ? 'VIDEO_IN_PROGRESS' : 'LOCKED',
+        })),
+      })
+    }
+  ),
+
+  http.get<never, never, components['schemas']['PageResponseAuditLogResponse'] | { message: string }>(
+    '/api/admin/audit-logs',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const page = Number(url.searchParams.get('page') || 0)
+      const size = Number(url.searchParams.get('size') || 12)
+      const action = url.searchParams.get('action')
+      const actorId = url.searchParams.get('actorId')
+      const targetType = url.searchParams.get('targetType')
+      const targetId = url.searchParams.get('targetId')
+      const filtered = auditLogsDb.filter((log) =>
+        (!action || log.action === action) &&
+        (!actorId || String(log.actorId) === actorId) &&
+        (!targetType || log.targetType?.toLowerCase().includes(targetType.toLowerCase())) &&
+        (!targetId || String(log.targetId) === targetId)
+      )
+      return HttpResponse.json(paginate(filtered, page, size))
+    }
+  ),
+
+  http.get<{ id: string }, never, components['schemas']['AuditLogResponse'] | { message: string }>(
+    '/api/admin/audit-logs/:id',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const log = auditLogsDb.find((item) => item.id === Number(params.id))
+      if (!log) {
+        return HttpResponse.json({ message: 'Audit log not found' }, { status: 404 })
+      }
+      return HttpResponse.json(log)
+    }
+  ),
+
+  http.get<never, never, components['schemas']['StudentFinalAssessmentStatusResponse'] | { message: string }>(
+    '/api/student/final-assessment-status',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      const enrollmentId = Number(new URL(request.url).searchParams.get('enrollmentId'))
+      const enrollment = enrollmentsDb.find((item) => item.id === enrollmentId)
+      if (!user || user.role !== 'student' || !enrollment || enrollment.studentId !== Number(user.id)) {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      return HttpResponse.json({
+        enrollmentId,
+        programId: enrollment.programId,
+        programName: enrollment.programName,
+        enrollmentStatus: enrollment.status,
+        eligible: enrollment.status === 'COMPLETED',
+        retakeRequired: enrollment.status === 'WAITING_FOR_REASSESSMENT',
+        latestRetakePayment: finalRetakePaymentsDb.find((payment) => payment.enrollmentId === enrollmentId),
+      })
+    }
+  ),
+
+  http.get<never, never, components['schemas']['FinalAssessmentRetakePaymentResponse'][] | { message: string }>(
+    '/api/student/final-assessment-retake-payments',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      const enrollmentId = Number(new URL(request.url).searchParams.get('enrollmentId'))
+      const enrollment = enrollmentsDb.find((item) => item.id === enrollmentId)
+      if (!user || user.role !== 'student' || !enrollment || enrollment.studentId !== Number(user.id)) {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      return HttpResponse.json(finalRetakePaymentsDb.filter((payment) => payment.enrollmentId === enrollmentId))
+    }
+  ),
+
+  http.post<never, components['schemas']['CreateFinalAssessmentRetakePaymentRequest'], components['schemas']['FinalAssessmentRetakePaymentResponse'] | { message: string }>(
+    '/api/student/final-assessment-retake-payments',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      const enrollment = enrollmentsDb.find((item) => item.id === body.enrollmentId)
+      if (!user || user.role !== 'student' || !enrollment || enrollment.studentId !== Number(user.id)) {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      if (enrollment.status !== 'WAITING_FOR_REASSESSMENT') {
+        return HttpResponse.json({ message: 'Enrollment is not waiting for reassessment' }, { status: 409 })
+      }
+      const payment: components['schemas']['FinalAssessmentRetakePaymentResponse'] = {
+        id: finalRetakePaymentsDb.length + 1,
+        enrollmentId: body.enrollmentId,
+        studentId: enrollment.studentId,
+        studentName: enrollment.studentName,
+        programId: enrollment.programId,
+        programName: enrollment.programName,
+        amount: 500000,
+        currency: 'VND',
+        status: 'PENDING',
+        paymentCode: `LMSR${finalRetakePaymentsDb.length + 1}`,
+        paymentQrUrl: 'https://img.vietqr.io/image/mock-retake.png',
+        paymentProvider: 'SePay',
+        paymentContent: `LMSR${finalRetakePaymentsDb.length + 1}`,
+        createdAt: new Date().toISOString(),
+      }
+      finalRetakePaymentsDb.unshift(payment)
+      return HttpResponse.json(payment)
     }
   )
 ]
