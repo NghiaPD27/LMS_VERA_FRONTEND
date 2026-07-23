@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useGetMyEnrollments } from '../../hooks/useEnrollments'
 import { EnrollmentStatusBadge } from '../../components/enrollments/EnrollmentStatusBadge'
+import { StudentFinalAssessmentPanel } from '../../components/enrollments/StudentFinalAssessmentPanel'
 import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
 import { EmptyState } from '../../components/common/EmptyState'
@@ -107,6 +108,8 @@ export const MyEnrollmentsPage: React.FC = () => {
                   currentLessonStatus={enrollment.currentLessonStatus}
                   nextAction={enrollment.nextAction}
                 />
+
+                <StudentFinalAssessmentPanel enrollmentId={enrollment.id} />
 
                 {canStudy ? (
                   <Button

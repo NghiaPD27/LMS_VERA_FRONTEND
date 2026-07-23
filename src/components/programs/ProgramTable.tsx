@@ -34,6 +34,7 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Final retake</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -45,6 +46,7 @@ export const ProgramTable: React.FC<ProgramTableProps> = ({
               <TableCell className="font-semibold text-foreground">{program.name}</TableCell>
               <TableCell className="text-muted-foreground">{program.description || '-'}</TableCell>
               <TableCell>{formatCurrency(program.price, program.currency || 'VND')}</TableCell>
+              <TableCell>{formatCurrency(program.finalAssessmentRetakePrice, program.currency || 'VND')}</TableCell>
               <TableCell>
                 <SalesStatusBadge status={program.salesStatus} />
               </TableCell>

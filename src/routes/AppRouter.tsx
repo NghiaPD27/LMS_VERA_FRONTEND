@@ -17,6 +17,7 @@ import { ProgramDetailPage } from '../pages/admin/ProgramDetailPage'
 import { EnrollmentPage } from '../pages/admin/EnrollmentPage'
 import { PurchasesPage } from '../pages/admin/PurchasesPage'
 import { CheckpointPage } from '../pages/admin/CheckpointPage'
+import { FinalAssessmentPage } from '../pages/admin/FinalAssessmentPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
@@ -27,6 +28,7 @@ import { TeacherBookingsPage } from '../pages/teacher/TeacherBookingsPage'
 import { TeacherDashboardPage } from '../pages/teacher/TeacherDashboardPage'
 import { TeacherStudentsPage } from '../pages/teacher/TeacherStudentsPage'
 import { EvaluatorCheckpointDetailPage, EvaluatorCheckpointPage } from '../pages/evaluator/EvaluatorCheckpointPage'
+import { EvaluatorFinalAssessmentDetailPage, EvaluatorFinalAssessmentPage } from '../pages/evaluator/EvaluatorFinalAssessmentPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
 import { ROLES } from '../utils/constants'
@@ -71,6 +73,7 @@ export const router = createBrowserRouter([
               { path: 'admin/purchases', element: <PurchasesPage /> },
               { path: 'admin/enrollments', element: <EnrollmentPage /> },
               { path: 'admin/checkpoints', element: <CheckpointPage /> },
+              { path: 'admin/final-assessments', element: <FinalAssessmentPage /> },
             ],
           },
         ],
@@ -114,6 +117,8 @@ export const router = createBrowserRouter([
             children: [
               { path: 'evaluator', element: <EvaluatorCheckpointPage /> },
               { path: 'evaluator/checkpoints/:sessionId', element: <EvaluatorCheckpointDetailPage /> },
+              { path: 'evaluator/finals', element: <EvaluatorFinalAssessmentPage /> },
+              { path: 'evaluator/finals/:sessionId', element: <EvaluatorFinalAssessmentDetailPage /> },
             ],
           },
         ],

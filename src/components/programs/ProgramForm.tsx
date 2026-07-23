@@ -19,6 +19,15 @@ export const programSchema = z.object({
   ),
   currency: z.string().optional(),
   salesStatus: z.string().optional(),
+  finalAssessmentRetakePrice: z.preprocess(
+    (value) => {
+      if (value === '' || value === null || value === undefined || (typeof value === 'number' && Number.isNaN(value))) {
+        return undefined
+      }
+      return Number(value)
+    },
+    z.number().min(0, 'Retake price must be at least 0').optional()
+  ),
 })
 
 export type ProgramFormValues = z.infer<typeof programSchema>
@@ -51,6 +60,7 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
       price: initialValues?.price,
       currency: initialValues?.currency || 'VND',
       salesStatus: initialValues?.salesStatus || 'DRAFT',
+      finalAssessmentRetakePrice: initialValues?.finalAssessmentRetakePrice,
     }
   })
 
@@ -158,6 +168,33 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
               {errors.salesStatus.message}
             </p>
           )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-background p-4">
+        <div className="grid gap-4 sm:grid-cols-[1fr_1.4fr] sm:items-start">
+          <div>
+            <label htmlFor="finalAssessmentRetakePrice" className="block text-sm font-bold text-foreground">
+              Final retake price
+            </label>
+            <Input
+              id="finalAssessmentRetakePrice"
+              type="number"
+              min="0"
+              step="1000"
+              data-testid="program-final-retake-price-input"
+              disabled={isLoading}
+              {...register('finalAssessmentRetakePrice')}
+            />
+            {errors.finalAssessmentRetakePrice && (
+              <p className="mt-1 text-xs text-red-600" data-testid="program-final-retake-price-error">
+                {errors.finalAssessmentRetakePrice.message}
+              </p>
+            )}
+          </div>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Use 0 when retake payment is not configured. Students who do not pass final assessment can only create a retake payment when this price is greater than 0.
+          </p>
         </div>
       </div>
 

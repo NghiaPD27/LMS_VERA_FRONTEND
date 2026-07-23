@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/student/final-assessment-retake-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRetakePayments"];
+        put?: never;
+        post: operations["createRetakePayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/student/bookings": {
         parameters: {
             query?: never;
@@ -286,6 +302,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["publishLesson"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evaluator/final-assessment-results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitResult"];
         delete?: never;
         options?: never;
         head?: never;
@@ -468,6 +500,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/final-assessment-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSessions"];
+        put?: never;
+        post: operations["createSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/final-assessment-sessions/{id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["addParticipants"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/evaluators": {
         parameters: {
             query?: never;
@@ -596,6 +660,38 @@ export interface paths {
         patch: operations["updatePurchaseStatus"];
         trace?: never;
     };
+    "/api/admin/final-assessment-sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateSession"];
+        trace?: never;
+    };
+    "/api/admin/final-assessment-sessions/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateSessionStatus"];
+        trace?: never;
+    };
     "/api/admin/enrollments/{id}/extend": {
         parameters: {
             query?: never;
@@ -708,6 +804,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/student/final-assessment-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/student/enrollments": {
         parameters: {
             query?: never;
@@ -796,6 +908,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getLessonLearningState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evaluator/final-assessment-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSessions_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/evaluator/final-assessment-sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSession_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -996,6 +1140,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/final-assessment-eligible-students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEligibleStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/enrollments": {
         parameters: {
             query?: never;
@@ -1044,6 +1204,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/final-assessment-sessions/{id}/participants/{participantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["removeParticipant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/checkpoint-sessions/{id}/participants/{participantId}": {
         parameters: {
             query?: never;
@@ -1068,6 +1244,7 @@ export interface components {
             name: string;
             description?: string;
             price?: number;
+            finalAssessmentRetakePrice?: number;
             currency?: string;
             salesStatus?: string;
         };
@@ -1077,6 +1254,7 @@ export interface components {
             name?: string;
             description?: string;
             price?: number;
+            finalAssessmentRetakePrice?: number;
             currency?: string;
             salesStatus?: string;
         };
@@ -1224,6 +1402,33 @@ export interface components {
             /** Format: date-time */
             paidAt?: string;
             adminNote?: string;
+        };
+        CreateFinalAssessmentRetakePaymentRequest: {
+            /** Format: int64 */
+            enrollmentId: number;
+        };
+        FinalAssessmentRetakePaymentResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            amount?: number;
+            currency?: string;
+            status?: string;
+            paymentCode?: string;
+            paymentQrUrl?: string;
+            paymentProvider?: string;
+            paymentContent?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            paidAt?: string;
         };
         CreateBookingRequest: {
             /** Format: int64 */
@@ -1393,6 +1598,24 @@ export interface components {
             title?: string;
             questions?: components["schemas"]["QuizQuestionResponse"][];
         };
+        SubmitFinalAssessmentResultRequest: {
+            /** Format: int64 */
+            participantId: number;
+            result: string;
+            comment?: string;
+        };
+        FinalAssessmentResultResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            participantId?: number;
+            /** Format: int64 */
+            evaluatorId?: number;
+            result?: string;
+            comment?: string;
+            /** Format: date-time */
+            evaluatedAt?: string;
+        };
         SubmitCheckpointResultRequest: {
             /** Format: int64 */
             participantId: number;
@@ -1537,6 +1760,58 @@ export interface components {
             lastName: string;
             phoneNumber?: string;
         };
+        CreateFinalAssessmentSessionRequest: {
+            /** Format: int64 */
+            programId: number;
+            /** Format: int64 */
+            evaluatorId: number;
+            /** Format: date-time */
+            scheduledAt: string;
+            meetLink: string;
+            participantEnrollmentIds?: number[];
+        };
+        FinalAssessmentParticipantResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            retake?: boolean;
+            /** Format: int64 */
+            retakePaymentId?: number;
+            /** Format: date-time */
+            addedAt?: string;
+            result?: components["schemas"]["FinalAssessmentResultResponse"];
+        };
+        FinalAssessmentSessionResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int64 */
+            evaluatorId?: number;
+            evaluatorName?: string;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: int32 */
+            participantCount?: number;
+            /** Format: int32 */
+            resultSubmittedCount?: number;
+            canManage?: boolean;
+            participants?: components["schemas"]["FinalAssessmentParticipantResponse"][];
+        };
+        AddFinalAssessmentParticipantsRequest: {
+            enrollmentIds: number[];
+        };
         CreateEvaluatorRequest: {
             username: string;
             /** Format: email */
@@ -1626,6 +1901,16 @@ export interface components {
             status: string;
             note?: string;
         };
+        UpdateFinalAssessmentSessionRequest: {
+            /** Format: int64 */
+            evaluatorId?: number;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+        };
+        UpdateFinalAssessmentSessionStatusRequest: {
+            status: string;
+        };
         ExtendEnrollmentRequest: {
             /** Format: int32 */
             months: number;
@@ -1669,6 +1954,32 @@ export interface components {
             startAt?: string;
             /** Format: date-time */
             endAt?: string;
+        };
+        StudentFinalAssessmentStatusResponse: {
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            enrollmentStatus?: string;
+            eligible?: boolean;
+            retakeRequired?: boolean;
+            /** Format: int64 */
+            sessionId?: number;
+            /** Format: int64 */
+            participantId?: number;
+            sessionStatus?: string;
+            /** Format: date-time */
+            scheduledAt?: string;
+            meetLink?: string;
+            /** Format: int64 */
+            evaluatorId?: number;
+            evaluatorName?: string;
+            lastResult?: string;
+            lastComment?: string;
+            /** Format: date-time */
+            lastEvaluatedAt?: string;
+            latestRetakePayment?: components["schemas"]["FinalAssessmentRetakePaymentResponse"];
         };
         StudentCheckpointStatusResponse: {
             /** Format: int64 */
@@ -1859,6 +2170,37 @@ export interface components {
             note?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        PageResponseFinalAssessmentSessionResponse: {
+            content?: components["schemas"]["FinalAssessmentSessionResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        FinalAssessmentEligibleStudentResponse: {
+            /** Format: int64 */
+            studentId?: number;
+            studentName?: string;
+            /** Format: int64 */
+            enrollmentId?: number;
+            /** Format: int64 */
+            programId?: number;
+            programName?: string;
+            /** Format: int64 */
+            finalLessonId?: number;
+            /** Format: int32 */
+            finalLessonNumber?: number;
+            finalLessonName?: string;
+            retake?: boolean;
+            /** Format: int64 */
+            retakePaymentId?: number;
+            /** Format: date-time */
+            eligibleAt?: string;
         };
         AdminEvaluatorResponse: {
             /** Format: int64 */
@@ -2197,6 +2539,53 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
+    getRetakePayments: {
+        parameters: {
+            query?: {
+                enrollmentId?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentRetakePaymentResponse"][];
+                };
+            };
+        };
+    };
+    createRetakePayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFinalAssessmentRetakePaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentRetakePaymentResponse"];
                 };
             };
         };
@@ -2626,6 +3015,30 @@ export interface operations {
             };
         };
     };
+    submitResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitFinalAssessmentResultRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentResultResponse"];
+                };
+            };
+        };
+    };
     submitCheckpointResult: {
         parameters: {
             query?: never;
@@ -2930,6 +3343,83 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PurchaseResponse"];
+                };
+            };
+        };
+    };
+    getSessions: {
+        parameters: {
+            query?: {
+                programId?: number;
+                status?: string;
+                weekStart?: string;
+                weekEnd?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageResponseFinalAssessmentSessionResponse"];
+                };
+            };
+        };
+    };
+    createSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFinalAssessmentSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
+                };
+            };
+        };
+    };
+    addParticipants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddFinalAssessmentParticipantsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
                 };
             };
         };
@@ -3250,6 +3740,80 @@ export interface operations {
             };
         };
     };
+    getSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
+                };
+            };
+        };
+    };
+    updateSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFinalAssessmentSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
+                };
+            };
+        };
+    };
+    updateSessionStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFinalAssessmentSessionStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
+                };
+            };
+        };
+    };
     extendEnrollment: {
         parameters: {
             query?: never;
@@ -3436,6 +4000,28 @@ export interface operations {
             };
         };
     };
+    getStatus: {
+        parameters: {
+            query: {
+                enrollmentId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentFinalAssessmentStatusResponse"];
+                };
+            };
+        };
+    };
     getStudentEnrollments: {
         parameters: {
             query?: never;
@@ -3564,6 +4150,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["LearningStateResponse"];
+                };
+            };
+        };
+    };
+    getSessions_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"][];
+                };
+            };
+        };
+    };
+    getSession_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
                 };
             };
         };
@@ -3836,6 +4464,30 @@ export interface operations {
             };
         };
     };
+    getEligibleStudents: {
+        parameters: {
+            query?: {
+                programId?: number;
+                weekStart?: string;
+                weekEnd?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentEligibleStudentResponse"][];
+                };
+            };
+        };
+    };
     getAdminEnrollments: {
         parameters: {
             query?: {
@@ -3905,6 +4557,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TeacherAvailabilityResponse"];
+                };
+            };
+        };
+    };
+    removeParticipant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                participantId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalAssessmentSessionResponse"];
                 };
             };
         };

@@ -167,6 +167,7 @@ export const ProgramsPage: React.FC = () => {
                     price: editingProgram.price,
                     currency: editingProgram.currency,
                     salesStatus: editingProgram.salesStatus,
+                    finalAssessmentRetakePrice: editingProgram.finalAssessmentRetakePrice,
                   }
                 : undefined
             }

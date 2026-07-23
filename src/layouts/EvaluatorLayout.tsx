@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { ClipboardCheck, GraduationCap, KeyRound, LogOut } from 'lucide-react'
+import { Award, ClipboardCheck, GraduationCap, KeyRound, LogOut } from 'lucide-react'
 import { Button } from '../components/common/Button'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
 import { useCurrentUser, useLogout } from '../hooks/useAuth'
@@ -7,6 +7,7 @@ import { cn } from '@/utils/cn'
 
 const navItems = [
   { label: 'Checkpoints', href: '/evaluator', icon: ClipboardCheck },
+  { label: 'Final assessments', href: '/evaluator/finals', icon: Award },
   { label: 'Change Password', href: '/change-password', icon: KeyRound },
 ]
 
@@ -86,4 +87,3 @@ export function EvaluatorLayout() {
     </div>
   )
 }
-
