@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Award, ClipboardCheck, GraduationCap, KeyRound, LogOut } from 'lucide-react'
 import { Button } from '../components/common/Button'
+import { NoIndexSeo } from '../components/common/Seo'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
 import { useCurrentUser, useLogout } from '../hooks/useAuth'
 import { cn } from '@/utils/cn'
@@ -23,6 +24,7 @@ export function EvaluatorLayout() {
 
   return (
     <div className="vera-workspace-bg flex min-h-screen">
+      <NoIndexSeo title="LMS Vera | Evaluator workspace" />
       <VeraBackgroundArt />
       <aside className="fixed inset-y-0 left-0 z-40 hidden h-dvh w-72 border-r border-[hsl(var(--brand-green))]/15 bg-white md:flex md:flex-col">
         <div className="shrink-0 border-b border-border/80 px-6 py-5">

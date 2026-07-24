@@ -1,6 +1,8 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, CheckCircle2, GraduationCap } from 'lucide-react'
 import { Button } from '../../components/common/Button'
+import { Seo } from '../../components/common/Seo'
+import { siteUrl } from '../../utils/seo'
 import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
 import { SalesStatusBadge } from '../../components/programs/SalesStatusBadge'
@@ -70,6 +72,40 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
 
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground'}>
+      <Seo
+        title={embedded ? `LMS Vera | ${program.name}` : `${program.name} | Khóa học online trên LMS Vera`}
+        description={
+          program.description ||
+          'Khóa học online trên LMS Vera với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.'
+        }
+        path={`/courses/${program.id}`}
+        noindex={embedded}
+        type="article"
+        jsonLd={
+          embedded
+            ? undefined
+            : {
+                '@context': 'https://schema.org',
+                '@type': 'Course',
+                name: program.name,
+                description:
+                  program.description ||
+                  'Khóa học online trên LMS Vera với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.',
+                url: `${siteUrl}/courses/${program.id}`,
+                provider: {
+                  '@type': 'EducationalOrganization',
+                  name: 'LMS Vera',
+                  sameAs: siteUrl,
+                },
+                offers: {
+                  '@type': 'Offer',
+                  price: program.price || 0,
+                  priceCurrency: program.currency || 'VND',
+                  availability: program.salesStatus === 'PUBLISHED' ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
+                },
+              }
+        }
+      />
       <section className={embedded ? 'lms-page-shell' : 'mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8'}>
         <Button asChild variant="ghost" className="mb-5">
           <Link to={courseBasePath}>

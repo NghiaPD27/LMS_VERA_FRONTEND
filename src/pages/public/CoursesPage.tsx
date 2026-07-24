@@ -6,6 +6,7 @@ import { LoadingState } from '../../components/common/LoadingState'
 import { ErrorState } from '../../components/common/ErrorState'
 import { EmptyState } from '../../components/common/EmptyState'
 import { SalesStatusBadge } from '../../components/programs/SalesStatusBadge'
+import { Seo } from '../../components/common/Seo'
 import { useGetPublicPrograms } from '../../hooks/usePrograms'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import { formatCurrency } from '../../utils/formatters'
@@ -29,6 +30,12 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
 
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground'}>
+      <Seo
+        title={embedded ? 'LMS Vera | Student courses' : 'Khóa học LMS Vera | Tiếng Anh và tiếng Việt online'}
+        description="Khám phá các khóa học tiếng Anh và tiếng Việt trực tuyến trên LMS Vera với lộ trình rõ ràng, bài học video, quiz và giáo viên hỗ trợ."
+        path="/courses"
+        noindex={embedded}
+      />
       {!embedded && (
       <header className="border-b border-border bg-white/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">

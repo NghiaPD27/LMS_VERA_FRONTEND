@@ -19,6 +19,8 @@ import {
   Video,
 } from 'lucide-react'
 import { Button } from '../../components/common/Button'
+import { Seo } from '../../components/common/Seo'
+import { siteUrl } from '../../utils/seo'
 
 type Language = 'vi' | 'en'
 
@@ -342,6 +344,28 @@ export function HomePage() {
 
   return (
     <main className="vera-public-bg min-h-screen text-foreground">
+      <Seo
+        title="LMS Vera | Học tiếng Anh và tiếng Việt trực tuyến"
+        description="LMS Vera là nền tảng học tiếng Anh và tiếng Việt online với lộ trình rõ ràng, video bài học, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập."
+        path="/"
+        jsonLd={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'EducationalOrganization',
+            name: 'LMS Vera',
+            url: siteUrl,
+            description:
+              'LMS Vera cung cấp chương trình học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, giáo viên hỗ trợ và hệ thống theo dõi tiến độ.',
+            sameAs: [],
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'LMS Vera',
+            url: siteUrl,
+          },
+        ]}
+      />
       <header className="sticky top-0 z-20 border-b border-[hsl(var(--brand-green-hover))]/30 bg-[hsl(var(--brand-green))] text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="LMS Vera home">

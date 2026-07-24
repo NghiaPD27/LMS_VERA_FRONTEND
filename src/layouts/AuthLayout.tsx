@@ -1,9 +1,11 @@
 import { Outlet } from 'react-router-dom'
 import { BookOpen, GraduationCap, ShieldCheck } from 'lucide-react'
+import { NoIndexSeo } from '../components/common/Seo'
 
 export function AuthLayout() {
   return (
     <main className="relative isolate flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden bg-[hsl(var(--brand-green-soft))] px-4 py-4 text-foreground lg:overflow-hidden">
+      <NoIndexSeo title="LMS Vera | Account access" />
       <svg
         className="pointer-events-none absolute inset-x-0 bottom-[-1px] -z-10 h-[34%] w-full text-white"
         viewBox="0 0 1440 260"

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /student
+Disallow: /teacher
+Disallow: /evaluator
+Disallow: /login
+Disallow: /register
+Disallow: /change-password
+
+Sitemap: https://lmsvera.com/sitemap.xml
