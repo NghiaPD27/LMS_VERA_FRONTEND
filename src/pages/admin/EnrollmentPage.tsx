@@ -604,7 +604,7 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
   const teacherIdForEarnings = selectedTeacher?.id || enrollment.teacherId
   const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 8 }, true)
   const currentTeacherQuery = useGetAdminTeacher(enrollment.teacherId, !!enrollment.teacherId)
-  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, !!teacherIdForEarnings)
+  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, {}, !!teacherIdForEarnings)
   const assignTeacherMutation = useAssignTeacher()
   const compensationMutation = useUpsertTeacherCompensation()
 

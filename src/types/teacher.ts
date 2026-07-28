@@ -31,6 +31,10 @@ export interface TeacherAvailabilityQueryParams {
   status?: string
 }
 
+export interface TeacherEarningsQueryParams {
+  month?: string
+}
+
 export interface StudentBookingQueryParams {
   lessonId?: number
   status?: string

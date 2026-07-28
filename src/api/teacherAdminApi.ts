@@ -4,6 +4,7 @@ import type {
   AdminTeacherPage,
   TeacherAssignment,
   TeacherCompensation,
+  TeacherEarningsQueryParams,
   TeacherEarningsSummary,
   TeacherQueryParams,
   UpsertTeacherCompensationRequest,
@@ -33,8 +34,11 @@ export const teacherAdminApi = {
     return response.data
   },
 
-  getTeacherEarnings: async (teacherId: number): Promise<TeacherEarningsSummary> => {
-    const response = await http.get(`/admin/teachers/${teacherId}/earnings`)
+  getTeacherEarnings: async (
+    teacherId: number,
+    params: TeacherEarningsQueryParams = {}
+  ): Promise<TeacherEarningsSummary> => {
+    const response = await http.get(`/admin/teachers/${teacherId}/earnings`, { params })
     return response.data
   },
 }

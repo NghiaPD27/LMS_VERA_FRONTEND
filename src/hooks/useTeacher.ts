@@ -7,13 +7,16 @@ import type {
   ReviewBookingRequest,
   StudentBookingQueryParams,
   TeacherAvailabilityQueryParams,
+  TeacherEarningsQueryParams,
   TeacherQueryParams,
   UpsertTeacherCompensationRequest,
 } from '../types/teacher'
 
 export const adminTeachersQueryKey = (params: TeacherQueryParams = {}) => ['admin-teachers', params] as const
 export const adminTeacherQueryKey = (id?: number) => ['admin-teacher', id] as const
-export const teacherEarningsQueryKey = (teacherId?: number) => ['teacher-earnings', teacherId] as const
+export const teacherSelfEarningsQueryKey = (params: TeacherEarningsQueryParams = {}) => ['teacher-self-earnings', params] as const
+export const teacherEarningsQueryKey = (teacherId?: number, params: TeacherEarningsQueryParams = {}) =>
+  ['teacher-earnings', teacherId, params] as const
 export const teacherStudentsQueryKey = ['teacher-students'] as const
 export const teacherBookingsQueryKey = (status?: string) => ['teacher-bookings', status || 'all'] as const
 export const teacherAvailabilityQueryKey = (params: TeacherAvailabilityQueryParams = {}) => ['teacher-availability', params] as const
@@ -58,17 +61,29 @@ export const useUpsertTeacherCompensation = () => {
       teacherAdminApi.upsertCompensation(teacherId, {
         ...data,
         currency: data.currency || 'VND',
-      }),
+    }),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: teacherEarningsQueryKey(variables.teacherId) })
+      queryClient.invalidateQueries({ queryKey: ['teacher-earnings', variables.teacherId] })
     },
   })
 }
 
-export const useGetTeacherEarnings = (teacherId?: number, enabled = true) =>
+export const useGetMyTeacherEarnings = (params: TeacherEarningsQueryParams = {}, enabled = true) =>
   useQuery({
-    queryKey: teacherEarningsQueryKey(teacherId),
-    queryFn: () => teacherAdminApi.getTeacherEarnings(teacherId as number),
+    queryKey: teacherSelfEarningsQueryKey(params),
+    queryFn: () => teacherApi.getMyEarnings(params),
+    enabled,
+    retry: false,
+  })
+
+export const useGetTeacherEarnings = (
+  teacherId?: number,
+  params: TeacherEarningsQueryParams = {},
+  enabled = true
+) =>
+  useQuery({
+    queryKey: teacherEarningsQueryKey(teacherId, params),
+    queryFn: () => teacherAdminApi.getTeacherEarnings(teacherId as number, params),
     enabled: !!teacherId && enabled,
     retry: false,
   })
@@ -126,6 +141,7 @@ export const useReviewTeacherBooking = () => {
       teacherApi.reviewBooking(bookingId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-bookings'] })
+      queryClient.invalidateQueries({ queryKey: ['teacher-self-earnings'] })
       queryClient.invalidateQueries({ queryKey: teacherStudentsQueryKey })
     },
   })

@@ -756,6 +756,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/teacher/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTeacherEarnings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/teacher/bookings": {
         parameters: {
             query?: never;
@@ -1019,7 +1035,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getTeacherEarnings"];
+        get: operations["getTeacherEarnings_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2005,6 +2021,20 @@ export interface components {
         UpdateCheckpointSessionStatusRequest: {
             status: string;
         };
+        TeacherEarningsSummaryResponse: {
+            /** Format: int64 */
+            teacherId?: number;
+            totalEarned?: number;
+            currency?: string;
+            periodMonth?: string;
+            /** Format: date-time */
+            periodStart?: string;
+            /** Format: date-time */
+            periodEnd?: string;
+            /** Format: int64 */
+            totalSessions?: number;
+            earnings?: components["schemas"]["TeacherEarningResponse"][];
+        };
         TeacherAvailabilitySlotResponse: {
             /** Format: int64 */
             availabilityId?: number;
@@ -2178,13 +2208,6 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
-        };
-        TeacherEarningsSummaryResponse: {
-            /** Format: int64 */
-            teacherId?: number;
-            totalEarned?: number;
-            currency?: string;
-            earnings?: components["schemas"]["TeacherEarningResponse"][];
         };
         AdminStudentResponse: {
             /** Format: int64 */
@@ -4127,6 +4150,28 @@ export interface operations {
             };
         };
     };
+    getTeacherEarnings: {
+        parameters: {
+            query?: {
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TeacherEarningsSummaryResponse"];
+                };
+            };
+        };
+    };
     getTeacherBookings: {
         parameters: {
             query?: {
@@ -4477,9 +4522,11 @@ export interface operations {
             };
         };
     };
-    getTeacherEarnings: {
+    getTeacherEarnings_1: {
         parameters: {
-            query?: never;
+            query?: {
+                month?: string;
+            };
             header?: never;
             path: {
                 teacherId: number;

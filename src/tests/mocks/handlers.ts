@@ -378,6 +378,55 @@ const getTeacherDisplayName = (teacher?: UserState) => {
   return [teacher.profile.firstName, teacher.profile.lastName].filter(Boolean).join(' ') || teacher.username
 }
 
+const getVietnamMonthPeriod = (month?: string) => {
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    return {}
+  }
+
+  const [yearPart, monthPart] = month.split('-')
+  const year = Number(yearPart)
+  const monthNumber = Number(monthPart)
+  if (!Number.isInteger(year) || !Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return {}
+  }
+
+  const nextYear = monthNumber === 12 ? year + 1 : year
+  const nextMonth = monthNumber === 12 ? 1 : monthNumber + 1
+  return {
+    periodMonth: month,
+    periodStart: `${month}-01T00:00:00+07:00`,
+    periodEnd: `${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00+07:00`,
+  }
+}
+
+const getTeacherEarningsSummary = (
+  teacherId: number,
+  month?: string
+): components['schemas']['TeacherEarningsSummaryResponse'] => {
+  const period = getVietnamMonthPeriod(month)
+  const earnings = teacherEarningsDb.filter((earning) => {
+    if (earning.teacherId !== teacherId) return false
+    if (!period.periodStart || !period.periodEnd) return true
+
+    const earnedAt = new Date(earning.earnedAt || '').getTime()
+    return (
+      Number.isFinite(earnedAt) &&
+      earnedAt >= new Date(period.periodStart).getTime() &&
+      earnedAt < new Date(period.periodEnd).getTime()
+    )
+  })
+  const currency = earnings[0]?.currency || teacherCompensationsDb.find((item) => item.teacherId === teacherId)?.currency || 'VND'
+
+  return {
+    teacherId,
+    totalEarned: earnings.reduce((total, earning) => total + (earning.amount || 0), 0),
+    currency,
+    ...period,
+    totalSessions: earnings.length,
+    earnings,
+  }
+}
+
 export const handlers = [
   http.get<never, never, components['schemas']['PageResponseProgramResponse']>(
     '/api/programs',
@@ -1047,16 +1096,10 @@ export const handlers = [
 
   http.get<{ teacherId: string }, never, components['schemas']['TeacherEarningsSummaryResponse'] | { message: string }>(
     '/api/admin/teachers/:teacherId/earnings',
-    ({ params }) => {
+    ({ params, request }) => {
       const teacherId = Number(params.teacherId)
-      const earnings = teacherEarningsDb.filter((earning) => earning.teacherId === teacherId)
-      const currency = earnings[0]?.currency || teacherCompensationsDb.find((item) => item.teacherId === teacherId)?.currency || 'VND'
-      return HttpResponse.json({
-        teacherId,
-        totalEarned: earnings.reduce((total, earning) => total + (earning.amount || 0), 0),
-        currency,
-        earnings,
-      })
+      const month = new URL(request.url).searchParams.get('month') || undefined
+      return HttpResponse.json(getTeacherEarningsSummary(teacherId, month))
     }
   ),
 
@@ -1094,6 +1137,18 @@ export const handlers = [
         return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
       }
       return HttpResponse.json(teacherAssignmentsDb.filter((assignment) => assignment.teacherId === Number(user.id)))
+    }
+  ),
+
+  http.get<never, never, components['schemas']['TeacherEarningsSummaryResponse'] | { message: string }>(
+    '/api/teacher/earnings',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const month = new URL(request.url).searchParams.get('month') || undefined
+      return HttpResponse.json(getTeacherEarningsSummary(Number(user.id), month))
     }
   ),
 

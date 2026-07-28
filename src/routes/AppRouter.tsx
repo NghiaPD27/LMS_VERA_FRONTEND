@@ -20,6 +20,7 @@ import { CheckpointPage } from '../pages/admin/CheckpointPage'
 import { FinalAssessmentPage } from '../pages/admin/FinalAssessmentPage'
 import { StudentProgressReportPage } from '../pages/admin/StudentProgressReportPage'
 import { AuditLogsPage } from '../pages/admin/AuditLogsPage'
+import { AdminTeacherEarningsPage } from '../pages/admin/AdminTeacherEarningsPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
@@ -28,6 +29,7 @@ import { PurchaseDetailPage } from '../pages/student/PurchaseDetailPage'
 import { TeacherAvailabilityPage } from '../pages/teacher/TeacherAvailabilityPage'
 import { TeacherBookingsPage } from '../pages/teacher/TeacherBookingsPage'
 import { TeacherDashboardPage } from '../pages/teacher/TeacherDashboardPage'
+import { TeacherEarningsPage } from '../pages/teacher/TeacherEarningsPage'
 import { TeacherStudentsPage } from '../pages/teacher/TeacherStudentsPage'
 import { EvaluatorCheckpointDetailPage, EvaluatorCheckpointPage } from '../pages/evaluator/EvaluatorCheckpointPage'
 import { EvaluatorFinalAssessmentDetailPage, EvaluatorFinalAssessmentPage } from '../pages/evaluator/EvaluatorFinalAssessmentPage'
@@ -74,6 +76,7 @@ export const router = createBrowserRouter([
               { path: 'admin/programs/:programId', element: <ProgramDetailPage /> },
               { path: 'admin/purchases', element: <PurchasesPage /> },
               { path: 'admin/enrollments', element: <EnrollmentPage /> },
+              { path: 'admin/teacher-earnings', element: <AdminTeacherEarningsPage /> },
               { path: 'admin/student-progress', element: <StudentProgressReportPage /> },
               { path: 'admin/checkpoints', element: <CheckpointPage /> },
               { path: 'admin/final-assessments', element: <FinalAssessmentPage /> },
@@ -109,6 +112,7 @@ export const router = createBrowserRouter([
               { path: 'teacher/bookings', element: <TeacherBookingsPage /> },
               { path: 'teacher/availability', element: <TeacherAvailabilityPage /> },
               { path: 'teacher/students', element: <TeacherStudentsPage /> },
+              { path: 'teacher/earnings', element: <TeacherEarningsPage /> },
             ],
           },
         ],

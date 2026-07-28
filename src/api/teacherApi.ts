@@ -7,6 +7,8 @@ import type {
   TeacherAvailabilityQueryParams,
   TeacherAvailabilitySlot,
   TeacherBooking,
+  TeacherEarningsQueryParams,
+  TeacherEarningsSummary,
   TeacherReview,
 } from '../types/teacher'
 
@@ -27,6 +29,11 @@ export const teacherApi = {
 
   getStudents: async (): Promise<TeacherAssignment[]> => {
     const response = await http.get('/teacher/students')
+    return response.data
+  },
+
+  getMyEarnings: async (params: TeacherEarningsQueryParams = {}): Promise<TeacherEarningsSummary> => {
+    const response = await http.get('/teacher/earnings', { params })
     return response.data
   },
 

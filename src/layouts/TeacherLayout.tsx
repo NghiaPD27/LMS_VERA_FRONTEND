@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { CalendarClock, GraduationCap, KeyRound, LayoutDashboard, LogOut, Users } from 'lucide-react'
+import { CalendarClock, GraduationCap, KeyRound, LayoutDashboard, LogOut, Users, WalletCards } from 'lucide-react'
 import { Button } from '../components/common/Button'
 import { NoIndexSeo } from '../components/common/Seo'
 import { VeraBackgroundArt } from '../components/common/VeraBackgroundArt'
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Bookings', href: '/teacher/bookings', icon: CalendarClock },
   { label: 'Availability', href: '/teacher/availability', icon: CalendarClock },
   { label: 'Students', href: '/teacher/students', icon: Users },
+  { label: 'Earnings', href: '/teacher/earnings', icon: WalletCards },
   { label: 'Change Password', href: '/change-password', icon: KeyRound },
 ]
 
