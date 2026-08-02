@@ -82,7 +82,7 @@ describe('Teacher workspace', () => {
     await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:30')
     await user.click(screen.getByRole('button', { name: /create availability/i }))
 
-    expect(await screen.findByTestId('availability-error')).toHaveTextContent('Start and end time must be on the hour.')
+    expect(await screen.findByTestId('availability-error')).toHaveTextContent('Set minutes to 00')
     expect(hookState.createAvailability).not.toHaveBeenCalled()
   })
 

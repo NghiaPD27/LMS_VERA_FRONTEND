@@ -226,7 +226,7 @@ function validateWholeHourRange(startValue: string, endValue: string) {
   }
 
   if (startDate.getMinutes() !== 0 || endDate.getMinutes() !== 0) {
-    return 'Start and end time must be on the hour.'
+    return 'Start and end time must be exact hour marks. Set minutes to 00, for example 01:00 - 02:00.'
   }
 
   const durationMs = endDate.getTime() - startDate.getTime()
@@ -235,7 +235,7 @@ function validateWholeHourRange(startValue: string, endValue: string) {
   }
 
   if (durationMs % (60 * 60 * 1000) !== 0) {
-    return 'Availability duration must be a whole number of hours.'
+    return 'Availability duration must be a whole number of hours, for example 01:00 - 03:00.'
   }
 
   return null
