@@ -82,16 +82,16 @@ describe('Teacher workspace', () => {
     hookState.availabilitySlots = []
   })
 
-  it('validates availability must start and end on whole hours', async () => {
+  it('validates availability requires date and hour fields', async () => {
     const user = userEvent.setup()
 
     render(<TeacherAvailabilityPage />)
 
-    await user.type(screen.getByTestId('teacher-availability-start'), '2026-07-23T10:30')
-    await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:30')
+    await user.type(screen.getByTestId('teacher-availability-start-date'), '2026-07-23')
+    await user.selectOptions(screen.getByTestId('teacher-availability-start-hour'), '10')
     await user.click(screen.getByRole('button', { name: /create availability/i }))
 
-    expect(await screen.findByTestId('availability-error')).toHaveTextContent('Set minutes to 00')
+    expect(await screen.findByTestId('availability-error')).toHaveTextContent('Start date, start hour, end date, and end hour are required')
     expect(hookState.createAvailability).not.toHaveBeenCalled()
   })
 
@@ -100,8 +100,10 @@ describe('Teacher workspace', () => {
 
     render(<TeacherAvailabilityPage />)
 
-    await user.type(screen.getByTestId('teacher-availability-start'), '2026-07-23T10:00')
-    await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:00')
+    await user.type(screen.getByTestId('teacher-availability-start-date'), '2026-07-23')
+    await user.selectOptions(screen.getByTestId('teacher-availability-start-hour'), '10')
+    await user.type(screen.getByTestId('teacher-availability-end-date'), '2026-07-23')
+    await user.selectOptions(screen.getByTestId('teacher-availability-end-hour'), '11')
     await user.click(screen.getByRole('button', { name: /create availability/i }))
 
     expect(await screen.findByTestId('availability-error')).toHaveTextContent('Google Meet link is required')
@@ -127,8 +129,10 @@ describe('Teacher workspace', () => {
 
     render(<TeacherAvailabilityPage />)
 
-    await user.type(screen.getByTestId('teacher-availability-start'), '2026-07-23T10:00')
-    await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:00')
+    await user.type(screen.getByTestId('teacher-availability-start-date'), '2026-07-23')
+    await user.selectOptions(screen.getByTestId('teacher-availability-start-hour'), '10')
+    await user.type(screen.getByTestId('teacher-availability-end-date'), '2026-07-23')
+    await user.selectOptions(screen.getByTestId('teacher-availability-end-hour'), '11')
     await user.type(screen.getByTestId('teacher-availability-meet-link'), '  https://meet.google.com/abc-defg-hij  ')
     await user.click(screen.getByRole('button', { name: /create availability/i }))
 

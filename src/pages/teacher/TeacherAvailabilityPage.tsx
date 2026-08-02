@@ -11,8 +11,10 @@ import type { TeacherAvailability, TeacherAvailabilitySlot } from '../../types/t
 export function TeacherAvailabilityPage() {
   const createAvailabilityMutation = useCreateTeacherAvailability()
   const deleteAvailabilityMutation = useDeleteTeacherAvailability()
-  const [startAt, setStartAt] = useState('')
-  const [endAt, setEndAt] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [startHour, setStartHour] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [endHour, setEndHour] = useState('')
   const [meetLink, setMeetLink] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -27,7 +29,9 @@ export function TeacherAvailabilityPage() {
   const slots = availabilityQuery.data ?? []
 
   const submitAvailability = async () => {
-    const validationError = validateWholeHourRange(startAt, endAt) || validateMeetLink(meetLink)
+    const startDateTime = buildHourlyDateTime(startDate, startHour)
+    const endDateTime = buildHourlyDateTime(endDate, endHour)
+    const validationError = validateWholeHourRange(startDateTime, endDateTime) || validateMeetLink(meetLink)
     if (validationError) {
       setClientError(validationError)
       return
@@ -36,13 +40,15 @@ export function TeacherAvailabilityPage() {
     try {
       setClientError(null)
       const response = await createAvailabilityMutation.mutateAsync({
-        startAt: new Date(startAt).toISOString(),
-        endAt: new Date(endAt).toISOString(),
+        startAt: new Date(startDateTime).toISOString(),
+        endAt: new Date(endDateTime).toISOString(),
         meetLink: meetLink.trim(),
       })
       setCreatedAvailability(response)
-      setStartAt('')
-      setEndAt('')
+      setStartDate('')
+      setStartHour('')
+      setEndDate('')
+      setEndHour('')
       setMeetLink('')
     } catch (error) {
       setClientError(getFriendlyApiErrorMessage(error, 'Failed to create availability'))
@@ -76,25 +82,43 @@ export function TeacherAvailabilityPage() {
         <h2 className="mb-4 font-extrabold text-foreground">Create availability</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor="teacher-availability-start" className="text-sm font-bold text-foreground">Start time</label>
+            <label htmlFor="teacher-availability-start-date" className="text-sm font-bold text-foreground">Start date</label>
             <input
-              id="teacher-availability-start"
-              type="datetime-local"
-              value={startAt}
-              onChange={(event) => setStartAt(event.target.value)}
+              id="teacher-availability-start-date"
+              type="date"
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
               className="lms-input mt-1"
-              data-testid="teacher-availability-start"
+              data-testid="teacher-availability-start-date"
             />
           </div>
           <div>
-            <label htmlFor="teacher-availability-end" className="text-sm font-bold text-foreground">End time</label>
+            <label htmlFor="teacher-availability-start-hour" className="text-sm font-bold text-foreground">Start hour</label>
+            <HourSelect
+              id="teacher-availability-start-hour"
+              value={startHour}
+              onChange={setStartHour}
+              testId="teacher-availability-start-hour"
+            />
+          </div>
+          <div>
+            <label htmlFor="teacher-availability-end-date" className="text-sm font-bold text-foreground">End date</label>
             <input
-              id="teacher-availability-end"
-              type="datetime-local"
-              value={endAt}
-              onChange={(event) => setEndAt(event.target.value)}
+              id="teacher-availability-end-date"
+              type="date"
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
               className="lms-input mt-1"
-              data-testid="teacher-availability-end"
+              data-testid="teacher-availability-end-date"
+            />
+          </div>
+          <div>
+            <label htmlFor="teacher-availability-end-hour" className="text-sm font-bold text-foreground">End hour</label>
+            <HourSelect
+              id="teacher-availability-end-hour"
+              value={endHour}
+              onChange={setEndHour}
+              testId="teacher-availability-end-hour"
             />
           </div>
         </div>
@@ -187,6 +211,35 @@ export function TeacherAvailabilityPage() {
   )
 }
 
+function HourSelect({
+  id,
+  value,
+  onChange,
+  testId,
+}: {
+  id: string
+  value: string
+  onChange: (value: string) => void
+  testId: string
+}) {
+  return (
+    <select
+      id={id}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="lms-input mt-1"
+      data-testid={testId}
+    >
+      <option value="">Choose hour</option>
+      {HOUR_OPTIONS.map((hour) => (
+        <option key={hour} value={hour}>
+          {hour.padStart(2, '0')}h
+        </option>
+      ))}
+    </select>
+  )
+}
+
 function AvailabilitySlotCard({
   slot,
   isDeleting,
@@ -242,7 +295,7 @@ function AvailabilitySlotCard({
 }
 
 function validateWholeHourRange(startValue: string, endValue: string) {
-  if (!startValue || !endValue) return 'Start and end time are required.'
+  if (!startValue || !endValue) return 'Start date, start hour, end date, and end hour are required.'
 
   const startDate = new Date(startValue)
   const endDate = new Date(endValue)
@@ -264,6 +317,13 @@ function validateWholeHourRange(startValue: string, endValue: string) {
   }
 
   return null
+}
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index))
+
+function buildHourlyDateTime(dateValue: string, hourValue: string) {
+  if (!dateValue || hourValue === '') return ''
+  return `${dateValue}T${hourValue.padStart(2, '0')}:00`
 }
 
 function validateMeetLink(value: string) {
