@@ -83,87 +83,105 @@ export function TeacherAvailabilityPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-      <div className="lms-surface p-5">
-        <h2 className="mb-4 font-extrabold text-foreground">Create availability</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label htmlFor="teacher-availability-start-date" className="text-sm font-bold text-foreground">Start date</label>
-            <input
-              id="teacher-availability-start-date"
-              type="date"
-              value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-              className="lms-input mt-1"
-              data-testid="teacher-availability-start-date"
-            />
-          </div>
-          <div>
-            <label htmlFor="teacher-availability-start-hour" className="text-sm font-bold text-foreground">Start hour</label>
-            <HourSelect
-              id="teacher-availability-start-hour"
-              value={startHour}
-              onChange={setStartHour}
-              testId="teacher-availability-start-hour"
-            />
-          </div>
-          <div>
-            <label htmlFor="teacher-availability-end-date" className="text-sm font-bold text-foreground">End date</label>
-            <input
-              id="teacher-availability-end-date"
-              type="date"
-              value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
-              className="lms-input mt-1"
-              data-testid="teacher-availability-end-date"
-            />
-          </div>
-          <div>
-            <label htmlFor="teacher-availability-end-hour" className="text-sm font-bold text-foreground">End hour</label>
-            <HourSelect
-              id="teacher-availability-end-hour"
-              value={endHour}
-              onChange={setEndHour}
-              testId="teacher-availability-end-hour"
-            />
-          </div>
+      <div className="grid gap-5 xl:grid-cols-[460px_1fr]">
+      <div className="lms-surface h-fit overflow-hidden">
+        <div className="border-b border-border bg-[hsl(var(--brand-green-soft))]/45 p-5">
+          <h2 className="font-extrabold text-foreground">Create availability</h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">Pick whole hours only. Minutes are fixed to 00.</p>
         </div>
-        <div className="mt-4">
-          <label htmlFor="teacher-availability-meet-link" className="text-sm font-bold text-foreground">Google Meet link</label>
-          <input
-            id="teacher-availability-meet-link"
-            type="url"
-            value={meetLink}
-            onChange={(event) => setMeetLink(event.target.value)}
-            placeholder="https://meet.google.com/abc-defg-hij"
-            className="lms-input mt-1"
-            data-testid="teacher-availability-meet-link"
-          />
-        </div>
+        <div className="grid gap-5 p-5">
+          <fieldset className="rounded-md border border-border bg-background/70 p-4">
+            <legend className="px-1 text-sm font-extrabold text-[hsl(var(--brand-green))]">Starts</legend>
+            <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+              <div>
+                <label htmlFor="teacher-availability-start-date" className="text-sm font-bold text-foreground">Date</label>
+                <input
+                  id="teacher-availability-start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(event) => setStartDate(event.target.value)}
+                  className="lms-input mt-1"
+                  data-testid="teacher-availability-start-date"
+                />
+              </div>
+              <div>
+                <label htmlFor="teacher-availability-start-hour" className="text-sm font-bold text-foreground">Hour</label>
+                <HourSelect
+                  id="teacher-availability-start-hour"
+                  value={startHour}
+                  onChange={setStartHour}
+                  testId="teacher-availability-start-hour"
+                />
+              </div>
+            </div>
+          </fieldset>
 
-        {clientError && <div className="mt-4 lms-alert-error" data-testid="availability-error">{clientError}</div>}
-        {createdAvailability && (
-          <div className="mt-4 lms-alert-success" data-testid="availability-success">
-            Availability created from {formatDateTime(createdAvailability.startAt)} to {formatDateTime(createdAvailability.endAt)} with Google Meet ready.
+          <fieldset className="rounded-md border border-border bg-background/70 p-4">
+            <legend className="px-1 text-sm font-extrabold text-primary">Ends</legend>
+            <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+              <div>
+                <label htmlFor="teacher-availability-end-date" className="text-sm font-bold text-foreground">Date</label>
+                <input
+                  id="teacher-availability-end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(event) => setEndDate(event.target.value)}
+                  className="lms-input mt-1"
+                  data-testid="teacher-availability-end-date"
+                />
+              </div>
+              <div>
+                <label htmlFor="teacher-availability-end-hour" className="text-sm font-bold text-foreground">Hour</label>
+                <HourSelect
+                  id="teacher-availability-end-hour"
+                  value={endHour}
+                  onChange={setEndHour}
+                  testId="teacher-availability-end-hour"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          <div>
+            <label htmlFor="teacher-availability-meet-link" className="text-sm font-bold text-foreground">Google Meet link</label>
+            <input
+              id="teacher-availability-meet-link"
+              type="url"
+              value={meetLink}
+              onChange={(event) => setMeetLink(event.target.value)}
+              placeholder="https://meet.google.com/abc-defg-hij"
+              className="lms-input mt-1"
+              data-testid="teacher-availability-meet-link"
+            />
+            <p className="mt-2 text-xs font-semibold text-muted-foreground">Students see this link only after booking.</p>
           </div>
-        )}
 
-        <Button
-          type="button"
-          className="mt-5"
-          disabled={createAvailabilityMutation.isPending}
-          onClick={() => void submitAvailability()}
-        >
-          <CalendarPlus className="h-4 w-4" />
-          {createAvailabilityMutation.isPending ? 'Creating...' : 'Create availability'}
-        </Button>
+          {clientError && <div className="lms-alert-error" data-testid="availability-error">{clientError}</div>}
+          {createdAvailability && (
+            <div className="lms-alert-success" data-testid="availability-success">
+              Availability created from {formatDateTime(createdAvailability.startAt)} to {formatDateTime(createdAvailability.endAt)} with Google Meet ready.
+            </div>
+          )}
+
+          <Button
+            type="button"
+            className="w-full"
+            disabled={createAvailabilityMutation.isPending}
+            onClick={() => void submitAvailability()}
+          >
+            <CalendarPlus className="h-4 w-4" />
+            {createAvailabilityMutation.isPending ? 'Creating...' : 'Create availability'}
+          </Button>
+        </div>
       </div>
 
       <div className="lms-surface p-5">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="font-extrabold text-foreground">Open calendar slots</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Review created slots and remove open ones before students book them.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {availabilityQuery.data?.totalElements ?? 0} slots found. Past slots appear only when a date range is selected.
+            </p>
           </div>
           <Button type="button" variant="outline" onClick={() => void availabilityQuery.refetch()} disabled={availabilityQuery.isFetching}>
             <RefreshCw className={`h-4 w-4 ${availabilityQuery.isFetching ? 'animate-spin' : ''}`} />
@@ -263,13 +281,19 @@ function AvailabilitySlotCard({
   onDelete: () => void
 }) {
   const canDelete = slot.status === 'OPEN'
+  const statusClassName = getAvailabilityStatusClassName(slot.status)
 
   return (
-    <article className="rounded-lg border border-border bg-white p-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="font-extrabold text-foreground">{formatDateTime(slot.startAt)} - {formatDateTime(slot.endAt)}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
+    <article className="rounded-md border border-border bg-white px-4 py-3 transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-extrabold text-foreground">{formatDateTime(slot.startAt)} - {formatDateTime(slot.endAt)}</p>
+            <span className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${statusClassName}`}>
+              {slot.status || 'OPEN'}
+            </span>
+          </div>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {slot.status === 'BOOKED'
               ? `${slot.studentName || `Student #${slot.studentId ?? '-'}`} booked ${slot.lessonName || `Lesson #${slot.lessonId ?? '-'}`}`
               : slot.status === 'CANCELLED'
@@ -277,7 +301,7 @@ function AvailabilitySlotCard({
                 : 'Available for student booking.'}
           </p>
           {slot.meetLink ? (
-            <Button asChild variant="link" size="sm" className="mt-2 h-auto justify-start px-0 py-0 text-emerald-700">
+            <Button asChild variant="link" size="sm" className="mt-1 h-auto justify-start px-0 py-0 text-[hsl(var(--brand-green))]">
               <a href={slot.meetLink} target="_blank" rel="noreferrer">
                 <ExternalLink className="h-4 w-4" />
                 Open Meet
@@ -287,16 +311,7 @@ function AvailabilitySlotCard({
             <p className="mt-2 text-xs font-bold text-amber-700">Missing Meet link</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${
-            slot.status === 'BOOKED'
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
-              : slot.status === 'CANCELLED'
-                ? 'border-slate-200 bg-slate-50 text-slate-700'
-                : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-          }`}>
-            {slot.status || 'OPEN'}
-          </span>
+        <div className="flex shrink-0 items-center gap-2">
           <Button type="button" variant="outline" size="sm" disabled={!canDelete || isDeleting} onClick={onDelete}>
             <Trash2 className="h-4 w-4" />
             Remove
@@ -305,6 +320,12 @@ function AvailabilitySlotCard({
       </div>
     </article>
   )
+}
+
+function getAvailabilityStatusClassName(status?: string) {
+  if (status === 'BOOKED') return 'border-amber-200 bg-amber-50 text-amber-800'
+  if (status === 'CANCELLED') return 'border-slate-200 bg-slate-50 text-slate-700'
+  return 'border-emerald-200 bg-emerald-50 text-emerald-800'
 }
 
 function validateWholeHourRange(startValue: string, endValue: string) {

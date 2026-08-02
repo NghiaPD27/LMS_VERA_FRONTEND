@@ -98,7 +98,7 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
           <p className="text-sm font-bold text-primary">Teacher session</p>
           <h3 className="mt-1 text-xl font-extrabold text-foreground">Book your review session</h3>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            {activeBooking ? 'Your booked session is shown below.' : 'Choose one available 1-hour slot from your assigned teacher.'}
+            {activeBooking ? 'Your booked session is shown below.' : `${slotsQuery.data?.totalElements ?? 0} available slots from your assigned teacher.`}
           </p>
         </div>
         <Button type="button" variant="outline" onClick={() => void slotsQuery.refetch()} disabled={slotsQuery.isFetching}>
@@ -187,8 +187,8 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
             />
           </div>
 
-          <div className="h-fit rounded-lg border border-border bg-white p-4">
-            <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Selected session</p>
+          <div className="h-fit rounded-md border border-border bg-white p-4 shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
+            <p className="text-sm font-extrabold text-foreground">Selected session</p>
             <p className="mt-1 font-extrabold text-foreground">
               {selectedSlot ? formatDateTime(selectedSlot.startAt) : 'No slot selected'}
             </p>
@@ -226,16 +226,21 @@ function TeacherSlotButton({
   return (
     <button
       type="button"
-      className={`rounded-lg border p-4 text-left transition ${
+      className={`rounded-md border p-3 text-left transition-[background-color,border-color,color,box-shadow,transform] active:translate-y-px ${
         selected
-          ? 'border-primary bg-white text-foreground shadow-sm'
-          : 'border-border bg-white/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+          ? 'border-primary bg-white text-foreground shadow-[0_10px_24px_rgba(244,122,61,0.16)]'
+          : 'border-border bg-white/80 text-muted-foreground hover:border-primary/40 hover:bg-white hover:text-foreground'
       }`}
       onClick={onSelect}
     >
-      <p className="text-sm font-extrabold text-foreground">{formatDateTime(slot.startAt)}</p>
-      <p className="mt-1 text-xs font-semibold">{slot.teacherName || `Teacher #${slot.teacherId ?? '-'}`}</p>
-      <p className="mt-2 text-xs">1-hour review session</p>
+      <div className="flex items-start gap-2">
+        <CalendarClock className={`mt-0.5 h-4 w-4 shrink-0 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
+        <div>
+          <p className="text-sm font-extrabold text-foreground">{formatDateTime(slot.startAt)}</p>
+          <p className="mt-1 text-xs font-semibold">{slot.teacherName || `Teacher #${slot.teacherId ?? '-'}`}</p>
+          <p className="mt-2 text-xs">1-hour review session</p>
+        </div>
+      </div>
     </button>
   )
 }
@@ -250,16 +255,14 @@ function BookedSession({
   onCancel: () => void
 }) {
   return (
-    <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+    <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
             <p className="font-extrabold text-emerald-950">Session booked</p>
-            <p>
-              {formatDateTime(booking.startAt)} with {booking.teacherName || `Teacher #${booking.teacherId ?? '-'}`}.
-              {booking.status ? ` Status: ${booking.status}.` : ''}
-            </p>
+            <p>{formatDateTime(booking.startAt)} with {booking.teacherName || `Teacher #${booking.teacherId ?? '-'}`}.</p>
+            {booking.status && <p className="text-emerald-800">Status: {booking.status}</p>}
             {booking.lessonName && <p className="text-emerald-800">{booking.lessonName}</p>}
           </div>
         </div>

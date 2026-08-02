@@ -37,12 +37,14 @@ export function TeacherBookingsPage() {
       </div>
 
       <div className="lms-surface p-5">
-        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-4 flex flex-col gap-3">
           <div>
             <h2 className="font-extrabold text-foreground">Sessions</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Filter by status and submit a review after each lesson session.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {bookingsQuery.data?.totalElements ?? 0} sessions found. Booked sessions stay here until they are reviewed.
+            </p>
           </div>
-          <div className="grid w-full gap-3 md:grid-cols-3 lg:max-w-3xl">
+          <div className="grid gap-3 rounded-md border border-border bg-background/70 p-3 md:grid-cols-3">
             <div>
               <label htmlFor="teacher-booking-from" className="text-sm font-bold text-foreground">From</label>
               <input id="teacher-booking-from" type="datetime-local" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0) }} className="lms-input mt-1" />
@@ -103,6 +105,7 @@ function TeacherBookingCard({ booking }: { booking: TeacherBooking }) {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const canReview = booking.status === 'BOOKED' && !!booking.id
+  const statusClassName = getBookingStatusClassName(booking.status)
 
   const submitReview = async () => {
     if (!booking.id) return
@@ -128,48 +131,68 @@ function TeacherBookingCard({ booking }: { booking: TeacherBooking }) {
   }
 
   return (
-    <article className="rounded-lg border border-border bg-white p-4">
+    <article className="rounded-md border border-border bg-white p-4 transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-sm font-bold text-primary">{booking.lessonName || `Lesson #${booking.lessonId ?? '-'}`}</p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-bold text-primary">{booking.lessonName || `Lesson #${booking.lessonId ?? '-'}`}</p>
+            <span className={`w-fit rounded-full border px-2.5 py-1 text-xs font-extrabold ${statusClassName}`}>
+              {booking.status || 'UNKNOWN'}
+            </span>
+          </div>
           <h3 className="mt-1 text-lg font-extrabold text-foreground">{booking.studentName || `Student #${booking.studentId ?? '-'}`}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {formatDateTime(booking.startAt)} - {formatDateTime(booking.endAt)}
-          </p>
+          <dl className="mt-2 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+            <div>
+              <dt className="font-bold text-foreground">Starts</dt>
+              <dd>{formatDateTime(booking.startAt)}</dd>
+            </div>
+            <div>
+              <dt className="font-bold text-foreground">Ends</dt>
+              <dd>{formatDateTime(booking.endAt)}</dd>
+            </div>
+          </dl>
         </div>
-        <span className="w-fit rounded-full border border-border bg-background px-3 py-1 text-xs font-extrabold text-foreground">
-          {booking.status || 'UNKNOWN'}
-        </span>
       </div>
 
       {canReview ? (
-        <div className="mt-4 grid gap-3 lg:grid-cols-[180px_1fr_auto] lg:items-start">
-          <select
-            value={result}
-            onChange={(event) => setResult(event.target.value as TeacherReviewResult)}
-            className="lms-input"
-            data-testid={`teacher-review-result-${booking.id}`}
-          >
-            <option value="APPROVED">APPROVED</option>
-            <option value="NOT_APPROVED">NOT_APPROVED</option>
-          </select>
-          <textarea
-            value={comment}
-            onChange={(event) => setComment(event.target.value)}
-            className="lms-input min-h-24"
-            maxLength={1000}
-            placeholder="Optional review comment"
-            data-testid={`teacher-review-comment-${booking.id}`}
-          />
-          <Button
-            type="button"
-            disabled={reviewMutation.isPending}
-            onClick={() => void submitReview()}
-            data-testid={`submit-teacher-review-${booking.id}`}
-          >
-            <Send className="h-4 w-4" />
-            {reviewMutation.isPending ? 'Saving...' : 'Submit review'}
-          </Button>
+        <div className="mt-4 rounded-md border border-border bg-background/70 p-3">
+          <div className="grid gap-3 lg:grid-cols-[180px_1fr_auto] lg:items-start">
+            <div>
+              <label htmlFor={`teacher-review-result-${booking.id}`} className="text-sm font-bold text-foreground">Review result</label>
+              <select
+                id={`teacher-review-result-${booking.id}`}
+                value={result}
+                onChange={(event) => setResult(event.target.value as TeacherReviewResult)}
+                className="lms-input"
+                data-testid={`teacher-review-result-${booking.id}`}
+              >
+                <option value="APPROVED">APPROVED</option>
+                <option value="NOT_APPROVED">NOT_APPROVED</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor={`teacher-review-comment-${booking.id}`} className="text-sm font-bold text-foreground">Comment</label>
+              <textarea
+                id={`teacher-review-comment-${booking.id}`}
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                className="lms-input min-h-24"
+                maxLength={1000}
+                placeholder="Optional review comment"
+                data-testid={`teacher-review-comment-${booking.id}`}
+              />
+            </div>
+            <Button
+              type="button"
+              className="lg:mt-7"
+              disabled={reviewMutation.isPending}
+              onClick={() => void submitReview()}
+              data-testid={`submit-teacher-review-${booking.id}`}
+            >
+              <Send className="h-4 w-4" />
+              {reviewMutation.isPending ? 'Saving...' : 'Submit review'}
+            </Button>
+          </div>
         </div>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">Only BOOKED sessions can be reviewed.</p>
@@ -189,4 +212,11 @@ function TeacherBookingCard({ booking }: { booking: TeacherBooking }) {
       )}
     </article>
   )
+}
+
+function getBookingStatusClassName(status?: string) {
+  if (status === 'BOOKED') return 'border-amber-200 bg-amber-50 text-amber-800'
+  if (status === 'COMPLETED') return 'border-emerald-200 bg-emerald-50 text-emerald-800'
+  if (status === 'CANCELLED') return 'border-slate-200 bg-slate-50 text-slate-700'
+  return 'border-border bg-background text-foreground'
 }

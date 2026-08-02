@@ -18,10 +18,10 @@ export function PaginationControls({
   const pageCount = Math.max(totalPages, 1)
 
   return (
-    <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-      <span>
+    <div className="flex flex-col gap-3 rounded-md border border-border bg-background/70 px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <span className="font-semibold">
         Page {page + 1} / {pageCount}
-        {totalElements !== undefined ? ` · ${totalElements} total` : ''}
+        {totalElements !== undefined ? ` - ${totalElements} total` : ''}
       </span>
       <div className="flex items-center gap-2">
         <Button
