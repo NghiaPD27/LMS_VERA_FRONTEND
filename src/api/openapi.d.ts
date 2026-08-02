@@ -1410,6 +1410,7 @@ export interface components {
             /** Format: int64 */
             lessonId?: number;
             lessonName?: string;
+            meetLink?: string;
             /** Format: date-time */
             startAt?: string;
             /** Format: date-time */
@@ -1456,6 +1457,7 @@ export interface components {
             startAt: string;
             /** Format: date-time */
             endAt: string;
+            meetLink: string;
         };
         TeacherAvailabilityResponse: {
             /** Format: int64 */
@@ -1466,6 +1468,7 @@ export interface components {
             startAt?: string;
             /** Format: date-time */
             endAt?: string;
+            meetLink?: string;
             status?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -2053,6 +2056,7 @@ export interface components {
             /** Format: int64 */
             lessonId?: number;
             lessonName?: string;
+            meetLink?: string;
         };
         TeacherSlotResponse: {
             /** Format: int64 */

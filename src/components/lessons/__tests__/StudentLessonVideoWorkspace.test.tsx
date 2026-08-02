@@ -21,6 +21,25 @@ const teacherHookState = vi.hoisted(() => ({
   getBookings: vi.fn(),
   createBooking: vi.fn(),
   cancelBooking: vi.fn(),
+  bookingsRefetch: vi.fn(),
+  slotsRefetch: vi.fn(),
+  bookings: [] as Array<{
+    id: number
+    lessonId: number
+    teacherId: number
+    teacherName: string
+    meetLink?: string
+    startAt: string
+    endAt: string
+    status: string
+  }>,
+  slots: [] as Array<{
+    teacherId: number
+    teacherName: string
+    availabilityId: number
+    startAt: string
+    endAt: string
+  }>,
 }))
 
 const quizHookState = vi.hoisted(() => ({
@@ -60,33 +79,23 @@ vi.mock('../../../hooks/useTeacher', () => ({
   useGetStudentBookings: (params = {}, enabled = true) => {
     teacherHookState.getBookings(params, enabled)
     return {
-      data: [],
+      data: teacherHookState.bookings,
       isLoading: false,
       isFetching: false,
       isError: false,
       error: null,
-      refetch: vi.fn(),
+      refetch: teacherHookState.bookingsRefetch,
     }
   },
   useGetStudentTeacherSlots: (lessonId?: number, enabled = true) => {
     teacherHookState.getSlots(lessonId, enabled)
     return {
-      data: enabled
-        ? [
-            {
-              teacherId: 2,
-              teacherName: 'Jane Doe',
-              availabilityId: 11,
-              startAt: '2026-07-23T10:00:00Z',
-              endAt: '2026-07-23T11:00:00Z',
-            },
-          ]
-        : [],
+      data: enabled ? teacherHookState.slots : [],
       isLoading: false,
       isFetching: false,
       isError: false,
       error: null,
-      refetch: vi.fn(),
+      refetch: teacherHookState.slotsRefetch,
     }
   },
   useCreateStudentBooking: () => ({
@@ -192,12 +201,25 @@ describe('StudentLessonVideoWorkspace', () => {
     teacherHookState.getBookings.mockClear()
     teacherHookState.createBooking.mockReset()
     teacherHookState.cancelBooking.mockReset()
+    teacherHookState.bookingsRefetch.mockReset()
+    teacherHookState.slotsRefetch.mockReset()
+    teacherHookState.bookings = []
+    teacherHookState.slots = [
+      {
+        teacherId: 2,
+        teacherName: 'Jane Doe',
+        availabilityId: 11,
+        startAt: '2026-07-23T10:00:00Z',
+        endAt: '2026-07-23T11:00:00Z',
+      },
+    ]
     quizHookState.getLessonQuiz.mockClear()
     teacherHookState.createBooking.mockResolvedValue({
       id: 77,
       lessonId: 101,
       teacherId: 2,
       teacherName: 'Jane Doe',
+      meetLink: 'https://meet.google.com/abc-defg-hij',
       startAt: '2026-07-23T10:00:00Z',
       endAt: '2026-07-23T11:00:00Z',
       status: 'BOOKED',
@@ -329,6 +351,8 @@ describe('StudentLessonVideoWorkspace', () => {
 
     expect(await screen.findByText('Book your review session')).toBeInTheDocument()
     expect(await screen.findByText('Jane Doe')).toBeInTheDocument()
+    expect(screen.queryByText('Vào Google Meet')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('https://meet.google.com/abc-defg-hij')
     await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, true))
 
     await user.click(screen.getByText(/Jul 23, 2026/i))
@@ -341,6 +365,86 @@ describe('StudentLessonVideoWorkspace', () => {
       })
     )
     expect(await screen.findByText('Session booked')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /vào google meet/i })).toHaveAttribute('href', 'https://meet.google.com/abc-defg-hij')
+  })
+
+  it('shows Google Meet link from an existing teacher booking after reload', async () => {
+    teacherHookState.bookings = [
+      {
+        id: 78,
+        lessonId: 101,
+        teacherId: 2,
+        teacherName: 'Jane Doe',
+        meetLink: 'https://meet.google.com/reload-room',
+        startAt: '2026-07-23T10:00:00Z',
+        endAt: '2026-07-23T11:00:00Z',
+        status: 'BOOKED',
+      },
+    ]
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 300,
+        furthestWatchedSecond: 300,
+        watchedPercentage: 100,
+        completed: true,
+        lessonProgressStatus: 'WAITING_FOR_TEACHER',
+      },
+      quizAvailable: true,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    renderWorkspace()
+
+    expect(await screen.findByText('Session booked')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /vào google meet/i })).toHaveAttribute('href', 'https://meet.google.com/reload-room')
+    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, false))
+  })
+
+  it('refreshes slots and asks the student to choose another slot on booking conflict', async () => {
+    const user = userEvent.setup()
+    teacherHookState.createBooking.mockRejectedValue(createAxiosError(409))
+    mockLessonApi.getLessonVideoPlayback.mockResolvedValue({
+      lessonId: 101,
+      lessonVideoId: 501,
+      playbackUrl: 'https://signed-playback.example.com/lesson-101/master.m3u8?token=abc',
+      status: 'READY',
+      durationSeconds: 300,
+    })
+    mockLessonApi.getLessonLearningState.mockResolvedValue({
+      lessonId: 101,
+      lessonStatus: 'PUBLISHED',
+      videoStatus: 'READY',
+      progress: {
+        currentSecond: 300,
+        furthestWatchedSecond: 300,
+        watchedPercentage: 100,
+        completed: true,
+        lessonProgressStatus: 'WAITING_FOR_TEACHER',
+      },
+      quizAvailable: true,
+      hasQuiz: true,
+      enrollmentStatus: 'ACTIVE',
+    })
+
+    renderWorkspace()
+
+    await screen.findByText('Book your review session')
+    await user.click(screen.getByText(/Jul 23, 2026/i))
+    await user.click(screen.getByRole('button', { name: /book session/i }))
+
+    expect(await screen.findByText('Slot này không còn hợp lệ hoặc thiếu Google Meet. Danh sách slot đã được làm mới, hãy chọn slot khác.')).toBeInTheDocument()
+    expect(teacherHookState.slotsRefetch).toHaveBeenCalled()
   })
 
   it('renders checkpoint waiting state without mounting quiz or booking panels', async () => {

@@ -190,6 +190,7 @@ const teacherAvailabilitiesDb: components['schemas']['TeacherAvailabilityRespons
     teacherId: 2,
     startAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     endAt: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
+    meetLink: 'https://meet.google.com/mock-teacher-room',
     createdAt: new Date().toISOString(),
   }
 ]
@@ -203,6 +204,7 @@ const teacherBookingsDb: components['schemas']['TeacherBookingResponse'][] = [
     enrollmentId: 1,
     lessonId: 1,
     lessonName: 'Welcome lesson',
+    meetLink: 'https://meet.google.com/mock-booked-room',
     startAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     endAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
     status: 'BOOKED',
@@ -396,6 +398,18 @@ const getVietnamMonthPeriod = (month?: string) => {
     periodMonth: month,
     periodStart: `${month}-01T00:00:00+07:00`,
     periodEnd: `${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00+07:00`,
+  }
+}
+
+const isGoogleMeetUrl = (value?: string) => {
+  const trimmed = value?.trim()
+  if (!trimmed || trimmed.length > 500 || !trimmed.startsWith('https://meet.google.com/')) return false
+
+  try {
+    const url = new URL(trimmed)
+    return url.origin === 'https://meet.google.com' && url.pathname.length > 1
+  } catch {
+    return false
   }
 }
 
@@ -1116,12 +1130,17 @@ export const handlers = [
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end.getTime() <= start.getTime()) {
         return HttpResponse.json({ message: 'Invalid availability range' }, { status: 400 })
       }
+      const meetLink = body.meetLink?.trim()
+      if (!isGoogleMeetUrl(meetLink)) {
+        return HttpResponse.json({ message: 'Google Meet link must be a valid https://meet.google.com URL' }, { status: 400 })
+      }
 
       const availability: components['schemas']['TeacherAvailabilityResponse'] = {
         id: teacherAvailabilitiesDb.length + 1,
         teacherId: Number(user.id),
         startAt: body.startAt,
         endAt: body.endAt,
+        meetLink,
         createdAt: new Date().toISOString(),
       }
       teacherAvailabilitiesDb.unshift(availability)
@@ -1226,7 +1245,11 @@ export const handlers = [
       const bookedStarts = new Set(teacherBookingsDb.map((booking) => booking.startAt))
       return HttpResponse.json(
         teacherAvailabilitiesDb
-          .filter((availability) => availability.teacherId === assignment.teacherId && !bookedStarts.has(availability.startAt))
+          .filter((availability) =>
+            availability.teacherId === assignment.teacherId &&
+            !bookedStarts.has(availability.startAt) &&
+            !!availability.meetLink?.trim()
+          )
           .map((availability) => ({
             teacherId: assignment.teacherId,
             teacherName: assignment.teacherName,
@@ -1262,6 +1285,9 @@ export const handlers = [
       if (!availability) {
         return HttpResponse.json({ message: 'Slot is no longer available' }, { status: 409 })
       }
+      if (!availability.meetLink?.trim()) {
+        return HttpResponse.json({ message: 'Teacher slot does not have a Google Meet link' }, { status: 409 })
+      }
       const booking: components['schemas']['TeacherBookingResponse'] = {
         id: teacherBookingsDb.length + 1,
         studentId: Number(user.id),
@@ -1271,6 +1297,7 @@ export const handlers = [
         enrollmentId: assignment.enrollmentId,
         lessonId: body.lessonId,
         lessonName: `Lesson #${body.lessonId}`,
+        meetLink: availability.meetLink,
         startAt: body.slotStartAt,
         endAt: availability.endAt,
         status: 'BOOKED',

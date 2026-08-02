@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, CalendarClock, CheckCircle2, LockKeyhole, RefreshCw, XCircle } from 'lucide-react'
+import { AlertTriangle, CalendarClock, CheckCircle2, ExternalLink, LockKeyhole, RefreshCw, XCircle } from 'lucide-react'
 import { Button } from '../common/Button'
 import { EmptyState } from '../common/EmptyState'
 import { LoadingState } from '../common/LoadingState'
@@ -60,7 +60,7 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
       await bookingsQuery.refetch()
     } catch (error) {
       if (isConflictError(error)) {
-        setClientError(getFriendlyApiErrorMessage(error, 'This slot is no longer available. Choose another slot.'))
+        setClientError('Slot này không còn hợp lệ hoặc thiếu Google Meet. Danh sách slot đã được làm mới, hãy chọn slot khác.')
         void slotsQuery.refetch()
         return
       }
@@ -246,10 +246,20 @@ function BookedSession({
             {booking.lessonName && <p className="text-emerald-800">{booking.lessonName}</p>}
           </div>
         </div>
-        <Button type="button" variant="outline" size="sm" className="border-emerald-300 bg-white" disabled={isCancelling} onClick={onCancel}>
-          <XCircle className="h-4 w-4" />
-          {isCancelling ? 'Cancelling...' : 'Cancel booking'}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {booking.meetLink && (
+            <Button asChild variant="outline" size="sm" className="border-emerald-300 bg-white">
+              <a href={booking.meetLink} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Vào Google Meet
+              </a>
+            </Button>
+          )}
+          <Button type="button" variant="outline" size="sm" className="border-emerald-300 bg-white" disabled={isCancelling} onClick={onCancel}>
+            <XCircle className="h-4 w-4" />
+            {isCancelling ? 'Cancelling...' : 'Cancel booking'}
+          </Button>
+        </div>
       </div>
     </div>
   )

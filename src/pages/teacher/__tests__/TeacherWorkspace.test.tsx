@@ -10,6 +10,14 @@ const hookState = vi.hoisted(() => ({
   deleteAvailability: vi.fn(),
   reviewBooking: vi.fn(),
   bookingsStatus: undefined as string | undefined,
+  availabilitySlots: [] as Array<{
+    availabilityId: number
+    teacherId: number
+    startAt: string
+    endAt: string
+    status: string
+    meetLink?: string
+  }>,
 }))
 
 vi.mock('../../../hooks/useTeacher', () => ({
@@ -18,7 +26,7 @@ vi.mock('../../../hooks/useTeacher', () => ({
     isPending: false,
   }),
   useGetTeacherAvailability: () => ({
-    data: [],
+    data: hookState.availabilitySlots,
     isLoading: false,
     isFetching: false,
     isError: false,
@@ -71,6 +79,7 @@ describe('Teacher workspace', () => {
     hookState.deleteAvailability.mockReset()
     hookState.reviewBooking.mockReset()
     hookState.bookingsStatus = undefined
+    hookState.availabilitySlots = []
   })
 
   it('validates availability must start and end on whole hours', async () => {
@@ -84,6 +93,78 @@ describe('Teacher workspace', () => {
 
     expect(await screen.findByTestId('availability-error')).toHaveTextContent('Set minutes to 00')
     expect(hookState.createAvailability).not.toHaveBeenCalled()
+  })
+
+  it('validates Google Meet link before creating availability', async () => {
+    const user = userEvent.setup()
+
+    render(<TeacherAvailabilityPage />)
+
+    await user.type(screen.getByTestId('teacher-availability-start'), '2026-07-23T10:00')
+    await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:00')
+    await user.click(screen.getByRole('button', { name: /create availability/i }))
+
+    expect(await screen.findByTestId('availability-error')).toHaveTextContent('Google Meet link is required')
+    expect(hookState.createAvailability).not.toHaveBeenCalled()
+
+    await user.type(screen.getByTestId('teacher-availability-meet-link'), 'https://example.com/not-meet')
+    await user.click(screen.getByRole('button', { name: /create availability/i }))
+
+    expect(await screen.findByTestId('availability-error')).toHaveTextContent('must start with https://meet.google.com/')
+    expect(hookState.createAvailability).not.toHaveBeenCalled()
+  })
+
+  it('submits Google Meet link when creating availability', async () => {
+    const user = userEvent.setup()
+    hookState.createAvailability.mockResolvedValue({
+      id: 2,
+      teacherId: 2,
+      startAt: '2026-07-23T10:00:00.000Z',
+      endAt: '2026-07-23T11:00:00.000Z',
+      meetLink: 'https://meet.google.com/abc-defg-hij',
+      createdAt: '2026-07-22T10:00:00.000Z',
+    })
+
+    render(<TeacherAvailabilityPage />)
+
+    await user.type(screen.getByTestId('teacher-availability-start'), '2026-07-23T10:00')
+    await user.type(screen.getByTestId('teacher-availability-end'), '2026-07-23T11:00')
+    await user.type(screen.getByTestId('teacher-availability-meet-link'), '  https://meet.google.com/abc-defg-hij  ')
+    await user.click(screen.getByRole('button', { name: /create availability/i }))
+
+    await waitFor(() =>
+      expect(hookState.createAvailability).toHaveBeenCalledWith({
+        startAt: expect.any(String),
+        endAt: expect.any(String),
+        meetLink: 'https://meet.google.com/abc-defg-hij',
+      })
+    )
+    expect(await screen.findByTestId('availability-success')).toHaveTextContent('Google Meet ready')
+  })
+
+  it('shows teacher Meet links for availability management', () => {
+    hookState.availabilitySlots = [
+      {
+        availabilityId: 2,
+        teacherId: 2,
+        startAt: '2026-07-23T10:00:00Z',
+        endAt: '2026-07-23T11:00:00Z',
+        status: 'OPEN',
+        meetLink: 'https://meet.google.com/abc-defg-hij',
+      },
+      {
+        availabilityId: 3,
+        teacherId: 2,
+        startAt: '2026-07-24T10:00:00Z',
+        endAt: '2026-07-24T11:00:00Z',
+        status: 'OPEN',
+      },
+    ]
+
+    render(<TeacherAvailabilityPage />)
+
+    expect(screen.getByRole('link', { name: /open meet/i })).toHaveAttribute('href', 'https://meet.google.com/abc-defg-hij')
+    expect(screen.getByText('Missing Meet link')).toBeInTheDocument()
   })
 
   it('submits teacher review and explains missing compensation validation errors', async () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarPlus, RefreshCw, Trash2 } from 'lucide-react'
+import { CalendarPlus, ExternalLink, RefreshCw, Trash2 } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
@@ -13,6 +13,7 @@ export function TeacherAvailabilityPage() {
   const deleteAvailabilityMutation = useDeleteTeacherAvailability()
   const [startAt, setStartAt] = useState('')
   const [endAt, setEndAt] = useState('')
+  const [meetLink, setMeetLink] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [status, setStatus] = useState('')
@@ -26,7 +27,7 @@ export function TeacherAvailabilityPage() {
   const slots = availabilityQuery.data ?? []
 
   const submitAvailability = async () => {
-    const validationError = validateWholeHourRange(startAt, endAt)
+    const validationError = validateWholeHourRange(startAt, endAt) || validateMeetLink(meetLink)
     if (validationError) {
       setClientError(validationError)
       return
@@ -37,10 +38,12 @@ export function TeacherAvailabilityPage() {
       const response = await createAvailabilityMutation.mutateAsync({
         startAt: new Date(startAt).toISOString(),
         endAt: new Date(endAt).toISOString(),
+        meetLink: meetLink.trim(),
       })
       setCreatedAvailability(response)
       setStartAt('')
       setEndAt('')
+      setMeetLink('')
     } catch (error) {
       setClientError(getFriendlyApiErrorMessage(error, 'Failed to create availability'))
     }
@@ -95,11 +98,23 @@ export function TeacherAvailabilityPage() {
             />
           </div>
         </div>
+        <div className="mt-4">
+          <label htmlFor="teacher-availability-meet-link" className="text-sm font-bold text-foreground">Google Meet link</label>
+          <input
+            id="teacher-availability-meet-link"
+            type="url"
+            value={meetLink}
+            onChange={(event) => setMeetLink(event.target.value)}
+            placeholder="https://meet.google.com/abc-defg-hij"
+            className="lms-input mt-1"
+            data-testid="teacher-availability-meet-link"
+          />
+        </div>
 
         {clientError && <div className="mt-4 lms-alert-error" data-testid="availability-error">{clientError}</div>}
         {createdAvailability && (
           <div className="mt-4 lms-alert-success" data-testid="availability-success">
-            Availability created from {formatDateTime(createdAvailability.startAt)} to {formatDateTime(createdAvailability.endAt)}.
+            Availability created from {formatDateTime(createdAvailability.startAt)} to {formatDateTime(createdAvailability.endAt)} with Google Meet ready.
           </div>
         )}
 
@@ -195,6 +210,16 @@ function AvailabilitySlotCard({
                 ? 'This slot is cancelled.'
                 : 'Available for student booking.'}
           </p>
+          {slot.meetLink ? (
+            <Button asChild variant="link" size="sm" className="mt-2 h-auto justify-start px-0 py-0 text-emerald-700">
+              <a href={slot.meetLink} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Open Meet
+              </a>
+            </Button>
+          ) : (
+            <p className="mt-2 text-xs font-bold text-amber-700">Missing Meet link</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${
@@ -236,6 +261,26 @@ function validateWholeHourRange(startValue: string, endValue: string) {
 
   if (durationMs % (60 * 60 * 1000) !== 0) {
     return 'Availability duration must be a whole number of hours, for example 01:00 - 03:00.'
+  }
+
+  return null
+}
+
+function validateMeetLink(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return 'Google Meet link is required.'
+  if (trimmed.length > 500) return 'Google Meet link must be 500 characters or fewer.'
+  if (!trimmed.startsWith('https://meet.google.com/')) {
+    return 'Google Meet link must start with https://meet.google.com/.'
+  }
+
+  try {
+    const parsedUrl = new URL(trimmed)
+    if (parsedUrl.origin !== 'https://meet.google.com' || parsedUrl.pathname.length <= 1) {
+      return 'Google Meet link must be a valid https://meet.google.com URL.'
+    }
+  } catch {
+    return 'Google Meet link must be a valid https://meet.google.com URL.'
   }
 
   return null
