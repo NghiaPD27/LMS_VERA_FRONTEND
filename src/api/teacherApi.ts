@@ -19,7 +19,12 @@ export const teacherApi = {
   },
 
   getAvailability: async (params: TeacherAvailabilityQueryParams = {}): Promise<TeacherAvailabilitySlot[]> => {
-    const response = await http.get('/teacher/availability', { params })
+    const cleanedParams = Object.fromEntries(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
+    )
+    const response = await http.get('/teacher/availability', {
+      params: Object.keys(cleanedParams).length ? cleanedParams : undefined,
+    })
     return response.data
   },
 
