@@ -2038,6 +2038,28 @@ export interface components {
             totalSessions?: number;
             earnings?: components["schemas"]["TeacherEarningResponse"][];
         };
+        PageResponseTeacherBookingResponse: {
+            content?: components["schemas"]["TeacherBookingResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        PageResponseTeacherAvailabilitySlotResponse: {
+            content?: components["schemas"]["TeacherAvailabilitySlotResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
         TeacherAvailabilitySlotResponse: {
             /** Format: int64 */
             availabilityId?: number;
@@ -2057,6 +2079,17 @@ export interface components {
             lessonId?: number;
             lessonName?: string;
             meetLink?: string;
+        };
+        PageResponseTeacherSlotResponse: {
+            content?: components["schemas"]["TeacherSlotResponse"][];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
         };
         TeacherSlotResponse: {
             /** Format: int64 */
@@ -2677,6 +2710,8 @@ export interface operations {
                 from?: string;
                 to?: string;
                 status?: string;
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -2690,7 +2725,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TeacherAvailabilitySlotResponse"][];
+                    "*/*": components["schemas"]["PageResponseTeacherAvailabilitySlotResponse"];
                 };
             };
         };
@@ -2815,6 +2850,10 @@ export interface operations {
             query?: {
                 lessonId?: number;
                 status?: string;
+                from?: string;
+                to?: string;
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -2828,7 +2867,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TeacherBookingResponse"][];
+                    "*/*": components["schemas"]["PageResponseTeacherBookingResponse"];
                 };
             };
         };
@@ -4180,6 +4219,10 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string;
+                from?: string;
+                to?: string;
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -4193,7 +4236,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TeacherBookingResponse"][];
+                    "*/*": components["schemas"]["PageResponseTeacherBookingResponse"];
                 };
             };
         };
@@ -4202,6 +4245,8 @@ export interface operations {
         parameters: {
             query: {
                 lessonId: number;
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -4215,7 +4260,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TeacherSlotResponse"][];
+                    "*/*": components["schemas"]["PageResponseTeacherSlotResponse"];
                 };
             };
         };

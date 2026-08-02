@@ -3,6 +3,7 @@ import { CalendarPlus, ExternalLink, RefreshCw, Trash2 } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
+import { PaginationControls } from '../../components/common/PaginationControls'
 import { useCreateTeacherAvailability, useDeleteTeacherAvailability, useGetTeacherAvailability } from '../../hooks/useTeacher'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import { formatDateTime } from '../../utils/formatters'
@@ -11,6 +12,7 @@ import type { TeacherAvailability, TeacherAvailabilitySlot } from '../../types/t
 export function TeacherAvailabilityPage() {
   const createAvailabilityMutation = useCreateTeacherAvailability()
   const deleteAvailabilityMutation = useDeleteTeacherAvailability()
+  const pageSize = 20
   const [startDate, setStartDate] = useState('')
   const [startHour, setStartHour] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -19,14 +21,18 @@ export function TeacherAvailabilityPage() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [status, setStatus] = useState('')
+  const [page, setPage] = useState(0)
   const [createdAvailability, setCreatedAvailability] = useState<TeacherAvailability | null>(null)
   const [clientError, setClientError] = useState<string | null>(null)
   const availabilityQuery = useGetTeacherAvailability({
     from: from ? new Date(from).toISOString() : undefined,
     to: to ? new Date(to).toISOString() : undefined,
     status: status || undefined,
+    page,
+    size: pageSize,
   })
-  const slots = availabilityQuery.data ?? []
+  const slots = availabilityQuery.data?.content ?? []
+  const totalPages = availabilityQuery.data?.totalPages ?? 0
 
   const submitAvailability = async () => {
     const startDateTime = buildHourlyDateTime(startDate, startHour)
@@ -168,15 +174,15 @@ export function TeacherAvailabilityPage() {
         <div className="mb-4 grid gap-3 md:grid-cols-3">
           <div>
             <label htmlFor="availability-filter-from" className="text-sm font-bold text-foreground">From</label>
-            <input id="availability-filter-from" type="datetime-local" value={from} onChange={(event) => setFrom(event.target.value)} className="lms-input mt-1" />
+            <input id="availability-filter-from" type="datetime-local" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0) }} className="lms-input mt-1" />
           </div>
           <div>
             <label htmlFor="availability-filter-to" className="text-sm font-bold text-foreground">To</label>
-            <input id="availability-filter-to" type="datetime-local" value={to} onChange={(event) => setTo(event.target.value)} className="lms-input mt-1" />
+            <input id="availability-filter-to" type="datetime-local" value={to} onChange={(event) => { setTo(event.target.value); setPage(0) }} className="lms-input mt-1" />
           </div>
           <div>
             <label htmlFor="availability-filter-status" className="text-sm font-bold text-foreground">Status</label>
-            <select id="availability-filter-status" value={status} onChange={(event) => setStatus(event.target.value)} className="lms-input mt-1">
+            <select id="availability-filter-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(0) }} className="lms-input mt-1">
               <option value="">All</option>
               <option value="OPEN">OPEN</option>
               <option value="BOOKED">BOOKED</option>
@@ -203,6 +209,13 @@ export function TeacherAvailabilityPage() {
                 onDelete={() => void deleteSlot(slot)}
               />
             ))}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalElements={availabilityQuery.data?.totalElements}
+              isFetching={availabilityQuery.isFetching}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </div>

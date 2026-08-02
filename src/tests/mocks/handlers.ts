@@ -316,6 +316,14 @@ const getPageParams = (request: Request) => {
   }
 }
 
+const getPaginationParams = (request: Request) => {
+  const url = new URL(request.url)
+  const page = Math.max(0, Number(url.searchParams.get('page') || 0))
+  const requestedSize = Number(url.searchParams.get('size') || 20)
+  const size = Math.min(100, Math.max(1, Number.isFinite(requestedSize) ? requestedSize : 20))
+  return { page, size }
+}
+
 const toAdminStudentProgress = (enrollment: MockAdminEnrollment): components['schemas']['AdminStudentProgressResponse'] => {
   const student = usersDb.find((user) => Number(user.id) === enrollment.studentId)
   return {
@@ -1117,6 +1125,52 @@ export const handlers = [
     }
   ),
 
+  http.get<never, never, components['schemas']['PageResponseTeacherAvailabilitySlotResponse'] | { message: string }>(
+    '/api/teacher/availability',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const status = url.searchParams.get('status')
+      const defaultFromTime = from ? undefined : Date.now()
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
+      const slots = teacherAvailabilitiesDb
+        .filter((availability) => {
+          if (availability.teacherId !== Number(user.id)) return false
+          const startTime = new Date(availability.startAt || '').getTime()
+          if (defaultFromTime !== undefined && Number.isFinite(startTime) && startTime < defaultFromTime) return false
+          if (fromTime !== undefined && Number.isFinite(fromTime) && startTime < fromTime) return false
+          if (toTime !== undefined && Number.isFinite(toTime) && startTime > toTime) return false
+          return true
+        })
+        .map((availability): components['schemas']['TeacherAvailabilitySlotResponse'] => {
+          const booking = teacherBookingsDb.find((item) => item.teacherId === availability.teacherId && item.startAt === availability.startAt)
+          return {
+            availabilityId: availability.id,
+            teacherId: availability.teacherId,
+            startAt: availability.startAt,
+            endAt: availability.endAt,
+            status: booking?.status || availability.status || 'OPEN',
+            bookingId: booking?.id,
+            studentId: booking?.studentId,
+            studentName: booking?.studentName,
+            lessonId: booking?.lessonId,
+            lessonName: booking?.lessonName,
+            meetLink: availability.meetLink,
+          }
+        })
+        .filter((slot) => !status || slot.status === status)
+
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(slots, page, size))
+    }
+  ),
+
   http.post<never, components['schemas']['CreateAvailabilityRequest'], components['schemas']['TeacherAvailabilityResponse'] | { message: string }>(
     '/api/teacher/availability',
     async ({ request }) => {
@@ -1171,7 +1225,7 @@ export const handlers = [
     }
   ),
 
-  http.get<never, never, components['schemas']['TeacherBookingResponse'][] | { message: string }>(
+  http.get<never, never, components['schemas']['PageResponseTeacherBookingResponse'] | { message: string }>(
     '/api/teacher/bookings',
     ({ request }) => {
       const user = getSessionUser(request)
@@ -1180,10 +1234,18 @@ export const handlers = [
       }
       const url = new URL(request.url)
       const status = url.searchParams.get('status')
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
       const bookings = teacherBookingsDb.filter((booking) =>
-        booking.teacherId === Number(user.id) && (!status || booking.status === status)
+        booking.teacherId === Number(user.id) &&
+        (!status || booking.status === status) &&
+        (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
+        (toTime === undefined || new Date(booking.startAt || '').getTime() <= toTime)
       )
-      return HttpResponse.json(bookings)
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(bookings, page, size))
     }
   ),
 
@@ -1229,7 +1291,7 @@ export const handlers = [
     }
   ),
 
-  http.get<never, never, components['schemas']['TeacherSlotResponse'][] | { message: string }>(
+  http.get<never, never, components['schemas']['PageResponseTeacherSlotResponse'] | { message: string }>(
     '/api/student/teacher-slots',
     ({ request }) => {
       const user = getSessionUser(request)
@@ -1243,21 +1305,47 @@ export const handlers = [
         return HttpResponse.json({ message: 'Teacher is not assigned yet' }, { status: 403 })
       }
       const bookedStarts = new Set(teacherBookingsDb.map((booking) => booking.startAt))
-      return HttpResponse.json(
-        teacherAvailabilitiesDb
-          .filter((availability) =>
-            availability.teacherId === assignment.teacherId &&
-            !bookedStarts.has(availability.startAt) &&
-            !!availability.meetLink?.trim()
-          )
-          .map((availability) => ({
-            teacherId: assignment.teacherId,
-            teacherName: assignment.teacherName,
-            availabilityId: availability.id,
-            startAt: availability.startAt,
-            endAt: availability.endAt,
-          }))
+      const slots = teacherAvailabilitiesDb
+        .filter((availability) =>
+          availability.teacherId === assignment.teacherId &&
+          !bookedStarts.has(availability.startAt) &&
+          !!availability.meetLink?.trim()
+        )
+        .map((availability) => ({
+          teacherId: assignment.teacherId,
+          teacherName: assignment.teacherName,
+          availabilityId: availability.id,
+          startAt: availability.startAt,
+          endAt: availability.endAt,
+        }))
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(slots, page, size))
+    }
+  ),
+
+  http.get<never, never, components['schemas']['PageResponseTeacherBookingResponse'] | { message: string }>(
+    '/api/student/bookings',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const lessonId = url.searchParams.get('lessonId')
+      const status = url.searchParams.get('status')
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
+      const bookings = teacherBookingsDb.filter((booking) =>
+        booking.studentId === Number(user.id) &&
+        (!lessonId || String(booking.lessonId) === lessonId) &&
+        (!status || booking.status === status) &&
+        (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
+        (toTime === undefined || new Date(booking.startAt || '').getTime() <= toTime)
       )
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(bookings, page, size))
     }
   ),
 

@@ -6,15 +6,14 @@ import { useGetTeacherBookings, useGetTeacherStudents } from '../../hooks/useTea
 
 export function TeacherDashboardPage() {
   const studentsQuery = useGetTeacherStudents()
-  const bookingsQuery = useGetTeacherBookings()
+  const bookingsQuery = useGetTeacherBookings({ status: 'BOOKED', page: 0, size: 1 })
 
   if (studentsQuery.isLoading || bookingsQuery.isLoading) {
     return <LoadingState message="Loading teacher workspace..." />
   }
 
   const students = studentsQuery.data ?? []
-  const bookings = bookingsQuery.data ?? []
-  const bookedSessions = bookings.filter((booking) => booking.status === 'BOOKED')
+  const bookedSessionCount = bookingsQuery.data?.totalElements ?? 0
 
   return (
     <section className="lms-page-shell">
@@ -30,7 +29,7 @@ export function TeacherDashboardPage() {
       <div className="grid gap-5 md:grid-cols-2">
         <Link to="/teacher/bookings" className="lms-surface p-5 transition hover:-translate-y-1 hover:border-primary/40">
           <CalendarClock className="mb-4 h-8 w-8 text-primary" />
-          <h2 className="text-xl font-extrabold text-foreground">{bookedSessions.length} booked session{bookedSessions.length === 1 ? '' : 's'}</h2>
+          <h2 className="text-xl font-extrabold text-foreground">{bookedSessionCount} booked session{bookedSessionCount === 1 ? '' : 's'}</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Open bookings that need teaching and review.</p>
         </Link>
         <Link to="/teacher/students" className="lms-surface p-5 transition hover:-translate-y-1 hover:border-[hsl(var(--brand-green))]/40">
@@ -54,4 +53,3 @@ export function TeacherDashboardPage() {
     </section>
   )
 }
-

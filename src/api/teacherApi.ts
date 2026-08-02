@@ -5,12 +5,16 @@ import type {
   TeacherAssignment,
   TeacherAvailability,
   TeacherAvailabilityQueryParams,
-  TeacherAvailabilitySlot,
-  TeacherBooking,
+  TeacherAvailabilitySlotPage,
+  TeacherBookingPage,
+  TeacherBookingQueryParams,
   TeacherEarningsQueryParams,
   TeacherEarningsSummary,
   TeacherReview,
 } from '../types/teacher'
+
+const cleanParams = (params: object) =>
+  Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== ''))
 
 export const teacherApi = {
   createAvailability: async (data: CreateAvailabilityRequest): Promise<TeacherAvailability> => {
@@ -18,10 +22,8 @@ export const teacherApi = {
     return response.data
   },
 
-  getAvailability: async (params: TeacherAvailabilityQueryParams = {}): Promise<TeacherAvailabilitySlot[]> => {
-    const cleanedParams = Object.fromEntries(
-      Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
-    )
+  getAvailability: async (params: TeacherAvailabilityQueryParams = {}): Promise<TeacherAvailabilitySlotPage> => {
+    const cleanedParams = cleanParams(params)
     const response = await http.get('/teacher/availability', {
       params: Object.keys(cleanedParams).length ? cleanedParams : undefined,
     })
@@ -42,8 +44,11 @@ export const teacherApi = {
     return response.data
   },
 
-  getBookings: async (status?: string): Promise<TeacherBooking[]> => {
-    const response = await http.get('/teacher/bookings', { params: status ? { status } : undefined })
+  getBookings: async (params: TeacherBookingQueryParams = {}): Promise<TeacherBookingPage> => {
+    const cleanedParams = cleanParams(params)
+    const response = await http.get('/teacher/bookings', {
+      params: Object.keys(cleanedParams).length ? cleanedParams : undefined,
+    })
     return response.data
   },
 

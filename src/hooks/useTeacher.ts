@@ -6,7 +6,9 @@ import type {
   CreateAvailabilityRequest,
   ReviewBookingRequest,
   StudentBookingQueryParams,
+  StudentTeacherSlotQueryParams,
   TeacherAvailabilityQueryParams,
+  TeacherBookingQueryParams,
   TeacherEarningsQueryParams,
   TeacherQueryParams,
   UpsertTeacherCompensationRequest,
@@ -18,9 +20,9 @@ export const teacherSelfEarningsQueryKey = (params: TeacherEarningsQueryParams =
 export const teacherEarningsQueryKey = (teacherId?: number, params: TeacherEarningsQueryParams = {}) =>
   ['teacher-earnings', teacherId, params] as const
 export const teacherStudentsQueryKey = ['teacher-students'] as const
-export const teacherBookingsQueryKey = (status?: string) => ['teacher-bookings', status || 'all'] as const
+export const teacherBookingsQueryKey = (params: TeacherBookingQueryParams = {}) => ['teacher-bookings', params] as const
 export const teacherAvailabilityQueryKey = (params: TeacherAvailabilityQueryParams = {}) => ['teacher-availability', params] as const
-export const studentTeacherSlotsQueryKey = (lessonId?: number) => ['student-teacher-slots', lessonId] as const
+export const studentTeacherSlotsQueryKey = (lessonId?: number, params: StudentTeacherSlotQueryParams = {}) => ['student-teacher-slots', lessonId, params] as const
 export const studentBookingsQueryKey = (params: StudentBookingQueryParams = {}) => ['student-bookings', params] as const
 
 export const useGetAdminTeachers = (params: TeacherQueryParams = {}, enabled = true) =>
@@ -95,7 +97,7 @@ export const useCreateTeacherAvailability = () => {
     mutationFn: (data: CreateAvailabilityRequest) => teacherApi.createAvailability(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-availability'] })
-      queryClient.invalidateQueries({ queryKey: teacherBookingsQueryKey() })
+      queryClient.invalidateQueries({ queryKey: ['teacher-bookings'] })
     },
   })
 }
@@ -126,10 +128,10 @@ export const useGetTeacherStudents = () =>
     retry: false,
   })
 
-export const useGetTeacherBookings = (status?: string) =>
+export const useGetTeacherBookings = (params: TeacherBookingQueryParams = {}) =>
   useQuery({
-    queryKey: teacherBookingsQueryKey(status),
-    queryFn: () => teacherApi.getBookings(status || undefined),
+    queryKey: teacherBookingsQueryKey(params),
+    queryFn: () => teacherApi.getBookings(params),
     retry: false,
   })
 
@@ -147,10 +149,10 @@ export const useReviewTeacherBooking = () => {
   })
 }
 
-export const useGetStudentTeacherSlots = (lessonId?: number, enabled = true) =>
+export const useGetStudentTeacherSlots = (lessonId?: number, params: StudentTeacherSlotQueryParams = {}, enabled = true) =>
   useQuery({
-    queryKey: studentTeacherSlotsQueryKey(lessonId),
-    queryFn: () => studentTeacherApi.getTeacherSlots(lessonId as number),
+    queryKey: studentTeacherSlotsQueryKey(lessonId, params),
+    queryFn: () => studentTeacherApi.getTeacherSlots(lessonId as number, params),
     enabled: !!lessonId && enabled,
     retry: false,
   })
@@ -161,7 +163,7 @@ export const useCreateStudentBooking = () => {
   return useMutation({
     mutationFn: studentTeacherApi.createBooking,
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({ queryKey: studentTeacherSlotsQueryKey(booking.lessonId) })
+      queryClient.invalidateQueries({ queryKey: ['student-teacher-slots'] })
       if (booking.lessonId) {
         queryClient.invalidateQueries({ queryKey: ['lesson-learning-state', booking.lessonId] })
       }
@@ -185,7 +187,7 @@ export const useCancelStudentBooking = () => {
     mutationFn: (id: number) => studentTeacherApi.cancelBooking(id),
     onSuccess: (booking) => {
       queryClient.invalidateQueries({ queryKey: ['student-bookings'] })
-      queryClient.invalidateQueries({ queryKey: studentTeacherSlotsQueryKey(booking.lessonId) })
+      queryClient.invalidateQueries({ queryKey: ['student-teacher-slots'] })
       if (booking.lessonId) {
         queryClient.invalidateQueries({ queryKey: ['lesson-learning-state', booking.lessonId] })
       }

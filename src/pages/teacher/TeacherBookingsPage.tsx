@@ -3,15 +3,27 @@ import { AlertTriangle, CheckCircle2, Send } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
+import { PaginationControls } from '../../components/common/PaginationControls'
 import { useGetTeacherBookings, useReviewTeacherBooking } from '../../hooks/useTeacher'
 import type { TeacherBooking, TeacherReviewResult } from '../../types/teacher'
 import { getFriendlyApiErrorMessage, isValidationError } from '../../utils/errorMessage'
 import { formatDateTime } from '../../utils/formatters'
 
 export function TeacherBookingsPage() {
+  const pageSize = 20
   const [statusFilter, setStatusFilter] = useState('')
-  const bookingsQuery = useGetTeacherBookings(statusFilter || undefined)
-  const bookings = bookingsQuery.data ?? []
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [page, setPage] = useState(0)
+  const bookingsQuery = useGetTeacherBookings({
+    status: statusFilter || undefined,
+    from: from ? new Date(from).toISOString() : undefined,
+    to: to ? new Date(to).toISOString() : undefined,
+    page,
+    size: pageSize,
+  })
+  const bookings = bookingsQuery.data?.content ?? []
+  const totalPages = bookingsQuery.data?.totalPages ?? 0
 
   return (
     <section className="lms-page-shell">
@@ -25,22 +37,36 @@ export function TeacherBookingsPage() {
       </div>
 
       <div className="lms-surface p-5">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="font-extrabold text-foreground">Sessions</h2>
             <p className="mt-1 text-sm text-muted-foreground">Filter by status and submit a review after each lesson session.</p>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="lms-input w-full sm:w-48"
-            data-testid="teacher-booking-status-filter"
-          >
-            <option value="">All statuses</option>
-            <option value="BOOKED">BOOKED</option>
-            <option value="COMPLETED">COMPLETED</option>
-            <option value="CANCELLED">CANCELLED</option>
-          </select>
+          <div className="grid w-full gap-3 md:grid-cols-3 lg:max-w-3xl">
+            <div>
+              <label htmlFor="teacher-booking-from" className="text-sm font-bold text-foreground">From</label>
+              <input id="teacher-booking-from" type="datetime-local" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0) }} className="lms-input mt-1" />
+            </div>
+            <div>
+              <label htmlFor="teacher-booking-to" className="text-sm font-bold text-foreground">To</label>
+              <input id="teacher-booking-to" type="datetime-local" value={to} onChange={(event) => { setTo(event.target.value); setPage(0) }} className="lms-input mt-1" />
+            </div>
+            <div>
+              <label htmlFor="teacher-booking-status-filter" className="text-sm font-bold text-foreground">Status</label>
+              <select
+                id="teacher-booking-status-filter"
+                value={statusFilter}
+                onChange={(event) => { setStatusFilter(event.target.value); setPage(0) }}
+                className="lms-input mt-1"
+                data-testid="teacher-booking-status-filter"
+              >
+                <option value="">All statuses</option>
+                <option value="BOOKED">BOOKED</option>
+                <option value="COMPLETED">COMPLETED</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {bookingsQuery.isLoading ? (
@@ -56,6 +82,13 @@ export function TeacherBookingsPage() {
             {bookings.map((booking) => (
               <TeacherBookingCard key={booking.id} booking={booking} />
             ))}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalElements={bookingsQuery.data?.totalElements}
+              isFetching={bookingsQuery.isFetching}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </div>
@@ -157,4 +190,3 @@ function TeacherBookingCard({ booking }: { booking: TeacherBooking }) {
     </article>
   )
 }
-

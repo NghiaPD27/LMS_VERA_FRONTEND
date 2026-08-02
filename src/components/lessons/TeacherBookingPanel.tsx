@@ -3,6 +3,7 @@ import { AlertTriangle, CalendarClock, CheckCircle2, ExternalLink, LockKeyhole, 
 import { Button } from '../common/Button'
 import { EmptyState } from '../common/EmptyState'
 import { LoadingState } from '../common/LoadingState'
+import { PaginationControls } from '../common/PaginationControls'
 import { useCancelStudentBooking, useCreateStudentBooking, useGetStudentBookings, useGetStudentTeacherSlots } from '../../hooks/useTeacher'
 import type { TeacherBooking, TeacherSlot } from '../../types/teacher'
 import { getFriendlyApiErrorMessage, isConflictError, isForbiddenError } from '../../utils/errorMessage'
@@ -14,16 +15,18 @@ interface TeacherBookingPanelProps {
 }
 
 export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelProps) {
+  const slotPageSize = 20
   const [selectedSlotStartAt, setSelectedSlotStartAt] = useState<string>('')
   const [clientError, setClientError] = useState<string | null>(null)
   const [clientMessage, setClientMessage] = useState<string | null>(null)
   const [booking, setBooking] = useState<TeacherBooking | null>(null)
+  const [slotPage, setSlotPage] = useState(0)
   const bookingsQuery = useGetStudentBookings(
-    { lessonId, status: 'BOOKED' },
+    { lessonId, status: 'BOOKED', page: 0, size: 20 },
     enabled && !!lessonId
   )
-  const existingBooking = booking || bookingsQuery.data?.find((item) => item.status === 'BOOKED') || null
-  const slotsQuery = useGetStudentTeacherSlots(lessonId, enabled && !existingBooking)
+  const existingBooking = booking || bookingsQuery.data?.content?.find((item) => item.status === 'BOOKED') || null
+  const slotsQuery = useGetStudentTeacherSlots(lessonId, { page: slotPage, size: slotPageSize }, enabled && !existingBooking)
   const createBookingMutation = useCreateStudentBooking()
   const cancelBookingMutation = useCancelStudentBooking()
 
@@ -32,16 +35,18 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
     setClientError(null)
     setClientMessage(null)
     setBooking(null)
+    setSlotPage(0)
   }, [lessonId, enabled])
 
   const slots = useMemo(
     () =>
-      (slotsQuery.data || [])
+      (slotsQuery.data?.content || [])
         .filter((slot) => slot.startAt)
         .slice()
         .sort((a, b) => new Date(a.startAt || '').getTime() - new Date(b.startAt || '').getTime()),
-    [slotsQuery.data]
+    [slotsQuery.data?.content]
   )
+  const totalSlotPages = slotsQuery.data?.totalPages ?? 0
   const selectedSlot = slots.find((slot) => slot.startAt === selectedSlotStartAt)
   const activeBooking = existingBooking
 
@@ -159,15 +164,27 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
         </div>
       ) : !activeBooking ? (
         <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {slots.map((slot) => (
-              <TeacherSlotButton
-                key={`${slot.availabilityId || slot.startAt}-${slot.startAt}`}
-                slot={slot}
-                selected={slot.startAt === selectedSlotStartAt}
-                onSelect={() => setSelectedSlotStartAt(slot.startAt || '')}
-              />
-            ))}
+          <div className="grid gap-3">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {slots.map((slot) => (
+                <TeacherSlotButton
+                  key={`${slot.availabilityId || slot.startAt}-${slot.startAt}`}
+                  slot={slot}
+                  selected={slot.startAt === selectedSlotStartAt}
+                  onSelect={() => setSelectedSlotStartAt(slot.startAt || '')}
+                />
+              ))}
+            </div>
+            <PaginationControls
+              page={slotPage}
+              totalPages={totalSlotPages}
+              totalElements={slotsQuery.data?.totalElements}
+              isFetching={slotsQuery.isFetching}
+              onPageChange={(nextPage) => {
+                setSelectedSlotStartAt('')
+                setSlotPage(nextPage)
+              }}
+            />
           </div>
 
           <div className="h-fit rounded-lg border border-border bg-white p-4">

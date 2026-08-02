@@ -1,9 +1,21 @@
 import { http } from './client'
-import type { CreateBookingRequest, StudentBookingQueryParams, TeacherBooking, TeacherSlot } from '../types/teacher'
+import type {
+  CreateBookingRequest,
+  StudentBookingQueryParams,
+  StudentTeacherSlotQueryParams,
+  TeacherBooking,
+  TeacherBookingPage,
+  TeacherSlotPage,
+} from '../types/teacher'
+
+const cleanParams = (params: object) =>
+  Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== ''))
 
 export const studentTeacherApi = {
-  getTeacherSlots: async (lessonId: number): Promise<TeacherSlot[]> => {
-    const response = await http.get('/student/teacher-slots', { params: { lessonId } })
+  getTeacherSlots: async (lessonId: number, params: StudentTeacherSlotQueryParams = {}): Promise<TeacherSlotPage> => {
+    const response = await http.get('/student/teacher-slots', {
+      params: cleanParams({ lessonId, ...params }),
+    })
     return response.data
   },
 
@@ -12,8 +24,11 @@ export const studentTeacherApi = {
     return response.data
   },
 
-  getBookings: async (params: StudentBookingQueryParams = {}): Promise<TeacherBooking[]> => {
-    const response = await http.get('/student/bookings', { params })
+  getBookings: async (params: StudentBookingQueryParams = {}): Promise<TeacherBookingPage> => {
+    const cleanedParams = cleanParams(params)
+    const response = await http.get('/student/bookings', {
+      params: Object.keys(cleanedParams).length ? cleanedParams : undefined,
+    })
     return response.data
   },
 

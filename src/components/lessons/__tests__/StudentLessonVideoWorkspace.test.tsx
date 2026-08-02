@@ -79,7 +79,13 @@ vi.mock('../../../hooks/useTeacher', () => ({
   useGetStudentBookings: (params = {}, enabled = true) => {
     teacherHookState.getBookings(params, enabled)
     return {
-      data: teacherHookState.bookings,
+      data: {
+        content: teacherHookState.bookings,
+        totalElements: teacherHookState.bookings.length,
+        totalPages: teacherHookState.bookings.length ? 1 : 0,
+        page: 0,
+        size: 20,
+      },
       isLoading: false,
       isFetching: false,
       isError: false,
@@ -87,10 +93,16 @@ vi.mock('../../../hooks/useTeacher', () => ({
       refetch: teacherHookState.bookingsRefetch,
     }
   },
-  useGetStudentTeacherSlots: (lessonId?: number, enabled = true) => {
-    teacherHookState.getSlots(lessonId, enabled)
+  useGetStudentTeacherSlots: (lessonId?: number, params = {}, enabled = true) => {
+    teacherHookState.getSlots(lessonId, params, enabled)
     return {
-      data: enabled ? teacherHookState.slots : [],
+      data: {
+        content: enabled ? teacherHookState.slots : [],
+        totalElements: enabled ? teacherHookState.slots.length : 0,
+        totalPages: enabled && teacherHookState.slots.length ? 1 : 0,
+        page: 0,
+        size: 20,
+      },
       isLoading: false,
       isFetching: false,
       isError: false,
@@ -353,7 +365,7 @@ describe('StudentLessonVideoWorkspace', () => {
     expect(await screen.findByText('Jane Doe')).toBeInTheDocument()
     expect(screen.queryByText('Vào Google Meet')).not.toBeInTheDocument()
     expect(document.body).not.toHaveTextContent('https://meet.google.com/abc-defg-hij')
-    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, true))
+    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, { page: 0, size: 20 }, true))
 
     await user.click(screen.getByText(/Jul 23, 2026/i))
     await user.click(screen.getByRole('button', { name: /book session/i }))
@@ -408,7 +420,7 @@ describe('StudentLessonVideoWorkspace', () => {
 
     expect(await screen.findByText('Session booked')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /vào google meet/i })).toHaveAttribute('href', 'https://meet.google.com/reload-room')
-    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, false))
+    await waitFor(() => expect(teacherHookState.getSlots).toHaveBeenCalledWith(101, { page: 0, size: 20 }, false))
   })
 
   it('refreshes slots and asks the student to choose another slot on booking conflict', async () => {

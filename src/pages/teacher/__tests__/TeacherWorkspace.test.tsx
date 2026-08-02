@@ -26,7 +26,13 @@ vi.mock('../../../hooks/useTeacher', () => ({
     isPending: false,
   }),
   useGetTeacherAvailability: () => ({
-    data: hookState.availabilitySlots,
+    data: {
+      content: hookState.availabilitySlots,
+      totalElements: hookState.availabilitySlots.length,
+      totalPages: hookState.availabilitySlots.length ? 1 : 0,
+      page: 0,
+      size: 20,
+    },
     isLoading: false,
     isFetching: false,
     isError: false,
@@ -37,22 +43,29 @@ vi.mock('../../../hooks/useTeacher', () => ({
     mutateAsync: hookState.deleteAvailability,
     isPending: false,
   }),
-  useGetTeacherBookings: (status?: string) => {
-    hookState.bookingsStatus = status
+  useGetTeacherBookings: (params = {}) => {
+    hookState.bookingsStatus = (params as { status?: string }).status
     return {
-      data: [
-        {
-          id: 88,
-          studentName: 'John Smith',
-          teacherId: 2,
-          lessonId: 101,
-          lessonName: 'Opening conversations',
-          startAt: '2026-07-23T10:00:00Z',
-          endAt: '2026-07-23T11:00:00Z',
-          status: 'BOOKED',
-        },
-      ],
+      data: {
+        content: [
+          {
+            id: 88,
+            studentName: 'John Smith',
+            teacherId: 2,
+            lessonId: 101,
+            lessonName: 'Opening conversations',
+            startAt: '2026-07-23T10:00:00Z',
+            endAt: '2026-07-23T11:00:00Z',
+            status: 'BOOKED',
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+        page: 0,
+        size: 20,
+      },
       isLoading: false,
+      isFetching: false,
       isError: false,
       error: null,
     }
