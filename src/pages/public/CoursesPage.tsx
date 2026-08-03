@@ -31,8 +31,8 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground bg-[hsl(220_14%_7%)]'}>
       <Seo
-        title={embedded ? 'LMS Vera | Student courses' : 'Khóa học LMS Vera | Tiếng Anh và tiếng Việt online'}
-        description="Khám phá các khóa học tiếng Anh và tiếng Việt trực tuyến trên LMS Vera với lộ trình rõ ràng, bài học video, quiz và giáo viên hỗ trợ."
+        title={embedded ? 'Vera Language | Student courses' : 'Khóa học Vera Language | Tiếng Anh và tiếng Việt online'}
+        description="Khám phá các khóa học tiếng Anh và tiếng Việt trực tuyến trên Vera Language với lộ trình rõ ràng, bài học video, quiz và giáo viên hỗ trợ."
         path="/courses"
         noindex={embedded}
       />
@@ -43,7 +43,7 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-[0_0_16px_rgba(244,106,37,0.35)]">
                 <GraduationCap className="h-5 w-5" />
               </span>
-              LMS Vera
+              Vera Language
             </Link>
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" className="border-border text-xs text-white hover:border-primary">

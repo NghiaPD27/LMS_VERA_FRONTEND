@@ -9,4 +9,4 @@ Disallow: /login
 Disallow: /register
 Disallow: /change-password
 
-Sitemap: https://lmsvera.com/sitemap.xml
+Sitemap: https://vera.nducky.id.vn/sitemap.xml

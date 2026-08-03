@@ -5,7 +5,7 @@ import { NoIndexSeo } from '../components/common/Seo'
 export function AuthLayout() {
   return (
     <main className="relative isolate flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden bg-[hsl(220_14%_7%)] px-4 py-6 text-foreground lg:overflow-hidden">
-      <NoIndexSeo title="LMS Vera | Account access" />
+      <NoIndexSeo title="Vera Language | Account access" />
       
       {/* Dark Ambient Radial Glows */}
       <div className="pointer-events-none absolute -left-20 -top-20 -z-10 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
@@ -21,7 +21,7 @@ export function AuthLayout() {
                 <GraduationCap className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xl font-bold text-white tracking-tight">LMS Vera</p>
+                <p className="text-xl font-bold text-white tracking-tight">Vera Language</p>
                 <p className="text-xs font-medium text-muted-foreground">Language learning portal</p>
               </div>
             </div>

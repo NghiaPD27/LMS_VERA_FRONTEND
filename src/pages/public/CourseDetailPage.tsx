@@ -73,10 +73,10 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground'}>
       <Seo
-        title={embedded ? `LMS Vera | ${program.name}` : `${program.name} | Khóa học online trên LMS Vera`}
+        title={embedded ? `Vera Language | ${program.name}` : `${program.name} | Khóa học online trên Vera Language`}
         description={
           program.description ||
-          'Khóa học online trên LMS Vera với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.'
+          'Khóa học online trên Vera Language với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.'
         }
         path={`/courses/${program.id}`}
         noindex={embedded}
@@ -90,11 +90,11 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
                 name: program.name,
                 description:
                   program.description ||
-                  'Khóa học online trên LMS Vera với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.',
+                  'Khóa học online trên Vera Language với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.',
                 url: `${siteUrl}/courses/${program.id}`,
                 provider: {
                   '@type': 'EducationalOrganization',
-                  name: 'LMS Vera',
+                  name: 'Vera Language',
                   sameAs: siteUrl,
                 },
                 offers: {

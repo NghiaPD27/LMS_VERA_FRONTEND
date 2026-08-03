@@ -25,7 +25,7 @@ type Language = 'vi' | 'en'
 
 const copy = {
   vi: {
-    brandSubtitle: 'Trung tâm Ngôn ngữ LMS Vera',
+    brandSubtitle: 'Trung tâm Ngôn ngữ Vera Language',
     nav: [
       { label: 'Giới thiệu', sectionIndex: 0 },
       { label: 'Video', sectionIndex: 1 },
@@ -34,7 +34,7 @@ const copy = {
     ],
     login: 'Đăng nhập',
     register: 'Đăng ký',
-    heroBadge: 'LMS Vera Center',
+    heroBadge: 'Vera Language Center',
     heroTitle: 'Tự tin giao tiếp Tiếng Anh & Tiếng Việt',
     heroDescription:
       'Vera đồng hành cùng bạn trên con đường chinh phục ngôn ngữ với lộ trình cá nhân hóa, phương pháp tương tác phản xạ và hỗ trợ 1-1 tận tâm.',
@@ -54,7 +54,7 @@ const copy = {
     videoDescription:
       'Cùng chị trải nghiệm môi trường học tập tương tác, phương pháp luyện phản xạ tự nhiên và cách theo dõi tiến độ bài học tại Vera.',
     videoTag: 'Video Giới Thiệu',
-    videoHeading: 'LMS Vera Overview Video',
+    videoHeading: 'Vera Language Overview Video',
     videoSubheading: 'Bấm để phát video giới thiệu trung tâm',
     pathTag: 'Lộ Trình Đào Tạo',
     pathTitle: 'Tư vấn & Lựa chọn Lộ trình học',
@@ -88,7 +88,7 @@ const copy = {
     emailLabel: 'Email',
     addressLabel: 'Địa chỉ trụ sở',
     phone: '0901 234 567',
-    email: 'tuvan@lmsvera.edu.vn',
+    email: 'contact@vera.nducky.id.vn',
     address: 'Tòa nhà Vera Building, Q. 1, TP. Hồ Chí Minh',
     formName: 'Họ và tên của bạn',
     formPhone: 'Số điện thoại / Zalo',
@@ -101,7 +101,7 @@ const copy = {
     formSuccess: 'Cảm ơn bạn! Vera sẽ liên hệ tư vấn trong 24h làm việc.',
     formReset: 'Gửi yêu cầu khác',
     footerDesc: 'Hệ thống đào tạo ngôn ngữ trực tuyến chuyên nghiệp, giúp học viên tự tin giao tiếp tiếng Anh và tiếng Việt.',
-    footerAbout: 'Về LMS Vera',
+    footerAbout: 'Về Vera Language',
     footerAboutNav: ['Giới thiệu trung tâm', 'Video lớp học', 'Lộ trình CEFR', 'Danh sách khóa học'],
     footerPortals: 'Tài khoản & Portal',
     footerPortalsNav: ['Cổng học viên', 'Cổng giáo viên', 'Cổng cố vấn Evaluator', 'Đăng ký học viên mới'],
@@ -110,7 +110,7 @@ const copy = {
     sectionDots: ['Giới thiệu', 'Video', 'Lộ trình', 'Liên hệ', 'Chân trang'],
   },
   en: {
-    brandSubtitle: 'LMS Vera Language Center',
+    brandSubtitle: 'Vera Language Center',
     nav: [
       { label: 'About', sectionIndex: 0 },
       { label: 'Video', sectionIndex: 1 },
@@ -119,7 +119,7 @@ const copy = {
     ],
     login: 'Sign In',
     register: 'Register',
-    heroBadge: 'LMS Vera Center',
+    heroBadge: 'Vera Language Center',
     heroTitle: 'Speak English & Vietnamese With Confidence',
     heroDescription:
       'Vera empowers your language journey through structured paths, natural speaking practice, and dedicated mentorship.',
@@ -139,7 +139,7 @@ const copy = {
     videoDescription:
       'Experience our real-time interactive online classroom, speaking-first methodology, and progress tracking tools.',
     videoTag: 'Featured Video',
-    videoHeading: 'LMS Vera Overview Video',
+    videoHeading: 'Vera Language Overview Video',
     videoSubheading: 'Click to play center introduction video',
     pathTag: 'Learning Paths',
     pathTitle: 'Find Your Tailored Learning Path',
@@ -173,7 +173,7 @@ const copy = {
     emailLabel: 'Email',
     addressLabel: 'Headquarter Address',
     phone: '+84 901 234 567',
-    email: 'contact@lmsvera.edu.vn',
+    email: 'contact@vera.nducky.id.vn',
     address: 'Vera Tower, District 1, Ho Chi Minh City',
     formName: 'Your Full Name',
     formPhone: 'Phone / WhatsApp / Zalo',
@@ -186,7 +186,7 @@ const copy = {
     formSuccess: 'Thank you! Vera will contact you within 24 business hours.',
     formReset: 'Submit another request',
     footerDesc: 'Professional online language education platform, empowering students to speak English and Vietnamese with confidence.',
-    footerAbout: 'About LMS Vera',
+    footerAbout: 'About Vera Language',
     footerAboutNav: ['Center Overview', 'Classroom Video', 'CEFR Paths', 'All Courses'],
     footerPortals: 'Portals & Accounts',
     footerPortalsNav: ['Student Portal', 'Teacher Portal', 'Evaluator Portal', 'New Student Register'],
@@ -295,8 +295,8 @@ export function HomePage() {
       className="h-[100dvh] w-full overflow-hidden bg-[hsl(220_14%_6%)] text-foreground font-sans selection:bg-primary/30 selection:text-white relative"
     >
       <Seo
-        title="LMS Vera | Trung tâm Ngôn ngữ Tiếng Anh & Tiếng Việt Online"
-        description="LMS Vera - Hệ thống học tiếng Anh và tiếng Việt trực tuyến với lộ trình A1/A2 rõ ràng, bài học video tương tác và cố vấn 1-1."
+        title="Vera Language | Trung tâm Ngôn ngữ Tiếng Anh & Tiếng Việt Online"
+        description="Vera Language - Hệ thống học tiếng Anh và tiếng Việt trực tuyến với lộ trình A1/A2 rõ ràng, bài học video tương tác và cố vấn 1-1."
         path="/"
       />
 
@@ -308,7 +308,7 @@ export function HomePage() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-extrabold text-white tracking-tight leading-none">LMS Vera</p>
+              <p className="text-base font-extrabold text-white tracking-tight leading-none">Vera Language</p>
               <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">{t.brandSubtitle}</p>
             </div>
           </button>
@@ -519,7 +519,7 @@ export function HomePage() {
                   <iframe
                     className="w-full h-full rounded-xl"
                     src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1"
-                    title="LMS Vera Video"
+                    title="Vera Language Video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -713,7 +713,7 @@ export function HomePage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <p className="text-lg font-extrabold text-white">LMS Vera</p>
+                <p className="text-lg font-extrabold text-white">Vera Language</p>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {t.footerDesc}
@@ -749,7 +749,7 @@ export function HomePage() {
           </div>
 
           <div className="border-t border-border/60 pt-4 pb-2 text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} LMS Vera Language Center. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Vera Language Center. All rights reserved.</p>
           </div>
         </section>
       </motion.div>

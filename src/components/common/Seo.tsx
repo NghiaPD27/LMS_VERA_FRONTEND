@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { siteUrl } from '../../utils/seo'
 
-const DEFAULT_TITLE = 'LMS Vera | Học tiếng Anh và tiếng Việt trực tuyến'
+const DEFAULT_TITLE = 'Vera Language | Học tiếng Anh và tiếng Việt trực tuyến'
 const DEFAULT_DESCRIPTION =
-  'LMS Vera là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, video bài học, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
+  'Vera Language là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, video bài học, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
 const DEFAULT_IMAGE = `${siteUrl}/images/vera-language-classroom-hero.png`
 
 interface SeoProps {
@@ -50,8 +50,8 @@ export function Seo({
   return null
 }
 
-export function NoIndexSeo({ title = 'LMS Vera' }: { title?: string }) {
-  return <Seo title={title} description="Private LMS Vera workspace." noindex />
+export function NoIndexSeo({ title = 'Vera Language' }: { title?: string }) {
+  return <Seo title={title} description="Private Vera Language workspace." noindex />
 }
 
 function setMeta(name: string, content: string) {

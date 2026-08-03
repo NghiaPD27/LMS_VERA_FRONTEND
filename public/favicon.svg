@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LMS Vera">
-  <rect width="64" height="64" rx="12" fill="#2f8f5b"/>
-  <path d="M14 20h36v8H14z" fill="#fff"/>
-  <path d="M18 32h28v6H18z" fill="#f47a3d"/>
-  <path d="M22 42h20v6H22z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Vera Language">
+  <rect width="64" height="64" rx="14" fill="#f46a25"/>
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="#12151d"/>
+  <path d="M17 20h7l8 20 8-20h7L35 46h-6L17 20z" fill="#ffffff"/>
+  <path d="M41 38h7v8H32v-6h9v-2z" fill="#f46a25"/>
 </svg>

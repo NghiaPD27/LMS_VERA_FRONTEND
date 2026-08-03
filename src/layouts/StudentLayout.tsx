@@ -39,7 +39,7 @@ export function StudentLayout() {
 
   return (
     <div className="vera-workspace-bg flex min-h-screen bg-[hsl(220_14%_7%)] text-foreground">
-      <NoIndexSeo title="LMS Vera | Student portal" />
+      <NoIndexSeo title="Vera Language | Student portal" />
 
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden h-dvh w-64 border-r border-border bg-[hsl(220_14%_9%)] md:flex md:flex-col">
@@ -50,7 +50,7 @@ export function StudentLayout() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-extrabold tracking-tight text-white">LMS Vera</p>
+              <p className="text-base font-extrabold tracking-tight text-white">Vera Language</p>
               <p className="text-[11px] font-medium text-muted-foreground">Student Portal</p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export function StudentLayout() {
                   <GraduationCap className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-white text-sm">LMS Vera</p>
+                  <p className="font-bold text-white text-sm">Vera Language</p>
                   <p className="text-[10px] text-muted-foreground">Student Portal</p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export function StudentLayout() {
               </button>
               <div className="flex items-center gap-2 font-bold text-white text-sm">
                 <GraduationCap className="h-5 w-5 text-primary" />
-                LMS Vera
+                Vera Language
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout} className="border-border text-xs">
