@@ -41,20 +41,20 @@ export const getEnrollmentAccessLabel = (enrollment?: EnrollmentLike | null): st
 
 export const getEnrollmentAccessBadgeClass = (enrollment?: EnrollmentLike | null): string => {
   if (!enrollment) {
-    return 'border-border bg-muted text-muted-foreground'
+    return 'border-border bg-slate-900/80 text-muted-foreground font-semibold whitespace-nowrap'
   }
 
   if (isEnrollmentExpired(enrollment)) {
-    return 'border-red-200 bg-red-50 text-red-700'
+    return 'border-rose-500/30 bg-rose-950/60 text-rose-400 font-semibold whitespace-nowrap'
   }
 
   if (enrollment.status === 'ACTIVE') {
-    return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+    return 'border-emerald-500/30 bg-emerald-950/60 text-emerald-400 font-semibold whitespace-nowrap'
   }
 
   if (enrollment.status === 'COMPLETED') {
-    return 'border-slate-200 bg-slate-50 text-slate-700'
+    return 'border-primary/30 bg-primary/15 text-primary font-semibold whitespace-nowrap'
   }
 
-  return 'border-border bg-muted text-muted-foreground'
+  return 'border-border bg-slate-900/80 text-muted-foreground font-semibold whitespace-nowrap'
 }

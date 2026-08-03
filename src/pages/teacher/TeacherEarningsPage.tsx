@@ -54,11 +54,11 @@ export function TeacherEarningsPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex rounded-md border border-border bg-background p-1">
+            <div className="flex rounded-lg border border-border bg-slate-950 p-1">
               <button
                 type="button"
-                className={`rounded px-3 py-2 text-sm font-bold transition-colors ${
-                  mode === 'monthly' ? 'bg-white text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                className={`rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
+                  mode === 'monthly' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                 }`}
                 onClick={() => setMode('monthly')}
                 data-testid="teacher-earnings-monthly-mode"
@@ -67,8 +67,8 @@ export function TeacherEarningsPage() {
               </button>
               <button
                 type="button"
-                className={`rounded px-3 py-2 text-sm font-bold transition-colors ${
-                  mode === 'all-time' ? 'bg-white text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                className={`rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
+                  mode === 'all-time' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                 }`}
                 onClick={() => setMode('all-time')}
                 data-testid="teacher-earnings-all-time-mode"
@@ -167,14 +167,14 @@ function TeacherEarningsStats({
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => (
-        <div key={stat.label} className="rounded-lg border border-border bg-white p-4">
+        <div key={stat.label} className="rounded-xl border border-border bg-slate-900/60 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-orange-soft))] text-primary">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
               <stat.icon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{stat.label}</p>
-              <p className="mt-1 break-words text-lg font-extrabold text-foreground">{stat.value}</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
+              <p className="mt-1 break-words text-lg font-extrabold text-white">{stat.value}</p>
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ function TeacherEarningsStats({
 
 function TeacherEarningsTable({ earnings, currency }: { earnings: TeacherEarning[]; currency: string }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-white">
+    <div className="overflow-hidden rounded-xl border border-border bg-slate-900/60">
       <Table data-testid="teacher-earnings-table">
         <TableHeader>
           <TableRow>

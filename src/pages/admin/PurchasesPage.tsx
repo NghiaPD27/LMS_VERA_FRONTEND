@@ -85,7 +85,7 @@ export function PurchasesPage() {
       <div className="lms-page-hero">
         <div className="lms-page-hero-inner">
           <div className="relative flex items-start gap-4">
-            <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] sm:flex">
+            <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25 sm:flex">
               <ReceiptText className="h-6 w-6" />
             </div>
             <div>
@@ -254,7 +254,7 @@ export function PurchasesPage() {
           <div className="lms-alert-error">{getFriendlyApiErrorMessage(selectedPurchaseQuery.error, 'Failed to load purchase detail')}</div>
         ) : selectedPurchase ? (
           <div className="space-y-4">
-            <div className="rounded-lg border border-border bg-background p-4">
+            <div className="rounded-xl border border-border bg-slate-900/70 p-4">
               <PurchaseDetailRow label="Purchase" value={`#${selectedPurchase.id ?? selectedPurchaseId}`} />
               <PurchaseDetailRow label="Student" value={selectedPurchase.studentName || `Student #${selectedPurchase.studentId ?? '-'}`} />
               <PurchaseDetailRow label="Program" value={selectedPurchase.programName || `Program #${selectedPurchase.programId ?? '-'}`} />
@@ -263,13 +263,13 @@ export function PurchasesPage() {
               <PurchaseDetailRow label="Payment code" value={selectedPurchase.paymentCode || '-'} />
             </div>
 
-            <div className="rounded-lg border border-border bg-background p-4">
-              <label htmlFor="purchase-next-status" className="text-sm font-bold text-foreground">Update status</label>
+            <div className="rounded-xl border border-border bg-slate-900/70 p-4">
+              <label htmlFor="purchase-next-status" className="text-xs font-bold text-white">Update status</label>
               <select
                 id="purchase-next-status"
                 value={nextStatus}
                 onChange={(event) => setNextStatus(event.target.value)}
-                className="lms-input mt-1"
+                className="lms-input mt-1 text-xs"
                 disabled={selectedPurchase.status === 'PAID'}
               >
                 <option value="">Choose status</option>
@@ -280,7 +280,7 @@ export function PurchasesPage() {
               <textarea
                 value={statusNote}
                 onChange={(event) => setStatusNote(event.target.value)}
-                className="lms-input mt-3 min-h-20"
+                className="lms-input mt-3 min-h-20 text-xs"
                 maxLength={500}
                 placeholder="Optional note"
                 disabled={selectedPurchase.status === 'PAID'}
@@ -290,7 +290,7 @@ export function PurchasesPage() {
               )}
               <Button
                 type="button"
-                className="mt-3 w-full"
+                className="mt-3 w-full bg-primary text-white font-bold hover:bg-primary/90"
                 disabled={!nextStatus || selectedPurchase.status === 'PAID' || updateStatusMutation.isPending}
                 onClick={() => void handleUpdateStatus()}
               >
@@ -298,21 +298,21 @@ export function PurchasesPage() {
               </Button>
             </div>
 
-            <div className="rounded-lg border border-border bg-background p-4">
-              <p className="font-extrabold text-foreground">Events</p>
+            <div className="rounded-xl border border-border bg-slate-900/70 p-4">
+              <p className="font-extrabold text-white text-xs">Events</p>
               {purchaseEventsQuery.isLoading ? (
-                <p className="mt-2 text-sm text-muted-foreground">Loading events...</p>
+                <p className="mt-2 text-xs text-muted-foreground">Loading events...</p>
               ) : purchaseEventsQuery.isError ? (
-                <p className="mt-2 text-sm text-red-700">{getFriendlyApiErrorMessage(purchaseEventsQuery.error, 'Failed to load events')}</p>
+                <p className="mt-2 text-xs text-rose-400">{getFriendlyApiErrorMessage(purchaseEventsQuery.error, 'Failed to load events')}</p>
               ) : (purchaseEventsQuery.data ?? []).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No status events yet.</p>
+                <p className="mt-2 text-xs text-muted-foreground">No status events yet.</p>
               ) : (
                 <div className="mt-3 space-y-3">
                   {purchaseEventsQuery.data?.map((event) => (
-                    <div key={event.id || `${event.oldStatus}-${event.newStatus}-${event.createdAt}`} className="rounded-md border border-border bg-white p-3 text-sm">
-                      <p className="font-bold text-foreground">{event.oldStatus || 'NEW'} to {event.newStatus || '-'}</p>
-                      <p className="text-muted-foreground">{formatDateTime(event.createdAt)}</p>
-                      {event.note && <p className="mt-1 text-muted-foreground">{event.note}</p>}
+                    <div key={event.id || `${event.oldStatus}-${event.newStatus}-${event.createdAt}`} className="rounded-lg border border-border bg-slate-900 p-3 text-xs">
+                      <p className="font-bold text-white">{event.oldStatus || 'NEW'} to {event.newStatus || '-'}</p>
+                      <p className="text-[11px] text-muted-foreground">{formatDateTime(event.createdAt)}</p>
+                      {event.note && <p className="mt-1 text-xs text-zinc-300">{event.note}</p>}
                     </div>
                   ))}
                 </div>

@@ -9,7 +9,7 @@ import { useGetPrograms } from '../../hooks/usePrograms'
 import { useGetAdminTeachers } from '../../hooks/useTeacher'
 import type { AdminStudentProgress } from '../../types/adminReport'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
-import { formatDateTime } from '../../utils/formatters'
+import { formatDateShort } from '../../utils/formatters'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -154,21 +154,21 @@ export function StudentProgressReportPage() {
         ) : rows.length === 0 ? (
           <EmptyState message="No matching students" description="Adjust filters or refresh the report." />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-border/80">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Program</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Current lesson</TableHead>
-                  <TableHead>Teacher</TableHead>
-                  <TableHead>Expiry</TableHead>
-                  <TableHead />
+              <TableHeader className="bg-slate-900/90 border-b border-border/80">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Student</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Program</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Status</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Progress</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Current lesson</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Teacher</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Expiry</TableHead>
+                  <TableHead className="text-right text-zinc-400 font-bold text-xs whitespace-nowrap py-3">Action</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-border/40">
                 {rows.map((row) => (
                   <StudentProgressRow key={row.enrollmentId} row={row} onOpen={() => setSelectedEnrollmentId(row.enrollmentId)} />
                 ))}
@@ -185,9 +185,9 @@ export function StudentProgressReportPage() {
       </div>
 
       <Dialog open={!!selectedEnrollmentId} onOpenChange={(open) => !open && setSelectedEnrollmentId(undefined)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl bg-[hsl(220_14%_10%)] border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>Enrollment progress detail</DialogTitle>
+            <DialogTitle className="text-white">Enrollment progress detail</DialogTitle>
             <DialogDescription>Lesson-level state from the admin report detail endpoint.</DialogDescription>
           </DialogHeader>
           {detailQuery.isLoading ? (
@@ -197,23 +197,23 @@ export function StudentProgressReportPage() {
           ) : (
             <div className="space-y-4">
               {detailQuery.data?.summary && <DetailSummary summary={detailQuery.data.summary} />}
-              <div className="max-h-[52vh] overflow-y-auto rounded-lg border border-border">
+              <div className="max-h-[52vh] overflow-y-auto rounded-xl border border-border bg-slate-900/60">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-900/90">
                     <TableRow>
-                      <TableHead>Lesson</TableHead>
-                      <TableHead>Lesson status</TableHead>
-                      <TableHead>Progress status</TableHead>
+                      <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap">Lesson</TableHead>
+                      <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap">Lesson status</TableHead>
+                      <TableHead className="text-zinc-400 font-bold text-xs whitespace-nowrap">Progress status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {(detailQuery.data?.lessons ?? []).map((lesson) => (
-                      <TableRow key={lesson.lessonId}>
-                        <TableCell>
-                          <p className="font-bold text-foreground">#{lesson.lessonNumber} {lesson.lessonName}</p>
+                      <TableRow key={lesson.lessonId} className="hover:bg-slate-800/50">
+                        <TableCell className="py-3">
+                          <p className="font-bold text-white text-xs whitespace-nowrap">#{lesson.lessonNumber} {lesson.lessonName}</p>
                         </TableCell>
-                        <TableCell><StatusPill value={lesson.lessonStatus} /></TableCell>
-                        <TableCell><StatusPill value={lesson.progressStatus} /></TableCell>
+                        <TableCell className="whitespace-nowrap py-3"><StatusPill value={lesson.lessonStatus} /></TableCell>
+                        <TableCell className="whitespace-nowrap py-3"><StatusPill value={lesson.progressStatus} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -229,37 +229,36 @@ export function StudentProgressReportPage() {
 
 function StudentProgressRow({ row, onOpen }: { row: AdminStudentProgress; onOpen: () => void }) {
   return (
-    <TableRow>
-      <TableCell>
-        <p className="font-bold text-foreground">{row.studentName || `Student #${row.studentId}`}</p>
-        <p className="text-sm text-muted-foreground">{row.studentEmail || '-'}</p>
+    <TableRow className="hover:bg-slate-900/80 transition-colors">
+      <TableCell className="py-2.5 px-3">
+        <p className="font-bold text-white text-xs truncate max-w-[150px]">{row.studentName || `Student #${row.studentId}`}</p>
+        <p className="text-[11px] text-muted-foreground truncate max-w-[150px]">{row.studentEmail || '-'}</p>
       </TableCell>
-      <TableCell>{row.programName || `Program #${row.programId}`}</TableCell>
-      <TableCell>
-        <div className="space-y-2">
-          <EnrollmentStatusBadge status={row.enrollmentStatus} />
-          <StatusPill value={row.accountStatus || (row.studentEnabled === false ? 'DISABLED' : 'ACTIVE')} />
-        </div>
+      <TableCell className="text-xs font-semibold text-zinc-200 py-2.5 px-3 whitespace-nowrap">
+        {row.programName || `Program #${row.programId}`}
       </TableCell>
-      <TableCell>
-        <div className="min-w-32">
-          <div className="mb-1 flex items-center justify-between text-xs font-bold text-foreground">
+      <TableCell className="py-2.5 px-3 whitespace-nowrap">
+        <EnrollmentStatusBadge status={row.enrollmentStatus} />
+      </TableCell>
+      <TableCell className="py-2.5 px-3 whitespace-nowrap">
+        <div className="w-24">
+          <div className="mb-1 flex items-center justify-between text-[10px] font-bold text-white">
             <span>{row.progressPercent ?? 0}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-[hsl(var(--brand-green))]" style={{ width: `${Math.min(Math.max(row.progressPercent ?? 0, 0), 100)}%` }} />
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-800 border border-border/40">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(Math.max(row.progressPercent ?? 0, 0), 100)}%` }} />
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <p className="font-medium text-foreground">{row.currentLessonNumber ? `#${row.currentLessonNumber}` : '-'} {row.currentLessonName || ''}</p>
-        <p className="text-xs text-muted-foreground">{row.currentLessonStatus || row.nextAction || '-'}</p>
+      <TableCell className="py-2.5 px-3 whitespace-nowrap">
+        <p className="font-semibold text-xs text-white truncate max-w-[130px]">{row.currentLessonNumber ? `#${row.currentLessonNumber}` : '-'} {row.currentLessonName || ''}</p>
+        <p className="text-[10px] text-muted-foreground truncate max-w-[130px] uppercase tracking-wider">{row.currentLessonStatus || row.nextAction || '-'}</p>
       </TableCell>
-      <TableCell>{row.teacherName || 'Unassigned'}</TableCell>
-      <TableCell>{row.expiredAt ? formatDateTime(row.expiredAt) : '-'}</TableCell>
-      <TableCell className="text-right">
-        <Button type="button" variant="outline" size="sm" onClick={onOpen} disabled={!row.enrollmentId}>
-          <Eye className="h-4 w-4" />
+      <TableCell className="text-xs font-semibold text-white py-2.5 px-3 truncate max-w-[130px]">{row.teacherName || 'Unassigned'}</TableCell>
+      <TableCell className="text-xs font-medium text-zinc-300 py-2.5 px-3 whitespace-nowrap">{row.expiredAt ? formatDateShort(row.expiredAt) : '-'}</TableCell>
+      <TableCell className="text-right py-2.5 px-3 whitespace-nowrap">
+        <Button type="button" variant="outline" size="sm" className="h-7 px-2.5 text-[11px] font-semibold border-border hover:border-primary/50 hover:bg-slate-800" onClick={onOpen} disabled={!row.enrollmentId}>
+          <Eye className="h-3 w-3 mr-1 text-primary" />
           Detail
         </Button>
       </TableCell>
@@ -287,7 +286,24 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
 }
 
 function StatusPill({ value }: { value?: string }) {
-  return <span className="inline-flex rounded-full border border-border bg-background px-2.5 py-1 text-xs font-bold text-muted-foreground">{formatLabel(value || '-')}</span>
+  const normalized = (value || '-').toUpperCase()
+  let className = 'border-border bg-slate-900/80 text-zinc-300 font-bold'
+
+  if (normalized === 'ACTIVE' || normalized === 'COMPLETED_LESSON') {
+    className = 'border-emerald-500/40 bg-emerald-950/70 text-emerald-400 font-bold'
+  } else if (normalized === 'DISABLED' || normalized === 'SUSPENDED') {
+    className = 'border-purple-500/40 bg-purple-950/70 text-purple-300 font-bold'
+  } else if (normalized === 'EXPIRED') {
+    className = 'border-rose-500/40 bg-rose-950/70 text-rose-400 font-bold'
+  } else if (normalized.includes('WAITING') || normalized.includes('QUIZ')) {
+    className = 'border-amber-500/40 bg-amber-950/70 text-amber-400 font-bold'
+  }
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] whitespace-nowrap ${className}`}>
+      {formatLabel(value || '-')}
+    </span>
+  )
 }
 
 function getUserName(user: { firstName?: string; lastName?: string; username?: string; email?: string; id?: number }) {

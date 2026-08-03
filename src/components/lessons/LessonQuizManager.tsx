@@ -292,11 +292,11 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-6xl overflow-hidden rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
+      <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-6xl overflow-hidden rounded-xl bg-[hsl(220_14%_10%)] text-white border border-border p-0 shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
         <div className="max-h-[92dvh] overflow-y-auto">
-          <DialogHeader className="border-b border-border bg-white px-6 py-5">
-            <DialogTitle>Lesson quiz</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="border-b border-border bg-slate-900/80 px-6 py-5">
+            <DialogTitle className="text-white font-extrabold text-xl">Lesson quiz</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
               Create or replace the review quiz students take after completing the lesson video.
             </DialogDescription>
           </DialogHeader>
@@ -332,15 +332,15 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
               </section>
 
               {!quizMissing && (
-                <section className="grid gap-3 rounded-lg border border-border bg-white p-4 md:grid-cols-[1fr_auto] md:items-start">
+                <section className="grid gap-3 rounded-xl border border-border bg-slate-900/60 p-4 md:grid-cols-[1fr_auto] md:items-start">
                   <div>
-                    <h3 className="font-extrabold text-foreground">Student attempts</h3>
+                    <h3 className="font-extrabold text-white text-sm">Student attempts</h3>
                     {attemptsQuery.isLoading ? (
-                      <p className="mt-1 text-sm text-muted-foreground">Loading attempts...</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Loading attempts...</p>
                     ) : attemptsQuery.isError ? (
-                      <p className="mt-1 text-sm text-red-700">{getFriendlyApiErrorMessage(attemptsQuery.error, 'Failed to load quiz attempts')}</p>
+                      <p className="mt-1 text-xs text-rose-400">{getFriendlyApiErrorMessage(attemptsQuery.error, 'Failed to load quiz attempts')}</p>
                     ) : (attemptsQuery.data ?? []).length === 0 ? (
-                      <p className="mt-1 text-sm text-muted-foreground">No students have attempted this quiz yet.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">No students have attempted this quiz yet.</p>
                     ) : (
                       <div className="mt-3 grid gap-2 md:grid-cols-3">
                         <QuizStat value={attemptsQuery.data?.length ?? 0} label="Attempts" />
@@ -380,14 +380,14 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
               )}
 
               <div className="grid gap-5 lg:grid-cols-[330px_1fr]">
-                <aside className="rounded-lg border border-border bg-white">
+                <aside className="rounded-xl border border-border bg-slate-900/60">
                   <div className="border-b border-border p-4">
-                    <label htmlFor="quiz-title" className="text-sm font-bold text-foreground">
+                    <label htmlFor="quiz-title" className="text-xs font-bold text-white">
                       Quiz title
                     </label>
                     <input
                       id="quiz-title"
-                      className="lms-input mt-1"
+                      className="lms-input mt-1 text-xs"
                       value={draft.title}
                       disabled={isBusy}
                       placeholder="Example: Lesson 1 review"
@@ -397,8 +397,8 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
 
                   <div className="p-3">
                     <div className="mb-3 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-extrabold text-foreground">
-                        <ListChecks className="h-4 w-4 text-[hsl(var(--brand-green))]" />
+                      <div className="flex items-center gap-2 text-xs font-extrabold text-white">
+                        <ListChecks className="h-4 w-4 text-primary" />
                         Questions
                       </div>
                       <Button type="button" variant="outline" size="sm" disabled={isBusy} onClick={addQuestion}>
@@ -416,23 +416,23 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
                             type="button"
                             disabled={isBusy}
                             onClick={() => setSelectedQuestionIndex(questionIndex)}
-                            className={`w-full rounded-md border p-3 text-left transition-colors ${
+                            className={`w-full rounded-xl border p-3 text-left transition-all ${
                               selected
-                                ? 'border-primary bg-[hsl(var(--brand-orange-soft))]'
-                                : 'border-border bg-background hover:border-primary/40 hover:bg-white'
+                                ? 'border-primary bg-primary/15'
+                                : 'border-border bg-slate-950 hover:border-primary/40'
                             }`}
                             data-testid={`select-quiz-question-${questionIndex}`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
-                                <p className="text-xs font-bold uppercase text-muted-foreground">Question {questionIndex + 1}</p>
-                                <p className="mt-1 truncate text-sm font-extrabold text-foreground">
+                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Question {questionIndex + 1}</p>
+                                <p className="mt-1 truncate text-xs font-extrabold text-white">
                                   {question.questionText || 'Untitled question'}
                                 </p>
                               </div>
                               <QuestionStatusBadge valid={!issue} />
                             </div>
-                            {issue && <p className="mt-2 line-clamp-2 text-xs text-amber-700">{issue}</p>}
+                            {issue && <p className="mt-2 line-clamp-2 text-xs text-amber-400">{issue}</p>}
                           </button>
                         )
                       })}
@@ -440,7 +440,7 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
                   </div>
                 </aside>
 
-                <section className="rounded-lg border border-border bg-white">
+                <section className="rounded-xl border border-border bg-slate-900/60">
                   {selectedQuestion ? (
                     <div className="flex min-h-[34rem] flex-col">
                       <div className="border-b border-border p-4">

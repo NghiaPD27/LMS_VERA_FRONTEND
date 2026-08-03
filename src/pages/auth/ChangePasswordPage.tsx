@@ -58,35 +58,36 @@ export function ChangePasswordPage() {
         <Button
           type="button"
           variant="ghost"
-          className="h-auto p-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
+          className="h-auto p-0 text-xs text-muted-foreground hover:bg-transparent hover:text-white"
           disabled={isLoggingOut}
           onClick={handleBackToLogin}
         >
           <ArrowLeft className="h-4 w-4" />
           Back to login
         </Button>
-        <Link to="/" className="text-sm font-bold text-primary hover:underline">
+        <Link to="/" className="text-xs font-bold text-primary hover:underline">
           Home
         </Link>
       </div>
-      <div className="mb-5 text-center lg:text-left">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] shadow-[0_12px_28px_rgba(47,143,91,0.14)] lg:mx-0">
+
+      <div className="mb-6 text-center lg:text-left">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25 shadow-[0_0_20px_rgba(244,106,37,0.2)] lg:mx-0">
           <ShieldCheck className="h-6 w-6" />
         </div>
-        <p className="text-sm font-extrabold text-[hsl(var(--brand-green))]">Account Security</p>
-        <h1 className="mt-1 text-3xl font-extrabold tracking-normal text-foreground">Change password</h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">Account Security</p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-white">Change password</h1>
+        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
           Update your password before entering your learning workspace.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-5 shadow-[0_18px_50px_rgba(27,89,56,0.10)] sm:p-6">
-        <div className="mb-4 rounded-lg border border-[hsl(var(--brand-green))]/20 bg-[hsl(var(--brand-green-soft))] p-3">
+      <div className="rounded-xl border border-border bg-[hsl(220_14%_12%)] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/10 p-3.5">
           <div className="flex items-start gap-3">
-            <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--brand-green))]" />
+            <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-bold text-foreground">Use a stronger password</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              <p className="text-xs font-bold text-white">Use a stronger password</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                 Your new password must have at least 8 characters and should be different from your current password.
               </p>
             </div>
@@ -101,7 +102,7 @@ export function ChangePasswordPage() {
           )}
 
           <div>
-            <label htmlFor="oldPassword" className="text-sm font-bold text-foreground">Current Password</label>
+            <label htmlFor="oldPassword" className="text-xs font-bold text-white">Current password</label>
             <div className="relative mt-1">
               <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -114,11 +115,11 @@ export function ChangePasswordPage() {
                 {...register('oldPassword')}
               />
             </div>
-            {errors.oldPassword && <p className="mt-1 text-xs text-red-600" data-testid="old-password-error">{errors.oldPassword.message}</p>}
+            {errors.oldPassword && <p className="mt-1 text-xs text-rose-400" data-testid="old-password-error">{errors.oldPassword.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="newPassword" className="text-sm font-bold text-foreground">New Password</label>
+            <label htmlFor="newPassword" className="text-xs font-bold text-white">New password</label>
             <div className="relative mt-1">
               <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -131,11 +132,11 @@ export function ChangePasswordPage() {
                 {...register('newPassword')}
               />
             </div>
-            {errors.newPassword && <p className="mt-1 text-xs text-red-600" data-testid="new-password-error">{errors.newPassword.message}</p>}
+            {errors.newPassword && <p className="mt-1 text-xs text-rose-400" data-testid="new-password-error">{errors.newPassword.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="text-sm font-bold text-foreground">Confirm New Password</label>
+            <label htmlFor="confirmPassword" className="text-xs font-bold text-white">Confirm new password</label>
             <div className="relative mt-1">
               <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -148,12 +149,12 @@ export function ChangePasswordPage() {
                 {...register('confirmPassword')}
               />
             </div>
-            {errors.confirmPassword && <p className="mt-1 text-xs text-red-600" data-testid="confirm-password-error">{errors.confirmPassword.message}</p>}
+            {errors.confirmPassword && <p className="mt-1 text-xs text-rose-400" data-testid="confirm-password-error">{errors.confirmPassword.message}</p>}
           </div>
 
-          <Button type="submit" className="h-11 w-full" disabled={isPending} data-testid="submit-button">
-            {isPending ? 'Updating...' : 'Change Password'}
-            {!isPending && <ArrowRight className="h-4 w-4" />}
+          <Button type="submit" className="h-11 w-full bg-primary text-white font-bold hover:bg-primary/90 shadow-[0_0_20px_rgba(244,106,37,0.3)]" disabled={isPending} data-testid="submit-button">
+            {isPending ? 'Updating...' : 'Update password'}
+            {!isPending && <ArrowRight className="h-4 w-4 ml-1" />}
           </Button>
         </form>
       </div>

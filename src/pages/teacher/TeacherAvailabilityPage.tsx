@@ -284,16 +284,16 @@ function AvailabilitySlotCard({
   const statusClassName = getAvailabilityStatusClassName(slot.status)
 
   return (
-    <article className="rounded-md border border-border bg-white px-4 py-3 transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
+    <article className="rounded-xl border border-border bg-slate-900/60 p-4 transition-all hover:border-primary/40">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-extrabold text-foreground">{formatDateTime(slot.startAt)} - {formatDateTime(slot.endAt)}</p>
-            <span className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${statusClassName}`}>
+            <p className="font-extrabold text-white text-sm">{formatDateTime(slot.startAt)} - {formatDateTime(slot.endAt)}</p>
+            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusClassName}`}>
               {slot.status || 'OPEN'}
             </span>
           </div>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {slot.status === 'BOOKED'
               ? `${slot.studentName || `Student #${slot.studentId ?? '-'}`} booked ${slot.lessonName || `Lesson #${slot.lessonId ?? '-'}`}`
               : slot.status === 'CANCELLED'

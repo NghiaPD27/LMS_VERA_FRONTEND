@@ -122,7 +122,7 @@ export function AdminTeacherEarningsPage() {
           <EmptyState message="No teachers found" description="Try a different keyword before preparing transfers." />
         ) : (
           <>
-            <div className="overflow-hidden rounded-lg border border-border bg-white">
+            <div className="overflow-hidden rounded-xl border border-border bg-slate-900/70">
               <Table data-testid="admin-teacher-earnings-table">
                 <TableHeader>
                   <TableRow>
@@ -229,7 +229,7 @@ function AdminTeacherEarningsRow({ teacher, month }: { teacher: AdminTeacher; mo
       )}
       {expanded && !earningsQuery.isError && (
         <TableRow>
-          <TableCell colSpan={6} className="bg-background">
+          <TableCell colSpan={6} className="bg-slate-950/60">
             <TeacherEarningDetails earnings={earnings} currency={currency} />
           </TableCell>
         </TableRow>
@@ -240,18 +240,18 @@ function AdminTeacherEarningsRow({ teacher, month }: { teacher: AdminTeacher; mo
 
 function TeacherEarningDetails({ earnings, currency }: { earnings: TeacherEarning[]; currency: string }) {
   if (earnings.length === 0) {
-    return <p className="text-sm text-muted-foreground">No earnings recorded for this month.</p>
+    return <p className="text-xs text-muted-foreground">No earnings recorded for this month.</p>
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-2 p-1">
       {earnings.map((earning) => (
-        <div key={earning.id || earning.bookingId} className="grid gap-2 rounded-md border border-border bg-white p-3 text-sm lg:grid-cols-[160px_1fr_1fr_120px_120px] lg:items-center">
+        <div key={earning.id || earning.bookingId} className="grid gap-2 rounded-lg border border-border bg-slate-900 p-3 text-xs lg:grid-cols-[160px_1fr_1fr_120px_120px] lg:items-center">
           <span className="text-muted-foreground">{formatDateTime(earning.earnedAt)}</span>
-          <span className="font-semibold text-foreground">{earning.studentName || `Student #${earning.studentId ?? '-'}`}</span>
-          <span>{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</span>
-          <span>Booking #{earning.bookingId ?? '-'}</span>
-          <span className="font-extrabold text-foreground lg:text-right">
+          <span className="font-semibold text-white">{earning.studentName || `Student #${earning.studentId ?? '-'}`}</span>
+          <span className="text-zinc-300">{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</span>
+          <span className="text-muted-foreground">Booking #{earning.bookingId ?? '-'}</span>
+          <span className="font-bold text-primary lg:text-right">
             {formatCurrency(earning.amount ?? 0, earning.currency || currency)}
           </span>
         </div>

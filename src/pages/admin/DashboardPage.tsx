@@ -21,31 +21,31 @@ export function DashboardPage() {
 
   return (
     <section className="lms-page-shell">
-      <div className="lms-page-hero">
+      <div className="lms-page-hero border-border/80">
         <div className="lms-page-hero-inner">
           <div className="relative max-w-3xl">
-            <p className="text-sm font-semibold text-primary">Admin Dashboard</p>
-            <h1 className="mt-2 text-3xl font-extrabold text-foreground md:text-4xl">Manage Vera with clarity.</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">Admin Dashboard</p>
+            <h1 className="mt-1 text-3xl font-extrabold text-white md:text-4xl">Manage Vera with clarity.</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Programs, lessons, enrollments, and user access are grouped into focused work areas for daily operations.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="lms-surface p-5">
-        <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="lms-surface p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-extrabold text-foreground">Operational snapshot</h2>
-            <p className="text-sm text-muted-foreground">Loaded from the admin dashboard report endpoint.</p>
+            <h2 className="text-lg font-bold text-white">Operational Snapshot</h2>
+            <p className="text-xs text-muted-foreground">Loaded from the admin dashboard report endpoint.</p>
           </div>
           <button
             type="button"
-            className="rounded-md border border-border px-3 py-2 text-sm font-bold text-foreground transition hover:bg-muted"
+            className="rounded-lg border border-border bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800 hover:border-primary/50"
             onClick={() => void dashboardQuery.refetch()}
             disabled={dashboardQuery.isFetching}
           >
-            Refresh
+            {dashboardQuery.isFetching ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
         {dashboardQuery.isLoading ? (
@@ -53,27 +53,27 @@ export function DashboardPage() {
         ) : dashboardQuery.isError ? (
           <div className="lms-alert-error">{getFriendlyApiErrorMessage(dashboardQuery.error, 'Failed to load dashboard report')}</div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Students" value={report?.totalStudents} helper={`${formatCount(report?.activeAccounts)} active accounts`} />
             <MetricCard label="Teachers" value={report?.totalTeachers} helper={`${formatCount(report?.totalEvaluators)} evaluators`} />
-            <MetricCard label="Active enrollments" value={report?.activeEnrollments} helper={`${formatCount(report?.completedEnrollments)} completed`} />
-            <MetricCard label="Expired active" value={report?.expiredActiveEnrollments} helper="Needs admin follow-up" urgent={!!report?.expiredActiveEnrollments} />
-            <MetricCard label="Pending purchases" value={report?.pendingPurchases} helper={`${formatCount(report?.paidPurchases)} paid purchases`} />
-            <MetricCard label="Booked teacher slots" value={report?.bookedTeacherBookings} helper="Teacher sessions awaiting review" />
-            <MetricCard label="Pending checkpoints" value={report?.pendingCheckpointSessions} helper="Evaluator checkpoint rooms" />
-            <MetricCard label="Pending finals" value={report?.pendingFinalAssessmentSessions} helper={`${formatCount(report?.waitingReassessmentEnrollments)} waiting reassessment`} />
+            <MetricCard label="Active Enrollments" value={report?.activeEnrollments} helper={`${formatCount(report?.completedEnrollments)} completed`} />
+            <MetricCard label="Expired Active" value={report?.expiredActiveEnrollments} helper="Needs admin follow-up" urgent={!!report?.expiredActiveEnrollments} />
+            <MetricCard label="Pending Purchases" value={report?.pendingPurchases} helper={`${formatCount(report?.paidPurchases)} paid purchases`} />
+            <MetricCard label="Booked Teacher Slots" value={report?.bookedTeacherBookings} helper="Teacher sessions awaiting review" />
+            <MetricCard label="Pending Checkpoints" value={report?.pendingCheckpointSessions} helper="Evaluator checkpoint rooms" />
+            <MetricCard label="Pending Finals" value={report?.pendingFinalAssessmentSessions} helper={`${formatCount(report?.waitingReassessmentEnrollments)} waiting reassessment`} />
           </div>
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr] lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {cards.map((card) => (
-          <Link key={card.href} to={card.href} className="lms-surface p-5 transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_18px_45px_rgba(244,122,61,0.12)]">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))]">
+          <Link key={card.href} to={card.href} className="lms-surface p-5 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_12px_30px_rgba(244,106,37,0.15)] group">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/20 transition-transform duration-200 group-hover:scale-110">
               <card.icon className="h-5 w-5" />
             </div>
-            <h2 className="font-extrabold text-foreground">{card.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{card.description}</p>
+            <h2 className="font-extrabold text-white group-hover:text-primary transition-colors">{card.title}</h2>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{card.description}</p>
           </Link>
         ))}
       </div>
@@ -83,15 +83,15 @@ export function DashboardPage() {
 
 function MetricCard({ label, value, helper, urgent = false }: { label: string; value?: number; helper: string; urgent?: boolean }) {
   return (
-    <div className={`rounded-lg border p-4 ${urgent ? 'border-amber-200 bg-amber-50' : 'border-border bg-background'}`}>
+    <div className={`rounded-xl border p-4 transition-colors ${urgent ? 'border-amber-500/40 bg-amber-950/20' : 'border-border/80 bg-slate-900/60 hover:border-border'}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-extrabold text-foreground">{formatCount(value)}</p>
+          <p className="text-xs font-bold text-muted-foreground">{label}</p>
+          <p className="mt-1 text-2xl font-extrabold text-white tracking-tight">{formatCount(value)}</p>
         </div>
-        {urgent && <AlertTriangle className="h-5 w-5 text-amber-700" />}
+        {urgent && <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />}
       </div>
-      <p className="mt-2 text-xs font-medium text-muted-foreground">{helper}</p>
+      <p className="mt-2 text-[11px] font-medium text-muted-foreground">{helper}</p>
     </div>
   )
 }

@@ -14,9 +14,10 @@ import { useAssignTeacher, useGetAdminTeacher, useGetAdminTeachers, useGetTeache
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import {
   getEnrollmentAccessBadgeClass,
-  getEnrollmentAccessLabel
+  getEnrollmentAccessLabel,
+  isEnrollmentExpired
 } from '../../utils/enrollmentAccess'
-import { formatCurrency, formatDateTime } from '../../utils/formatters'
+import { formatCurrency, formatDateTime, formatDateShort } from '../../utils/formatters'
 import { CalendarPlus, DollarSign, ReceiptText, Search, UserCheck, UserPlus } from 'lucide-react'
 import {
   Table,
@@ -165,7 +166,7 @@ export const EnrollmentPage: React.FC = () => {
       <div className="lms-page-hero">
         <div className="lms-page-hero-inner">
           <div className="relative flex items-start gap-4">
-            <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] sm:flex">
+            <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25 sm:flex">
               <UserPlus className="h-6 w-6" />
             </div>
             <div>
@@ -181,23 +182,23 @@ export const EnrollmentPage: React.FC = () => {
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr_360px]">
         <div className="lms-surface p-5">
           <div className="mb-4">
-            <h2 className="text-base font-semibold text-foreground">1. Choose Student</h2>
-            <p className="text-sm text-muted-foreground">Search by name, username, or email.</p>
+            <h2 className="text-base font-extrabold text-white">1. Choose Student</h2>
+            <p className="text-xs text-muted-foreground">Search by name, username, or email.</p>
           </div>
           <div className="relative mb-4">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={studentKeyword}
-            onChange={(event) => setStudentKeyword(event.target.value)}
-            className="lms-input pl-9"
-            placeholder="Search students"
-            data-testid="student-search-input"
-          />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={studentKeyword}
+              onChange={(event) => setStudentKeyword(event.target.value)}
+              className="lms-input pl-9"
+              placeholder="Search students"
+              data-testid="student-search-input"
+            />
           </div>
           {studentsQuery.isLoading ? (
             <LoadingState message="Loading students..." />
           ) : studentsQuery.isError ? (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="lms-alert-error">
               {getFriendlyApiErrorMessage(studentsQuery.error, 'Failed to fetch students')}
             </div>
           ) : students.length === 0 ? (
@@ -210,18 +211,22 @@ export const EnrollmentPage: React.FC = () => {
                   type="button"
                   data-testid={`select-student-${student.id}`}
                   onClick={() => handleSelectStudent(student)}
-                  className={`w-full rounded-md border p-3 text-left transition-colors ${
+                  className={`w-full rounded-xl border p-3.5 text-left transition-all duration-200 ${
                     selectedStudent?.id === student.id
-                      ? 'border-primary bg-[hsl(var(--brand-orange-soft))] shadow-sm'
-                      : 'border-border bg-white hover:border-primary/50 hover:bg-muted/40'
+                      ? 'border-primary bg-primary/15 shadow-[0_0_15px_rgba(244,106,37,0.2)]'
+                      : 'border-border bg-slate-900/60 hover:border-primary/40 hover:bg-slate-800/80'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-foreground">{getStudentName(student)}</p>
-                      <p className="text-sm text-muted-foreground">{student.email || student.username}</p>
+                      <p className="font-bold text-white text-sm">{getStudentName(student)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{student.email || student.username}</p>
                     </div>
-                    <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                      student.enabled === false
+                        ? 'bg-rose-950/60 border border-rose-500/30 text-rose-400'
+                        : 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-400'
+                    }`}>
                       {student.enabled === false ? 'Disabled' : student.status || 'Active'}
                     </span>
                   </div>
@@ -233,23 +238,23 @@ export const EnrollmentPage: React.FC = () => {
 
         <div className="lms-surface p-5">
           <div className="mb-4">
-            <h2 className="text-base font-semibold text-foreground">2. Choose Program</h2>
-            <p className="text-sm text-muted-foreground">Search programs and choose the target course.</p>
+            <h2 className="text-base font-extrabold text-white">2. Choose Program</h2>
+            <p className="text-xs text-muted-foreground">Search programs and choose target course.</p>
           </div>
           <div className="relative mb-4">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={programKeyword}
-            onChange={(event) => setProgramKeyword(event.target.value)}
-            className="lms-input pl-9"
-            placeholder="Search programs"
-            data-testid="program-search-input"
-          />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={programKeyword}
+              onChange={(event) => setProgramKeyword(event.target.value)}
+              className="lms-input pl-9"
+              placeholder="Search programs"
+              data-testid="program-search-input"
+            />
           </div>
           {programsQuery.isLoading ? (
             <LoadingState message="Loading programs..." />
           ) : programsQuery.isError ? (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="lms-alert-error">
               {getFriendlyApiErrorMessage(programsQuery.error, 'Failed to fetch programs')}
             </div>
           ) : programs.length === 0 ? (
@@ -262,14 +267,14 @@ export const EnrollmentPage: React.FC = () => {
                   type="button"
                   data-testid={`select-program-${program.id}`}
                   onClick={() => handleSelectProgram(program)}
-                  className={`w-full rounded-md border p-3 text-left transition-colors ${
+                  className={`w-full rounded-xl border p-3.5 text-left transition-all duration-200 ${
                     selectedProgram?.id === program.id
-                      ? 'border-primary bg-[hsl(var(--brand-orange-soft))] shadow-sm'
-                      : 'border-border bg-white hover:border-primary/50 hover:bg-muted/40'
+                      ? 'border-primary bg-primary/15 shadow-[0_0_15px_rgba(244,106,37,0.2)]'
+                      : 'border-border bg-slate-900/60 hover:border-primary/40 hover:bg-slate-800/80'
                   }`}
                 >
-                  <p className="font-medium text-foreground">{getProgramName(program)}</p>
-                  <p className="line-clamp-2 text-sm text-muted-foreground">{program.description || 'No description'}</p>
+                  <p className="font-bold text-white text-sm">{getProgramName(program)}</p>
+                  <p className="line-clamp-2 text-xs text-muted-foreground mt-0.5">{program.description || 'No description'}</p>
                 </button>
               ))}
             </div>
@@ -278,21 +283,21 @@ export const EnrollmentPage: React.FC = () => {
 
         <aside className="lms-surface p-5">
           <div className="mb-4">
-            <h2 className="text-base font-semibold text-foreground">3. Enroll</h2>
-            <p className="text-sm text-muted-foreground">Confirm the selection and enroll in one action.</p>
+            <h2 className="text-base font-extrabold text-white">3. Enroll</h2>
+            <p className="text-xs text-muted-foreground">Confirm selection and enroll in one action.</p>
           </div>
 
-          <div className="space-y-3 rounded-md border border-border/80 bg-background p-4">
+          <div className="space-y-3 rounded-xl border border-border bg-slate-900/70 p-4">
             <div>
-              <p className="text-xs font-medium uppercase text-muted-foreground">Student</p>
-              <p className="font-semibold text-foreground">{getStudentName(selectedStudentView || undefined)}</p>
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Student</p>
+              <p className="font-bold text-white text-sm mt-0.5">{getStudentName(selectedStudentView || undefined)}</p>
               {selectedStudentView?.email && (
-                <p className="text-sm text-muted-foreground">{selectedStudentView.email}</p>
+                <p className="text-xs text-muted-foreground">{selectedStudentView.email}</p>
               )}
             </div>
             <div>
-              <p className="text-xs font-medium uppercase text-muted-foreground">Program</p>
-              <p className="font-semibold text-foreground">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Program</p>
+              <p className="font-bold text-white text-sm mt-0.5">
                 {selectedProgram ? getProgramName(selectedProgram) : 'No program selected'}
               </p>
             </div>
@@ -311,7 +316,7 @@ export const EnrollmentPage: React.FC = () => {
 
           <Button
             type="button"
-            className="mt-4 w-full"
+            className="mt-4 w-full bg-primary text-white font-bold hover:bg-primary/90 shadow-[0_0_20px_rgba(244,106,37,0.3)]"
             disabled={!selectedStudent?.id || !selectedProgram?.id || enrollStudentMutation.isPending}
             onClick={handleEnroll}
             data-testid="enroll-selected-student"
@@ -320,31 +325,31 @@ export const EnrollmentPage: React.FC = () => {
           </Button>
 
           {selectedStudent && (
-            <div className="mt-6">
-              <h3 className="mb-2 text-sm font-semibold text-foreground">Current enrollments</h3>
+            <div className="mt-6 border-t border-border/80 pt-4">
+              <h3 className="mb-3 text-xs font-bold uppercase text-muted-foreground">Current enrollments</h3>
               {selectedStudentEnrollmentsQuery.isLoading ? (
-                <p className="text-sm text-muted-foreground">Loading enrollments...</p>
+                <p className="text-xs text-muted-foreground">Loading enrollments...</p>
               ) : currentEnrollments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No enrollments yet.</p>
+                <p className="text-xs text-muted-foreground">No enrollments yet.</p>
               ) : (
                 <div className="space-y-2">
                   {currentEnrollments.map((enrollment) => (
-                    <div key={enrollment.id} className="rounded-md border border-border p-3">
-                      <p className="text-sm font-medium text-foreground">{enrollment.programName || `Program #${enrollment.programId}`}</p>
+                    <div key={enrollment.id} className="rounded-xl border border-border bg-slate-900/60 p-3 text-xs">
+                      <p className="font-bold text-white">{enrollment.programName || `Program #${enrollment.programId}`}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <EnrollmentStatusBadge status={enrollment.status} />
-                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
+                        <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
                           {getEnrollmentAccessLabel(enrollment)}
                         </span>
                       </div>
-                      <dl className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                      <dl className="mt-2 space-y-1 text-[11px] text-muted-foreground">
                         <div className="flex justify-between gap-2">
                           <dt>Enrolled</dt>
-                          <dd className="text-right">{formatDateTime(enrollment.enrolledAt)}</dd>
+                          <dd className="text-right font-medium text-zinc-300">{formatDateTime(enrollment.enrolledAt)}</dd>
                         </div>
                         <div className="flex justify-between gap-2">
                           <dt>Expires</dt>
-                          <dd className="text-right">{formatDateTime(enrollment.expiredAt)}</dd>
+                          <dd className="text-right font-medium text-zinc-300">{formatDateTime(enrollment.expiredAt)}</dd>
                         </div>
                       </dl>
                     </div>
@@ -359,8 +364,8 @@ export const EnrollmentPage: React.FC = () => {
       <div className="lms-surface p-5">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Enrollment Overview</h2>
-            <p className="text-sm text-muted-foreground">Review and update status directly from each row.</p>
+            <h2 className="text-lg font-bold text-white">Enrollment Overview</h2>
+            <p className="text-xs text-muted-foreground">Review and update status directly from each row.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <select
@@ -369,7 +374,7 @@ export const EnrollmentPage: React.FC = () => {
                 setStatusFilter(event.target.value)
                 setAdminPage(0)
               }}
-              className="lms-input min-w-[160px]"
+              className="lms-input min-w-[160px] text-xs"
               data-testid="admin-enrollment-status-filter"
             >
               <option value="">All statuses</option>
@@ -379,6 +384,7 @@ export const EnrollmentPage: React.FC = () => {
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => {
                 setSelectedStudent(null)
                 setSelectedProgram(null)
@@ -400,84 +406,82 @@ export const EnrollmentPage: React.FC = () => {
         {adminEnrollmentsQuery.isLoading ? (
           <LoadingState message="Loading enrollments..." />
         ) : adminEnrollmentsQuery.isError ? (
-          <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div className="lms-alert-error">
             {getFriendlyApiErrorMessage(adminEnrollmentsQuery.error, 'Failed to fetch enrollments')}
           </div>
         ) : adminEnrollments.length === 0 ? (
           <EmptyState message="No enrollments found" description="Adjust filters or enroll a student." />
         ) : (
-          <div className="overflow-x-auto">
-            <Table data-testid="admin-enrollments-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Program</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Access</TableHead>
-                <TableHead>Teacher</TableHead>
-                <TableHead>Enrolled</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {adminEnrollments.map((enrollment) => (
-                <TableRow key={enrollment.id} data-testid={`admin-enrollment-row-${enrollment.id}`}>
-                  <TableCell>
-                    <p className="font-medium text-foreground">{enrollment.studentName || `Student #${enrollment.studentId}`}</p>
-                    <p className="text-sm text-muted-foreground">{enrollment.studentEmail || '-'}</p>
-                  </TableCell>
-                  <TableCell>{enrollment.programName || `Program #${enrollment.programId}`}</TableCell>
-                  <TableCell>
-                    <EnrollmentStatusBadge status={enrollment.status} />
-                  </TableCell>
-                  <TableCell>
-                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${getEnrollmentAccessBadgeClass(enrollment)}`}>
-                      {getEnrollmentAccessLabel(enrollment)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[180px]">
-                      <p className="truncate font-semibold text-foreground">
-                        {enrollment.teacherName || (enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned')}
-                      </p>
-                      {enrollment.teacherAssignedAt && (
-                        <p className="text-xs text-muted-foreground">{formatDateTime(enrollment.teacherAssignedAt)}</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatDateTime(enrollment.enrolledAt)}</TableCell>
-                  <TableCell>{formatDateTime(enrollment.expiredAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex flex-wrap justify-end gap-2">
+          <div className="overflow-hidden rounded-xl border border-border/80 bg-slate-900/60">
+            <Table data-testid="admin-enrollments-table" className="w-full text-left border-collapse">
+              <TableHeader className="bg-slate-900/90 border-b border-border/80">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Student</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Program</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Status</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Teacher</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Enrolled</TableHead>
+                  <TableHead className="text-zinc-400 font-bold text-xs py-2.5 px-3">Expires</TableHead>
+                  <TableHead className="text-right text-zinc-400 font-bold text-xs py-2.5 px-3">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border/40">
+                {adminEnrollments.map((enrollment) => (
+                  <TableRow key={enrollment.id} data-testid={`admin-enrollment-row-${enrollment.id}`} className="hover:bg-slate-900/80 transition-colors">
+                    <TableCell className="py-2.5 px-3">
+                      <p className="font-bold text-white text-xs truncate max-w-[150px]">{enrollment.studentName || `Student #${enrollment.studentId}`}</p>
+                      <p className="text-[11px] text-muted-foreground truncate max-w-[150px]">{enrollment.studentEmail || '-'}</p>
+                    </TableCell>
+                    <TableCell className="text-xs font-semibold text-zinc-200 py-2.5 px-3 whitespace-nowrap">
+                      {enrollment.programName || `Program #${enrollment.programId}`}
+                    </TableCell>
+                    <TableCell className="py-2.5 px-3 whitespace-nowrap">
+                      <EnrollmentStatusBadge status={isEnrollmentExpired(enrollment) ? 'EXPIRED' : enrollment.status} />
+                    </TableCell>
+                    <TableCell className="py-2.5 px-3 whitespace-nowrap">
+                      <div>
+                        <p className="text-xs font-semibold text-white truncate max-w-[140px]">
+                          {enrollment.teacherName || (enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned')}
+                        </p>
+                        {enrollment.teacherAssignedAt && (
+                          <p className="text-[10px] text-muted-foreground">{formatDateShort(enrollment.teacherAssignedAt)}</p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs font-medium text-zinc-300 py-2.5 px-3 whitespace-nowrap">{formatDateShort(enrollment.enrolledAt)}</TableCell>
+                    <TableCell className="text-xs font-medium text-zinc-300 py-2.5 px-3 whitespace-nowrap">{formatDateShort(enrollment.expiredAt)}</TableCell>
+                    <TableCell className="text-right py-2.5 px-3 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="h-7 px-2 text-[11px] font-semibold border-border hover:border-primary/50 hover:bg-slate-800"
                           disabled={updateEnrollmentMutation.isPending}
                           onClick={() => handleToggleStatus(enrollment)}
                           data-testid={`toggle-enrollment-${enrollment.id}`}
                         >
-                          Mark {enrollment.status === 'ACTIVE' ? 'Completed' : 'Active'}
+                          {enrollment.status === 'ACTIVE' ? 'Complete' : 'Activate'}
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="h-7 px-2 text-[11px] font-semibold border-border hover:border-primary/50 hover:bg-slate-800"
                           onClick={() => {
                             setTeacherEnrollment(enrollment)
                             setRowError(null)
                           }}
                           data-testid={`manage-teacher-${enrollment.id}`}
                         >
-                          <UserCheck className="h-4 w-4" />
+                          <UserCheck className="h-3 w-3 mr-1 text-primary" />
                           Teacher
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="h-7 px-2 text-[11px] font-semibold border-border hover:border-primary/50 hover:bg-slate-800"
                           onClick={() => {
                             setExtendEnrollment(enrollment)
                             setExtendMonths('1')
@@ -485,20 +489,19 @@ export const EnrollmentPage: React.FC = () => {
                           }}
                           data-testid={`extend-enrollment-${enrollment.id}`}
                         >
-                          <CalendarPlus className="h-4 w-4" />
+                          <CalendarPlus className="h-3 w-3 mr-1 text-emerald-400" />
                           Extend
                         </Button>
                       </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-end gap-2 text-sm text-muted-foreground">
+        <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted-foreground">
           <Button
             type="button"
             variant="outline"
@@ -524,16 +527,16 @@ export const EnrollmentPage: React.FC = () => {
       </div>
 
       <Dialog open={!!extendEnrollment} onOpenChange={(open) => !open && setExtendEnrollment(null)}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
-          <DialogHeader className="border-b border-border px-6 py-5">
-            <DialogTitle>Extend enrollment</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-xl border-border bg-[hsl(220_14%_10%)] p-0 text-white shadow-2xl">
+          <DialogHeader className="border-b border-border bg-[hsl(220_14%_12%)] px-6 py-4">
+            <DialogTitle className="text-white text-base">Extend enrollment</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
               Add access time for this enrollment without changing the table layout.
             </DialogDescription>
           </DialogHeader>
           {extendEnrollment && (
             <div className="space-y-4 p-6">
-              <div className="rounded-lg border border-border bg-background p-4 text-sm">
+              <div className="rounded-xl border border-border bg-slate-900/70 p-4 text-xs">
                 <TeacherMeta label="Student" value={extendEnrollment.studentName || `Student #${extendEnrollment.studentId ?? '-'}`} />
                 <div className="mt-3">
                   <TeacherMeta label="Program" value={extendEnrollment.programName || `Program #${extendEnrollment.programId ?? '-'}`} />
@@ -543,7 +546,7 @@ export const EnrollmentPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label htmlFor="extend-months-modal" className="text-sm font-bold text-foreground">Months to add</label>
+                <label htmlFor="extend-months-modal" className="text-xs font-bold text-white">Months to add</label>
                 <input
                   id="extend-months-modal"
                   type="number"
@@ -554,12 +557,13 @@ export const EnrollmentPage: React.FC = () => {
                   data-testid={`extend-months-${extendEnrollment.id}`}
                 />
               </div>
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2">
                 <Button type="button" variant="outline" onClick={() => setExtendEnrollment(null)}>
                   Cancel
                 </Button>
                 <Button
                   type="button"
+                  className="bg-primary text-white hover:bg-primary/90 font-bold"
                   disabled={extendEnrollmentMutation.isPending}
                   onClick={() => handleExtendEnrollment(extendEnrollment)}
                   data-testid={`confirm-extend-enrollment-${extendEnrollment.id}`}
@@ -573,11 +577,11 @@ export const EnrollmentPage: React.FC = () => {
       </Dialog>
 
       <Dialog open={!!teacherEnrollment} onOpenChange={(open) => !open && setTeacherEnrollment(null)}>
-        <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-5xl overflow-hidden rounded-lg bg-white p-0 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
+        <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-5xl overflow-hidden rounded-xl border-border bg-[hsl(220_14%_10%)] p-0 text-white shadow-2xl">
           <div className="max-h-[92dvh] overflow-y-auto">
-            <DialogHeader className="border-b border-border bg-white px-6 py-5">
-              <DialogTitle>Teacher assignment</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="border-b border-border bg-[hsl(220_14%_12%)] px-6 py-4">
+              <DialogTitle className="text-white text-base">Teacher assignment</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
                 Assign a teacher, configure compensation, and review earnings without changing the enrollment row layout.
               </DialogDescription>
             </DialogHeader>
@@ -659,8 +663,8 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
   return (
     <div className="grid gap-5 p-6 lg:grid-cols-[1fr_340px]">
       <section className="space-y-4">
-        <div className="rounded-lg border border-border bg-background p-4">
-          <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Enrollment</p>
+        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enrollment</p>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
             <TeacherMeta label="Student" value={enrollment.studentName || `Student #${enrollment.studentId ?? '-'}`} />
             <TeacherMeta label="Program" value={enrollment.programName || `Program #${enrollment.programId ?? '-'}`} />
@@ -669,22 +673,22 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-white p-4">
+        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h3 className="font-extrabold text-foreground">Choose teacher</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Search by name, username, or email.</p>
+              <h3 className="font-extrabold text-white text-sm">Choose teacher</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">Search by name, username, or email.</p>
             </div>
-            <div className="rounded-md border border-border bg-background px-3 py-2 text-sm">
-              <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Current</p>
-              <p className="font-extrabold text-foreground">
+            <div className="rounded-lg border border-border bg-slate-950 px-3 py-2 text-xs">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Current</p>
+              <p className="font-extrabold text-white">
                 {enrollment.teacherName ||
                   (currentTeacherQuery.data ? getTeacherName(currentTeacherQuery.data) : enrollment.teacherId ? `Teacher #${enrollment.teacherId}` : 'Not assigned yet')}
               </p>
             </div>
           </div>
 
-          <label htmlFor={`teacher-search-${enrollment.id}`} className="text-sm font-bold text-foreground">
+          <label htmlFor={`teacher-search-${enrollment.id}`} className="text-xs font-bold text-white">
             Search teacher
           </label>
           <div className="relative mt-1">
@@ -693,7 +697,7 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
               id={`teacher-search-${enrollment.id}`}
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
-              className="lms-input h-9 pl-9 text-sm"
+              className="lms-input h-9 pl-9 text-xs"
               placeholder="Name or email"
               data-testid={`teacher-search-${enrollment.id}`}
             />
@@ -701,30 +705,30 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
 
           <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
             {teachersQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading teachers...</p>
+              <p className="text-xs text-muted-foreground">Loading teachers...</p>
             ) : teachersQuery.isError ? (
-              <p className="text-sm text-red-700">{getFriendlyApiErrorMessage(teachersQuery.error, 'Failed to load teachers')}</p>
+              <p className="text-xs text-rose-400">{getFriendlyApiErrorMessage(teachersQuery.error, 'Failed to load teachers')}</p>
             ) : teachers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No teachers found.</p>
+              <p className="text-xs text-muted-foreground">No teachers found.</p>
             ) : (
               teachers.map((teacher) => (
                 <button
                   key={teacher.id}
                   type="button"
-                  className={`rounded-md border p-2 text-left text-sm transition ${
+                  className={`rounded-xl border p-3 text-left text-xs transition-all duration-150 ${
                     selectedTeacher?.id === teacher.id
-                      ? 'border-primary bg-[hsl(var(--brand-orange-soft))] text-foreground'
-                      : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                      ? 'border-primary bg-primary/15 text-white font-bold'
+                      : 'border-border bg-slate-950 text-muted-foreground hover:border-primary/40 hover:text-white'
                   }`}
                   onClick={() => setSelectedTeacher(teacher)}
                   data-testid={`select-teacher-${teacher.id}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate font-bold">{getTeacherName(teacher)}</p>
-                      <p className="truncate text-xs">{teacher.email || teacher.username}</p>
+                      <p className="truncate font-bold text-white">{getTeacherName(teacher)}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{teacher.email || teacher.username}</p>
                     </div>
-                    <span className="rounded-full border border-border bg-white px-2 py-0.5 text-[10px] font-extrabold">
+                    <span className="rounded-full border border-border bg-slate-900 px-2 py-0.5 text-[9px] font-extrabold text-zinc-300">
                       {teacher.enabled === false ? 'Disabled' : teacher.status || 'Active'}
                     </span>
                   </div>
@@ -735,7 +739,7 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
 
           <Button
             type="button"
-            className="mt-4 w-full"
+            className="mt-4 w-full bg-primary text-white font-bold hover:bg-primary/90"
             disabled={!selectedTeacher?.id || assignTeacherMutation.isPending}
             onClick={() => void assignTeacher()}
             data-testid={`assign-teacher-${enrollment.id}`}
@@ -746,93 +750,93 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
       </section>
 
       <aside className="space-y-4">
-        <div className="rounded-lg border border-border bg-white p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-foreground">
-              <DollarSign className="h-4 w-4" />
-              Compensation
-            </div>
-            <div className="grid grid-cols-[1fr_86px] gap-2">
-              <input
-                type="number"
-                min={0}
-                value={compensationAmount}
-                onChange={(event) => setCompensationAmount(event.target.value)}
-                className="lms-input h-9 text-sm"
-                placeholder="Amount/session"
-                data-testid={`teacher-compensation-amount-${enrollment.id}`}
-              />
-              <input
-                value={compensationCurrency}
-                onChange={(event) => setCompensationCurrency(event.target.value.toUpperCase())}
-                className="lms-input h-9 text-sm"
-                placeholder="VND"
-                data-testid={`teacher-compensation-currency-${enrollment.id}`}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-2 w-full"
-              disabled={compensationMutation.isPending}
-              onClick={() => void saveCompensation()}
-              data-testid={`save-teacher-compensation-${enrollment.id}`}
-            >
-              {compensationMutation.isPending ? 'Saving...' : 'Save compensation'}
-            </Button>
+        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
+          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-white">
+            <DollarSign className="h-4 w-4 text-primary" />
+            Compensation
+          </div>
+          <div className="grid grid-cols-[1fr_86px] gap-2">
+            <input
+              type="number"
+              min={0}
+              value={compensationAmount}
+              onChange={(event) => setCompensationAmount(event.target.value)}
+              className="lms-input h-9 text-xs"
+              placeholder="Amount/session"
+              data-testid={`teacher-compensation-amount-${enrollment.id}`}
+            />
+            <input
+              value={compensationCurrency}
+              onChange={(event) => setCompensationCurrency(event.target.value.toUpperCase())}
+              className="lms-input h-9 text-xs"
+              placeholder="VND"
+              data-testid={`teacher-compensation-currency-${enrollment.id}`}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 w-full border-border text-xs"
+            disabled={compensationMutation.isPending}
+            onClick={() => void saveCompensation()}
+            data-testid={`save-teacher-compensation-${enrollment.id}`}
+          >
+            {compensationMutation.isPending ? 'Saving...' : 'Save compensation'}
+          </Button>
         </div>
 
-        <div className="rounded-lg border border-border bg-white p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-foreground">
-              <ReceiptText className="h-4 w-4" />
-              Earnings
-            </div>
-            {!teacherIdForEarnings ? (
-              <p className="text-sm text-muted-foreground">Choose or assign a teacher to view earnings.</p>
-            ) : earningsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading earnings...</p>
-            ) : earningsQuery.isError ? (
-              <p className="text-sm text-red-700">{getFriendlyApiErrorMessage(earningsQuery.error, 'Failed to load earnings')}</p>
-            ) : (
-              <div className="rounded-md border border-border bg-background p-3">
-                <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">Total earned</p>
-                <p className="mt-1 text-lg font-extrabold text-foreground">
-                  {formatCurrency(earningsQuery.data?.totalEarned ?? 0, earningsQuery.data?.currency || 'VND')}
-                </p>
-                <div className="mt-3 max-h-36 space-y-2 overflow-y-auto text-xs text-muted-foreground">
-                  {(earningsQuery.data?.earnings || []).length === 0 ? (
-                    <p>No earnings yet.</p>
-                  ) : (
-                    earningsQuery.data?.earnings?.map((earning) => (
-                      <div key={earning.id || earning.bookingId} className="rounded border border-border bg-white p-2">
-                        <p className="font-bold text-foreground">
-                          {formatCurrency(earning.amount ?? 0, earning.currency || earningsQuery.data?.currency || 'VND')}
-                        </p>
-                        <p>{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</p>
-                        <p>{formatDateTime(earning.earnedAt)}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
+        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
+          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-white">
+            <ReceiptText className="h-4 w-4 text-primary" />
+            Earnings
+          </div>
+          {!teacherIdForEarnings ? (
+            <p className="text-xs text-muted-foreground">Choose or assign a teacher to view earnings.</p>
+          ) : earningsQuery.isLoading ? (
+            <p className="text-xs text-muted-foreground">Loading earnings...</p>
+          ) : earningsQuery.isError ? (
+            <p className="text-xs text-rose-400">{getFriendlyApiErrorMessage(earningsQuery.error, 'Failed to load earnings')}</p>
+          ) : (
+            <div className="rounded-xl border border-border bg-slate-950 p-3">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Total earned</p>
+              <p className="mt-1 text-base font-extrabold text-primary">
+                {formatCurrency(earningsQuery.data?.totalEarned ?? 0, earningsQuery.data?.currency || 'VND')}
+              </p>
+              <div className="mt-3 max-h-36 space-y-2 overflow-y-auto text-xs text-muted-foreground">
+                {(earningsQuery.data?.earnings || []).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No earnings yet.</p>
+                ) : (
+                  earningsQuery.data?.earnings?.map((earning) => (
+                    <div key={earning.id || earning.bookingId} className="rounded-lg border border-border bg-slate-900 p-2 text-xs">
+                      <p className="font-bold text-white">
+                        {formatCurrency(earning.amount ?? 0, earning.currency || earningsQuery.data?.currency || 'VND')}
+                      </p>
+                      <p className="text-[11px]">{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</p>
+                      <p className="text-[10px] text-muted-foreground">{formatDateTime(earning.earnedAt)}</p>
+                    </div>
+                  ))
+                )}
               </div>
-            )}
+            </div>
+          )}
         </div>
 
-        {message && <div className="lms-alert-success text-sm">{message}</div>}
-        {error && <div className="lms-alert-error text-sm">{error}</div>}
+        {message && <div className="lms-alert-success text-xs">{message}</div>}
+        {error && <div className="lms-alert-error text-xs">{error}</div>}
 
-        <Button type="button" variant="outline" className="w-full" onClick={onClose}>
+        <Button type="button" variant="outline" className="w-full border-border text-xs" onClick={onClose}>
           Close
         </Button>
       </aside>
-        </div>
+    </div>
   )
 }
 
 function TeacherMeta({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</p>
-      <p className="mt-1 font-semibold text-foreground">{value}</p>
+      <p className="text-[10px] font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="mt-0.5 font-bold text-white text-xs">{value}</p>
     </div>
   )
 }

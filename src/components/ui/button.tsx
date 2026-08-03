@@ -1,4 +1,4 @@
-﻿import * as React from "react"
+import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -9,19 +9,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-[0_12px_24px_rgba(244,122,61,0.22)] hover:bg-[hsl(var(--brand-orange-hover))]",
+        default: "bg-primary text-white shadow-[0_4px_16px_rgba(244,106,37,0.3)] hover:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[0_12px_24px_rgba(220,38,38,0.14)] hover:bg-destructive/90",
+          "bg-rose-950/40 border border-rose-800/50 text-rose-300 shadow-[0_4px_16px_rgba(220,38,38,0.2)] hover:bg-rose-900/50 hover:text-rose-200",
         outline:
-          "border border-input bg-white text-foreground hover:border-primary/45 hover:bg-[hsl(var(--brand-orange-soft))]",
+          "border border-border bg-slate-900/80 text-white hover:border-primary/50 hover:bg-primary/15 hover:text-primary",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[hsl(var(--brand-green-soft))]",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-slate-800 text-white hover:bg-slate-700",
+        ghost: "text-zinc-300 hover:bg-slate-800 hover:text-white",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
+        sm: "h-9 rounded-md px-3 text-xs",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
@@ -54,4 +54,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-

@@ -78,15 +78,15 @@ export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: Stude
   if (!shouldRender) return null
 
   return (
-    <div className="mt-5 rounded-lg border border-border bg-white p-4">
+    <div className="mt-5 rounded-xl border border-border bg-slate-900/60 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))]">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
             <Award className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-foreground">Final assessment</h3>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{getFinalStatusCopy(status.enrollmentStatus, status.lastResult, status.retakeRequired)}</p>
+            <h3 className="font-extrabold text-white text-sm">Final assessment</h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{getFinalStatusCopy(status.enrollmentStatus, status.lastResult, status.retakeRequired)}</p>
           </div>
         </div>
         <Button

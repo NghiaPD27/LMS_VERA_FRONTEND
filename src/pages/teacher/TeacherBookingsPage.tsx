@@ -131,16 +131,16 @@ function TeacherBookingCard({ booking }: { booking: TeacherBooking }) {
   }
 
   return (
-    <article className="rounded-md border border-border bg-white p-4 transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
+    <article className="rounded-xl border border-border bg-slate-900/60 p-4 transition-all hover:border-primary/40">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-primary">{booking.lessonName || `Lesson #${booking.lessonId ?? '-'}`}</p>
-            <span className={`w-fit rounded-full border px-2.5 py-1 text-xs font-extrabold ${statusClassName}`}>
+            <p className="text-xs font-bold text-primary">{booking.lessonName || `Lesson #${booking.lessonId ?? '-'}`}</p>
+            <span className={`w-fit rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusClassName}`}>
               {booking.status || 'UNKNOWN'}
             </span>
           </div>
-          <h3 className="mt-1 text-lg font-extrabold text-foreground">{booking.studentName || `Student #${booking.studentId ?? '-'}`}</h3>
+          <h3 className="mt-1 text-lg font-extrabold text-white">{booking.studentName || `Student #${booking.studentId ?? '-'}`}</h3>
           <dl className="mt-2 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
             <div>
               <dt className="font-bold text-foreground">Starts</dt>

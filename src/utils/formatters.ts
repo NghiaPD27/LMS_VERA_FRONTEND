@@ -28,3 +28,19 @@ export const formatDateTime = (value?: string) => {
     return value
   }
 }
+
+export const formatDateShort = (value?: string) => {
+  if (!value) {
+    return '-'
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(value))
+  } catch {
+    return value
+  }
+}

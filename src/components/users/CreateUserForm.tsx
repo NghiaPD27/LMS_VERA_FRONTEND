@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -64,8 +64,8 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({ role }) => {
     : null;
 
   return (
-    <div className="lms-surface p-6">
-      <h3 className="mb-4 text-lg font-extrabold text-foreground capitalize">
+    <div className="rounded-xl border border-border/80 bg-slate-900/60 p-5">
+      <h3 className="mb-4 text-base font-extrabold text-white capitalize">
         Create {role}
       </h3>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

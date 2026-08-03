@@ -59,24 +59,25 @@ export function LoginPage() {
 
   return (
     <div className="w-full max-w-md">
-      <Button asChild variant="ghost" className="mb-4 h-auto p-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
+      <Button asChild variant="ghost" className="mb-4 h-auto p-0 text-xs text-muted-foreground hover:bg-transparent hover:text-white">
         <Link to="/">
           <ArrowLeft className="h-4 w-4" />
           Back to home
         </Link>
       </Button>
-      <div className="mb-5 text-center lg:text-left">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[hsl(var(--brand-orange-soft))] text-primary shadow-[0_12px_28px_rgba(244,122,61,0.14)] lg:mx-0">
+
+      <div className="mb-6 text-center lg:text-left">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25 shadow-[0_0_20px_rgba(244,106,37,0.2)] lg:mx-0">
           <GraduationCap className="h-6 w-6" />
         </div>
-        <p className="text-sm font-extrabold text-primary">LMS Vera</p>
-        <h1 className="mt-1 text-3xl font-extrabold tracking-normal text-foreground">Welcome back</h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Sign in to continue your courses, open lessons, and track your progress.
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">LMS Vera</p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-white">Welcome back</h1>
+        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+          Sign in to access your courses, lessons, and learning workspace.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-5 shadow-[0_18px_50px_rgba(27,89,56,0.10)] sm:p-6">
+      <div className="rounded-xl border border-border bg-[hsl(220_14%_12%)] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {searchParams.get('registered') === '1' && (
             <div className="lms-alert-success">
@@ -91,7 +92,7 @@ export function LoginPage() {
           )}
 
           <div>
-            <label htmlFor="username" className="text-sm font-bold text-foreground">Username</label>
+            <label htmlFor="username" className="text-xs font-bold text-white">Username</label>
             <div className="relative mt-1">
               <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -103,11 +104,11 @@ export function LoginPage() {
                 {...register('username')}
               />
             </div>
-            {errors.username && <p className="mt-1 text-xs text-red-600" data-testid="username-error">{errors.username.message}</p>}
+            {errors.username && <p className="mt-1 text-xs text-rose-400" data-testid="username-error">{errors.username.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="password" className="text-sm font-bold text-foreground">Password</label>
+            <label htmlFor="password" className="text-xs font-bold text-white">Password</label>
             <div className="relative mt-1">
               <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -120,18 +121,17 @@ export function LoginPage() {
                 {...register('password')}
               />
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-600" data-testid="password-error">{errors.password.message}</p>}
+            {errors.password && <p className="mt-1 text-xs text-rose-400" data-testid="password-error">{errors.password.message}</p>}
           </div>
 
-          <Button type="submit" className="h-11 w-full" disabled={isPending} data-testid="submit-button">
+          <Button type="submit" className="h-11 w-full bg-primary text-white font-bold hover:bg-primary/90 shadow-[0_0_20px_rgba(244,106,37,0.3)]" disabled={isPending} data-testid="submit-button">
             {isPending ? 'Signing in...' : 'Sign in'}
-            {!isPending && <ArrowRight className="h-4 w-4" />}
+            {!isPending && <ArrowRight className="h-4 w-4 ml-1" />}
           </Button>
-
         </form>
       </div>
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
+      <p className="mt-5 text-center text-xs text-muted-foreground">
         Do not have an account?{' '}
         <Link
           to={`/register${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect') || '')}` : ''}`}

@@ -448,27 +448,27 @@ function EligibleFinalStudentCard({
   return (
     <button
       type="button"
-      className={`rounded-lg border p-4 text-left transition ${
+      className={`rounded-xl border p-3.5 text-left transition-all duration-200 ${
         selected
-          ? 'border-primary bg-[hsl(var(--brand-orange-soft))] text-foreground shadow-sm'
-          : 'border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground'
+          ? 'border-primary bg-primary/15 text-white shadow-sm'
+          : 'border-border bg-slate-900/60 text-zinc-300 hover:border-primary/40 hover:bg-slate-800 hover:text-white'
       }`}
       onClick={onToggle}
       data-testid={`select-final-student-${student.enrollmentId}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-extrabold text-foreground">{student.studentName || `Student #${student.studentId ?? '-'}`}</p>
-          <p className="mt-1 text-sm">{student.programName || `Program #${student.programId ?? '-'}`}</p>
+          <p className="font-extrabold text-white text-sm">{student.studentName || `Student #${student.studentId ?? '-'}`}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{student.programName || `Program #${student.programId ?? '-'}`}</p>
         </div>
-        <span className={`rounded-full border px-2.5 py-1 text-xs font-extrabold ${student.retake ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
+        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${student.retake ? 'border-amber-500/40 bg-amber-950/40 text-amber-300' : 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300'}`}>
           {student.retake ? 'Retake' : 'First attempt'}
         </span>
       </div>
-      <dl className="mt-3 grid gap-1 text-xs">
-        <div className="flex justify-between gap-2"><dt>Final lesson</dt><dd>{student.finalLessonNumber ?? '-'} - {student.finalLessonName || '-'}</dd></div>
-        <div className="flex justify-between gap-2"><dt>Eligible</dt><dd className="text-right">{formatDateTime(student.eligibleAt)}</dd></div>
-        {student.retakePaymentId && <div className="flex justify-between gap-2"><dt>Retake payment</dt><dd>#{student.retakePaymentId}</dd></div>}
+      <dl className="mt-3 grid gap-1 text-xs text-muted-foreground">
+        <div className="flex justify-between gap-2"><dt>Final lesson</dt><dd className="text-zinc-200">{student.finalLessonNumber ?? '-'} - {student.finalLessonName || '-'}</dd></div>
+        <div className="flex justify-between gap-2"><dt>Eligible</dt><dd className="text-right text-zinc-200">{formatDateTime(student.eligibleAt)}</dd></div>
+        {student.retakePaymentId && <div className="flex justify-between gap-2"><dt>Retake payment</dt><dd className="text-zinc-200">#{student.retakePaymentId}</dd></div>}
       </dl>
     </button>
   )
@@ -495,40 +495,40 @@ function EvaluatorPicker({
 }) {
   return (
     <div>
-      <label htmlFor="final-evaluator-search" className="text-sm font-bold text-foreground">Evaluator</label>
+      <label htmlFor="final-evaluator-search" className="text-xs font-bold text-white">Evaluator</label>
       <div className="relative mt-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           id="final-evaluator-search"
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
-          className="lms-input pl-9"
+          className="lms-input pl-9 text-xs"
           placeholder="Search evaluator"
           data-testid="final-evaluator-search"
         />
       </div>
       <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading evaluators...</p>
+          <p className="text-xs text-muted-foreground">Loading evaluators...</p>
         ) : isError ? (
-          <p className="text-sm text-red-700">{getFriendlyApiErrorMessage(error, 'Failed to load evaluators')}</p>
+          <p className="text-xs text-rose-400">{getFriendlyApiErrorMessage(error, 'Failed to load evaluators')}</p>
         ) : evaluators.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No evaluators found.</p>
+          <p className="text-xs text-muted-foreground">No evaluators found.</p>
         ) : (
           evaluators.map((evaluator) => (
             <button
               key={evaluator.id}
               type="button"
-              className={`rounded-md border p-2 text-left text-sm transition ${
+              className={`rounded-xl border p-2.5 text-left text-xs transition-all duration-150 ${
                 selectedEvaluator?.id === evaluator.id
-                  ? 'border-primary bg-[hsl(var(--brand-orange-soft))] text-foreground'
-                  : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  ? 'border-primary bg-primary/15 text-white font-bold'
+                  : 'border-border bg-slate-950 text-muted-foreground hover:border-primary/40 hover:text-white'
               }`}
               onClick={() => onSelect(evaluator)}
               data-testid={`select-final-evaluator-${evaluator.id}`}
             >
-              <p className="font-bold">{getEvaluatorName(evaluator)}</p>
-              <p className="text-xs">{evaluator.email || evaluator.username}</p>
+              <p className="font-bold text-white">{getEvaluatorName(evaluator)}</p>
+              <p className="text-[10px] text-muted-foreground">{evaluator.email || evaluator.username}</p>
             </button>
           ))
         )}
@@ -574,7 +574,7 @@ function AdminFinalSessionCard({
   const resultSubmittedCount = session.resultSubmittedCount ?? session.participants?.filter((participant) => participant.result).length ?? 0
 
   return (
-    <article className="rounded-lg border border-border bg-white p-4">
+    <article className="rounded-xl border border-border bg-slate-900/70 p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-bold text-primary">Final session #{session.id ?? '-'}</p>

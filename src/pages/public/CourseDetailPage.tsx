@@ -132,30 +132,30 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
 
             <div className="grid gap-4 p-6 md:grid-cols-3">
               {['Clear learning path', 'Flexible online study', 'Practical speaking practice'].map((item) => (
-                <div key={item} className="rounded-lg border border-border bg-white p-4">
-                  <CheckCircle2 className="mb-3 h-5 w-5 text-[hsl(var(--brand-green))]" />
-                  <p className="font-bold text-foreground">{item}</p>
+                <div key={item} className="rounded-xl border border-border bg-slate-900/60 p-4">
+                  <CheckCircle2 className="mb-3 h-5 w-5 text-primary" />
+                  <p className="font-bold text-white text-sm">{item}</p>
                 </div>
               ))}
             </div>
           </article>
 
           <aside className="lms-surface h-fit p-6">
-            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-[hsl(var(--brand-orange-soft))] text-primary">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
               <GraduationCap className="h-6 w-6" />
             </div>
-            <p className="text-sm font-semibold text-muted-foreground">Tuition</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tuition</p>
             <p className="mt-1 text-3xl font-extrabold text-primary">
               {formatCurrency(program.price, program.currency || 'VND')}
             </p>
 
             {purchase && (
-              <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div className="mt-5 rounded-xl border border-amber-500/40 bg-amber-950/30 p-4">
                 <PurchaseStatusBadge status={purchase.status} />
-                <p className="mt-3 text-sm leading-6 text-amber-800">
+                <p className="mt-3 text-xs leading-relaxed text-amber-300">
                   Your purchase request has been created. Open the payment page to scan the QR code and complete the transfer.
                 </p>
-                <Button asChild variant="outline" className="mt-4 w-full bg-white">
+                <Button asChild variant="outline" className="mt-4 w-full border-border text-xs">
                   <Link to={purchase.id ? `/student/purchases/${purchase.id}` : '/student/purchases'}>View payment</Link>
                 </Button>
               </div>
@@ -164,7 +164,7 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
             {purchaseError && (
               <div className="mt-5 lms-alert-error">
                 <p>{getFriendlyApiErrorMessage(purchaseError, 'Failed to create purchase request')}</p>
-                <Button asChild variant="outline" className="mt-3 bg-white">
+                <Button asChild variant="outline" className="mt-3 border-border text-xs">
                   <Link to="/student/purchases">View my purchases</Link>
                 </Button>
               </div>

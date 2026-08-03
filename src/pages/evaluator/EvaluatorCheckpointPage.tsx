@@ -81,17 +81,17 @@ function CheckpointSessionCard({ session, showDetailLink = false }: { session: C
 
   return (
     <article className="lms-surface overflow-hidden">
-      <div className="border-b border-border bg-white p-5">
+      <div className="border-b border-border bg-slate-900/80 p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm font-bold text-primary">Block {session.blockNumber ?? '-'} checkpoint</p>
-            <h2 className="mt-1 text-xl font-extrabold text-foreground">{session.programName || `Program #${session.programId ?? '-'}`}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">Block {session.blockNumber ?? '-'} checkpoint</p>
+            <h2 className="mt-1 text-xl font-extrabold text-white">{session.programName || `Program #${session.programId ?? '-'}`}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
               Gate lesson {session.gateLessonNumber ?? '-'} to next lesson {session.nextLessonNumber ?? '-'}
             </p>
           </div>
-          <div className="text-sm text-muted-foreground lg:text-right">
-            <p className="font-bold text-foreground">{formatDateTime(session.scheduledAt)}</p>
+          <div className="text-xs text-muted-foreground lg:text-right">
+            <p className="font-bold text-white">{formatDateTime(session.scheduledAt)}</p>
             {session.meetLink && (
               <a className="mt-1 inline-flex items-center gap-1 font-bold text-primary hover:underline" href={session.meetLink} target="_blank" rel="noreferrer">
                 Open Meet
@@ -99,7 +99,7 @@ function CheckpointSessionCard({ session, showDetailLink = false }: { session: C
               </a>
             )}
             {showDetailLink && session.id && (
-              <Link className="mt-1 block font-bold text-[hsl(var(--brand-green))] hover:underline" to={`/evaluator/checkpoints/${session.id}`}>
+              <Link className="mt-1 block font-bold text-primary hover:underline" to={`/evaluator/checkpoints/${session.id}`}>
                 View detail
               </Link>
             )}
@@ -152,7 +152,7 @@ function CheckpointParticipantReview({ participant }: { participant: CheckpointP
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-4">
+    <div className="rounded-xl border border-border bg-slate-900/60 p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h3 className="font-extrabold text-foreground">{participant.studentName || `Student #${participant.studentId ?? '-'}`}</h3>
