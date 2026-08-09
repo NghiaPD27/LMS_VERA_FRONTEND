@@ -111,7 +111,7 @@ export function MyPurchasesPage() {
 
               {purchase.status === 'PAID' && !purchase.enrollmentId && (
                 <p className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-800">
-                  Payment confirmed. Vera is preparing your course enrollment.
+                  Payment confirmed. Sen Languages is preparing your course enrollment.
                 </p>
               )}
 

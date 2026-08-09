@@ -6,14 +6,38 @@ export type AdminTeacherPage = components['schemas']['PageResponseAdminTeacherRe
 export type TeacherAssignment = components['schemas']['TeacherAssignmentResponse']
 export type UpsertTeacherCompensationRequest = components['schemas']['UpsertTeacherCompensationRequest']
 export type TeacherCompensation = components['schemas']['TeacherCompensationResponse']
-export type TeacherEarning = components['schemas']['TeacherEarningResponse']
+type BaseTeacherEarning = Omit<components['schemas']['TeacherEarningResponse'], 'lessonId' | 'lessonName'>
+export type BookingType = 'LESSON' | 'PRIVATE'
+export type TeacherEarning = BaseTeacherEarning & {
+  bookingType?: BookingType
+  lessonId?: number | null
+  lessonName?: string | null
+}
 export type TeacherEarningsSummary = components['schemas']['TeacherEarningsSummaryResponse']
 export type CreateAvailabilityRequest = components['schemas']['CreateAvailabilityRequest']
 export type TeacherAvailability = components['schemas']['TeacherAvailabilityResponse']
-export type TeacherAvailabilitySlot = components['schemas']['TeacherAvailabilitySlotResponse']
-export type TeacherAvailabilitySlotPage = components['schemas']['PageResponseTeacherAvailabilitySlotResponse']
-export type TeacherBooking = components['schemas']['TeacherBookingResponse']
-export type TeacherBookingPage = components['schemas']['PageResponseTeacherBookingResponse']
+type BaseTeacherAvailabilitySlot = Omit<components['schemas']['TeacherAvailabilitySlotResponse'], 'lessonId' | 'lessonName'>
+export type TeacherAvailabilitySlot = BaseTeacherAvailabilitySlot & {
+  bookingType?: BookingType
+  lessonId?: number | null
+  lessonName?: string | null
+}
+export type TeacherAvailabilitySlotPage = Omit<
+  components['schemas']['PageResponseTeacherAvailabilitySlotResponse'],
+  'content'
+> & {
+  content?: TeacherAvailabilitySlot[]
+}
+type BaseTeacherBooking = Omit<components['schemas']['TeacherBookingResponse'], 'enrollmentId' | 'lessonId' | 'lessonName'>
+export type TeacherBooking = BaseTeacherBooking & {
+  bookingType?: BookingType
+  enrollmentId?: number | null
+  lessonId?: number | null
+  lessonName?: string | null
+}
+export type TeacherBookingPage = Omit<components['schemas']['PageResponseTeacherBookingResponse'], 'content'> & {
+  content?: TeacherBooking[]
+}
 export type TeacherSlot = components['schemas']['TeacherSlotResponse']
 export type TeacherSlotPage = components['schemas']['PageResponseTeacherSlotResponse']
 export type CreateBookingRequest = components['schemas']['CreateBookingRequest']
@@ -24,6 +48,20 @@ export type TeacherReviewResult = 'APPROVED' | 'NOT_APPROVED'
 
 export interface TeacherQueryParams {
   keyword?: string
+  page?: number
+  size?: number
+}
+
+export interface PrivateTeacher {
+  teacherId?: number
+  teacherName?: string
+  bio?: string | null
+}
+
+export interface PrivateTeacherPage {
+  content?: PrivateTeacher[]
+  totalElements?: number
+  totalPages?: number
   page?: number
   size?: number
 }
@@ -58,6 +96,28 @@ export interface TeacherBookingQueryParams {
 }
 
 export interface StudentTeacherSlotQueryParams {
+  page?: number
+  size?: number
+}
+
+export interface PrivateTeacherSlotQueryParams {
+  teacherId?: number
+  from?: string
+  to?: string
+  page?: number
+  size?: number
+}
+
+export interface CreatePrivateBookingRequest {
+  teacherId: number
+  slotStartAt: string
+}
+
+export interface PrivateBookingQueryParams {
+  teacherId?: number
+  status?: string
+  from?: string
+  to?: string
   page?: number
   size?: number
 }

@@ -25,7 +25,7 @@ export function DashboardPage() {
         <div className="lms-page-hero-inner">
           <div className="relative max-w-3xl">
             <p className="text-xs font-bold uppercase tracking-wider text-primary">Admin Dashboard</p>
-            <h1 className="mt-1 text-3xl font-extrabold text-white md:text-4xl">Manage Vera with clarity.</h1>
+            <h1 className="mt-1 text-3xl font-extrabold text-white md:text-4xl">Manage Sen Languages with clarity.</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Programs, lessons, enrollments, and user access are grouped into focused work areas for daily operations.
             </p>

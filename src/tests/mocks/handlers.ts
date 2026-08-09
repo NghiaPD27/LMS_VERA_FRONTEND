@@ -184,6 +184,30 @@ let teacherAssignmentsDb: components['schemas']['TeacherAssignmentResponse'][] =
   }
 ]
 let teacherCompensationsDb: components['schemas']['TeacherCompensationResponse'][] = []
+type MockBookingType = 'LESSON' | 'PRIVATE'
+type MockTeacherBooking = Omit<
+  components['schemas']['TeacherBookingResponse'],
+  'enrollmentId' | 'lessonId' | 'lessonName'
+> & {
+  bookingType?: MockBookingType
+  enrollmentId?: number | null
+  lessonId?: number | null
+  lessonName?: string | null
+}
+type MockTeacherBookingPage = Omit<components['schemas']['PageResponseTeacherBookingResponse'], 'content'> & {
+  content?: MockTeacherBooking[]
+}
+type MockTeacherAvailabilitySlot = Omit<components['schemas']['TeacherAvailabilitySlotResponse'], 'lessonId' | 'lessonName'> & {
+  bookingType?: MockBookingType
+  lessonId?: number | null
+  lessonName?: string | null
+}
+type MockTeacherAvailabilitySlotPage = Omit<
+  components['schemas']['PageResponseTeacherAvailabilitySlotResponse'],
+  'content'
+> & {
+  content?: MockTeacherAvailabilitySlot[]
+}
 const teacherAvailabilitiesDb: components['schemas']['TeacherAvailabilityResponse'][] = [
   {
     id: 1,
@@ -194,9 +218,10 @@ const teacherAvailabilitiesDb: components['schemas']['TeacherAvailabilityRespons
     createdAt: new Date().toISOString(),
   }
 ]
-const teacherBookingsDb: components['schemas']['TeacherBookingResponse'][] = [
+const teacherBookingsDb: MockTeacherBooking[] = [
   {
     id: 1,
+    bookingType: 'LESSON',
     studentId: 3,
     studentName: 'John Smith',
     teacherId: 2,
@@ -1125,7 +1150,7 @@ export const handlers = [
     }
   ),
 
-  http.get<never, never, components['schemas']['PageResponseTeacherAvailabilitySlotResponse'] | { message: string }>(
+  http.get<never, never, MockTeacherAvailabilitySlotPage | { message: string }>(
     '/api/teacher/availability',
     ({ request }) => {
       const user = getSessionUser(request)
@@ -1148,7 +1173,7 @@ export const handlers = [
           if (toTime !== undefined && Number.isFinite(toTime) && startTime > toTime) return false
           return true
         })
-        .map((availability): components['schemas']['TeacherAvailabilitySlotResponse'] => {
+        .map((availability): MockTeacherAvailabilitySlot => {
           const booking = teacherBookingsDb.find((item) => item.teacherId === availability.teacherId && item.startAt === availability.startAt)
           return {
             availabilityId: availability.id,
@@ -1159,6 +1184,7 @@ export const handlers = [
             bookingId: booking?.id,
             studentId: booking?.studentId,
             studentName: booking?.studentName,
+            bookingType: booking?.bookingType,
             lessonId: booking?.lessonId,
             lessonName: booking?.lessonName,
             meetLink: availability.meetLink,
@@ -1225,7 +1251,7 @@ export const handlers = [
     }
   ),
 
-  http.get<never, never, components['schemas']['PageResponseTeacherBookingResponse'] | { message: string }>(
+  http.get<never, never, MockTeacherBookingPage | { message: string }>(
     '/api/teacher/bookings',
     ({ request }) => {
       const user = getSessionUser(request)
@@ -1240,6 +1266,7 @@ export const handlers = [
       const toTime = to ? new Date(to).getTime() : undefined
       const bookings = teacherBookingsDb.filter((booking) =>
         booking.teacherId === Number(user.id) &&
+        booking.bookingType !== 'PRIVATE' &&
         (!status || booking.status === status) &&
         (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
         (toTime === undefined || new Date(booking.startAt || '').getTime() <= toTime)
@@ -1255,7 +1282,7 @@ export const handlers = [
       const user = getSessionUser(request)
       const booking = teacherBookingsDb.find((item) => item.id === Number(params.bookingId))
       const body = await request.json()
-      if (!user || user.role !== 'teacher' || !booking || booking.teacherId !== Number(user.id)) {
+      if (!user || user.role !== 'teacher' || !booking || booking.teacherId !== Number(user.id) || booking.bookingType === 'PRIVATE') {
         return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
       }
       const compensation = teacherCompensationsDb.find((item) => item.teacherId === Number(user.id))
@@ -1271,8 +1298,8 @@ export const handlers = [
         bookingId: booking.id,
         studentId: booking.studentId,
         studentName: booking.studentName,
-        lessonId: booking.lessonId,
-        lessonName: booking.lessonName,
+        lessonId: booking.lessonId ?? undefined,
+        lessonName: booking.lessonName ?? undefined,
         amount: compensation.amountPerSession,
         currency: compensation.currency || 'VND',
         status: 'EARNED',
@@ -1285,9 +1312,70 @@ export const handlers = [
         result: body.result,
         comment: body.comment,
         reviewedAt: new Date().toISOString(),
-        booking,
+        booking: booking as components['schemas']['TeacherBookingResponse'],
         earning,
       })
+    }
+  ),
+
+  http.get<never, never, MockTeacherBookingPage | { message: string }>(
+    '/api/teacher/private-bookings',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'teacher') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const status = url.searchParams.get('status')
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
+      const bookings = teacherBookingsDb.filter((booking) =>
+        booking.bookingType === 'PRIVATE' &&
+        booking.teacherId === Number(user.id) &&
+        (!status || booking.status === status) &&
+        (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
+        (toTime === undefined || new Date(booking.startAt || '').getTime() <= toTime)
+      )
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(bookings, page, size))
+    }
+  ),
+
+  http.post<{ id: string }, never, MockTeacherBooking | { message: string }>(
+    '/api/teacher/private-bookings/:id/complete',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      const booking = teacherBookingsDb.find((item) => item.id === Number(params.id))
+      if (!user || user.role !== 'teacher' || !booking || booking.teacherId !== Number(user.id) || booking.bookingType !== 'PRIVATE') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      if (booking.status !== 'BOOKED') {
+        return HttpResponse.json({ message: 'Only booked private lessons can be completed' }, { status: 409 })
+      }
+      if (new Date(booking.endAt || '').getTime() > Date.now()) {
+        return HttpResponse.json({ message: 'Private lesson can only be completed after it ends' }, { status: 400 })
+      }
+      const compensation = teacherCompensationsDb.find((item) => item.teacherId === Number(user.id))
+      booking.status = 'COMPLETED'
+      booking.updatedAt = new Date().toISOString()
+      if (compensation) {
+        teacherEarningsDb.unshift({
+          id: teacherEarningsDb.length + 1,
+          teacherId: Number(user.id),
+          bookingId: booking.id,
+          studentId: booking.studentId,
+          studentName: booking.studentName,
+          lessonId: undefined,
+          lessonName: undefined,
+          amount: compensation.amountPerSession,
+          currency: compensation.currency || 'VND',
+          status: 'EARNED',
+          earnedAt: new Date().toISOString(),
+        })
+      }
+      return HttpResponse.json(booking)
     }
   ),
 
@@ -1304,7 +1392,11 @@ export const handlers = [
       if (!lessonId || !assignment?.teacherId) {
         return HttpResponse.json({ message: 'Teacher is not assigned yet' }, { status: 403 })
       }
-      const bookedStarts = new Set(teacherBookingsDb.map((booking) => booking.startAt))
+      const bookedStarts = new Set(
+        teacherBookingsDb
+          .filter((booking) => booking.status !== 'CANCELLED')
+          .map((booking) => booking.startAt)
+      )
       const slots = teacherAvailabilitiesDb
         .filter((availability) =>
           availability.teacherId === assignment.teacherId &&
@@ -1323,7 +1415,7 @@ export const handlers = [
     }
   ),
 
-  http.get<never, never, components['schemas']['PageResponseTeacherBookingResponse'] | { message: string }>(
+  http.get<never, never, MockTeacherBookingPage | { message: string }>(
     '/api/student/bookings',
     ({ request }) => {
       const user = getSessionUser(request)
@@ -1339,6 +1431,7 @@ export const handlers = [
       const toTime = to ? new Date(to).getTime() : undefined
       const bookings = teacherBookingsDb.filter((booking) =>
         booking.studentId === Number(user.id) &&
+        booking.bookingType !== 'PRIVATE' &&
         (!lessonId || String(booking.lessonId) === lessonId) &&
         (!status || booking.status === status) &&
         (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
@@ -1349,7 +1442,7 @@ export const handlers = [
     }
   ),
 
-  http.post<never, components['schemas']['CreateBookingRequest'], components['schemas']['TeacherBookingResponse'] | { message: string }>(
+  http.post<never, components['schemas']['CreateBookingRequest'], MockTeacherBooking | { message: string }>(
     '/api/student/bookings',
     async ({ request }) => {
       const user = getSessionUser(request)
@@ -1370,14 +1463,15 @@ export const handlers = [
       const availability = teacherAvailabilitiesDb.find(
         (item) => item.teacherId === assignment.teacherId && item.startAt === body.slotStartAt
       )
-      if (!availability) {
+      if (!availability || teacherBookingsDb.some((booking) => booking.teacherId === assignment.teacherId && booking.startAt === body.slotStartAt && booking.status !== 'CANCELLED')) {
         return HttpResponse.json({ message: 'Slot is no longer available' }, { status: 409 })
       }
       if (!availability.meetLink?.trim()) {
         return HttpResponse.json({ message: 'Teacher slot does not have a Google Meet link' }, { status: 409 })
       }
-      const booking: components['schemas']['TeacherBookingResponse'] = {
+      const booking: MockTeacherBooking = {
         id: teacherBookingsDb.length + 1,
+        bookingType: 'LESSON',
         studentId: Number(user.id),
         studentName: assignment.studentName,
         teacherId: assignment.teacherId,
@@ -1393,6 +1487,161 @@ export const handlers = [
         updatedAt: new Date().toISOString(),
       }
       teacherBookingsDb.unshift(booking)
+      return HttpResponse.json(booking)
+    }
+  ),
+
+  http.get<never, never, { content?: Array<{ teacherId?: number; teacherName?: string; bio?: string | null }>; totalElements?: number; totalPages?: number; page?: number; size?: number } | { message: string }>(
+    '/api/student/private-teachers',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const { keyword, page, size } = getPageParams(request)
+      const teachers = usersDb
+        .filter((item) => item.role === 'teacher')
+        .map((teacher) => ({
+          teacherId: Number(teacher.id),
+          teacherName: getTeacherDisplayName(teacher),
+          bio: teacher.profile.bio || null,
+        }))
+        .filter((teacher) => {
+          const haystack = `${teacher.teacherName || ''} ${teacher.bio || ''}`.toLowerCase()
+          return !keyword || haystack.includes(keyword)
+        })
+      return HttpResponse.json(paginate(teachers, page, size))
+    }
+  ),
+
+  http.get<never, never, components['schemas']['PageResponseTeacherSlotResponse'] | { message: string }>(
+    '/api/student/private-teacher-slots',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const teacherId = Number(url.searchParams.get('teacherId'))
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
+      const teacher = usersDb.find((item) => Number(item.id) === teacherId && item.role === 'teacher')
+      if (!teacher) {
+        return HttpResponse.json({ message: 'Teacher not found' }, { status: 404 })
+      }
+      const bookedStarts = new Set(
+        teacherBookingsDb
+          .filter((booking) => booking.status !== 'CANCELLED')
+          .map((booking) => booking.startAt)
+      )
+      const slots = teacherAvailabilitiesDb
+        .filter((availability) => {
+          const startTime = new Date(availability.startAt || '').getTime()
+          return (
+            availability.teacherId === teacherId &&
+            !bookedStarts.has(availability.startAt) &&
+            !!availability.meetLink?.trim() &&
+            (fromTime === undefined || startTime >= fromTime) &&
+            (toTime === undefined || startTime <= toTime)
+          )
+        })
+        .map((availability) => ({
+          teacherId,
+          teacherName: getTeacherDisplayName(teacher),
+          availabilityId: availability.id,
+          startAt: availability.startAt,
+          endAt: availability.endAt,
+        }))
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(slots, page, size))
+    }
+  ),
+
+  http.post<never, { teacherId: number; slotStartAt: string }, MockTeacherBooking | { message: string }>(
+    '/api/student/private-bookings',
+    async ({ request }) => {
+      const user = getSessionUser(request)
+      const body = await request.json()
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const teacher = usersDb.find((item) => Number(item.id) === body.teacherId && item.role === 'teacher')
+      if (!teacher) {
+        return HttpResponse.json({ message: 'Teacher not found' }, { status: 404 })
+      }
+      const availability = teacherAvailabilitiesDb.find(
+        (item) => item.teacherId === body.teacherId && item.startAt === body.slotStartAt
+      )
+      if (!availability || teacherBookingsDb.some((booking) => booking.startAt === body.slotStartAt && booking.teacherId === body.teacherId && booking.status !== 'CANCELLED')) {
+        return HttpResponse.json({ message: 'Slot is no longer available' }, { status: 409 })
+      }
+      if (!availability.meetLink?.trim()) {
+        return HttpResponse.json({ message: 'Teacher slot does not have a Google Meet link' }, { status: 409 })
+      }
+      const booking: MockTeacherBooking = {
+        id: teacherBookingsDb.length + 1,
+        bookingType: 'PRIVATE',
+        studentId: Number(user.id),
+        studentName: [user.profile.firstName, user.profile.lastName].filter(Boolean).join(' ') || user.username,
+        teacherId: body.teacherId,
+        teacherName: getTeacherDisplayName(teacher),
+        enrollmentId: null,
+        lessonId: null,
+        lessonName: null,
+        meetLink: availability.meetLink,
+        startAt: body.slotStartAt,
+        endAt: availability.endAt,
+        status: 'BOOKED',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      teacherBookingsDb.unshift(booking)
+      return HttpResponse.json(booking)
+    }
+  ),
+
+  http.get<never, never, MockTeacherBookingPage | { message: string }>(
+    '/api/student/private-bookings',
+    ({ request }) => {
+      const user = getSessionUser(request)
+      if (!user || user.role !== 'student') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      const url = new URL(request.url)
+      const teacherId = url.searchParams.get('teacherId')
+      const status = url.searchParams.get('status')
+      const from = url.searchParams.get('from')
+      const to = url.searchParams.get('to')
+      const fromTime = from ? new Date(from).getTime() : undefined
+      const toTime = to ? new Date(to).getTime() : undefined
+      const bookings = teacherBookingsDb.filter((booking) =>
+        booking.bookingType === 'PRIVATE' &&
+        booking.studentId === Number(user.id) &&
+        (!teacherId || String(booking.teacherId) === teacherId) &&
+        (!status || booking.status === status) &&
+        (fromTime === undefined || new Date(booking.startAt || '').getTime() >= fromTime) &&
+        (toTime === undefined || new Date(booking.startAt || '').getTime() <= toTime)
+      )
+      const { page, size } = getPaginationParams(request)
+      return HttpResponse.json(paginate(bookings, page, size))
+    }
+  ),
+
+  http.patch<{ id: string }, never, MockTeacherBooking | { message: string }>(
+    '/api/student/private-bookings/:id/cancel',
+    ({ params, request }) => {
+      const user = getSessionUser(request)
+      const booking = teacherBookingsDb.find((item) => item.id === Number(params.id))
+      if (!user || user.role !== 'student' || !booking || booking.studentId !== Number(user.id) || booking.bookingType !== 'PRIVATE') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 })
+      }
+      if (booking.status !== 'BOOKED') {
+        return HttpResponse.json({ message: 'Only booked private lessons can be cancelled' }, { status: 409 })
+      }
+      booking.status = 'CANCELLED'
+      booking.updatedAt = new Date().toISOString()
       return HttpResponse.json(booking)
     }
   ),

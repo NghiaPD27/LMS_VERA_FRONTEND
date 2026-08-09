@@ -26,6 +26,7 @@ import { MyEnrollmentsPage } from '../pages/student/MyEnrollmentsPage'
 import { MyLessonsPage } from '../pages/student/MyLessonsPage'
 import { MyPurchasesPage } from '../pages/student/MyPurchasesPage'
 import { PurchaseDetailPage } from '../pages/student/PurchaseDetailPage'
+import { PrivateLessonsPage } from '../pages/student/PrivateLessonsPage'
 import { TeacherAvailabilityPage } from '../pages/teacher/TeacherAvailabilityPage'
 import { TeacherBookingsPage } from '../pages/teacher/TeacherBookingsPage'
 import { TeacherDashboardPage } from '../pages/teacher/TeacherDashboardPage'
@@ -94,6 +95,7 @@ export const router = createBrowserRouter([
               { path: 'student', element: <StudentDashboardPage /> },
               { path: 'student/courses', element: <CoursesPage embedded courseBasePath="/student/courses" /> },
               { path: 'student/courses/:programId', element: <CourseDetailPage embedded courseBasePath="/student/courses" /> },
+              { path: 'student/private-lessons', element: <PrivateLessonsPage /> },
               { path: 'student/purchases', element: <MyPurchasesPage /> },
               { path: 'student/purchases/:purchaseId', element: <PurchaseDetailPage /> },
               { path: 'student/enrollments', element: <MyEnrollmentsPage /> },

@@ -73,10 +73,10 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground'}>
       <Seo
-        title={embedded ? `Vera Language | ${program.name}` : `${program.name} | Khóa học online trên Vera Language`}
+        title={embedded ? `Sen Languages | ${program.name}` : `${program.name} | Khóa học online trên Sen Languages`}
         description={
           program.description ||
-          'Khóa học online trên Vera Language với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.'
+          'Khóa học online trên Sen Languages với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.'
         }
         path={`/courses/${program.id}`}
         noindex={embedded}
@@ -90,11 +90,11 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
                 name: program.name,
                 description:
                   program.description ||
-                  'Khóa học online trên Vera Language với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.',
+                  'Khóa học online trên Sen Languages với lộ trình rõ ràng, video bài học, quiz và giáo viên hỗ trợ.',
                 url: `${siteUrl}/courses/${program.id}`,
                 provider: {
                   '@type': 'EducationalOrganization',
-                  name: 'Vera Language',
+                  name: 'Sen Languages',
                   sameAs: siteUrl,
                 },
                 offers: {
@@ -125,7 +125,7 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
                 <SalesStatusBadge status={program.salesStatus} />
                 <h1 className="mt-5 text-4xl font-extrabold tracking-normal">{program.name}</h1>
                 <p className="mt-4 max-w-2xl text-lg leading-8 text-white/85">
-                  {program.description || 'Vera is updating the detailed course description.'}
+                  {program.description || 'Sen Languages is updating the detailed course description.'}
                 </p>
               </div>
             </div>
@@ -190,7 +190,7 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
                   </Button>
                 ) : expiredEnrollment ? (
                   <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
-                    This course access has expired. Contact Vera to extend your enrollment.
+                    This course access has expired. Contact Sen Languages to extend your enrollment.
                   </div>
                 ) : pendingPurchase?.id ? (
                   <Button asChild className="w-full">
@@ -201,7 +201,7 @@ export function CourseDetailPage({ embedded = false, courseBasePath = '/courses'
                   </Button>
                 ) : paidPurchase ? (
                   <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-800">
-                    Payment confirmed. Vera is preparing your course enrollment.
+                    Payment confirmed. Sen Languages is preparing your course enrollment.
                   </p>
                 ) : isAvailableForPurchase ? (
                   <Button

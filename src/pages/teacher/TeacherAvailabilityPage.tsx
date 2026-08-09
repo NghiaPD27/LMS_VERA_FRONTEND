@@ -282,6 +282,9 @@ function AvailabilitySlotCard({
 }) {
   const canDelete = slot.status === 'OPEN'
   const statusClassName = getAvailabilityStatusClassName(slot.status)
+  const bookingLabel = slot.bookingType === 'PRIVATE'
+    ? 'Private lesson'
+    : slot.lessonName || (slot.lessonId ? `Lesson #${slot.lessonId}` : 'Lesson booking')
 
   return (
     <article className="rounded-xl border border-border bg-slate-900/60 p-4 transition-all hover:border-primary/40">
@@ -292,10 +295,15 @@ function AvailabilitySlotCard({
             <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusClassName}`}>
               {slot.status || 'OPEN'}
             </span>
+            {slot.status === 'BOOKED' && (
+              <span className="rounded-full border border-primary/30 bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+                {slot.bookingType || 'LESSON'}
+              </span>
+            )}
           </div>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {slot.status === 'BOOKED'
-              ? `${slot.studentName || `Student #${slot.studentId ?? '-'}`} booked ${slot.lessonName || `Lesson #${slot.lessonId ?? '-'}`}`
+              ? `${slot.studentName || `Student #${slot.studentId ?? '-'}`} booked ${bookingLabel}`
               : slot.status === 'CANCELLED'
                 ? 'This slot is cancelled.'
                 : 'Available for student booking.'}

@@ -150,7 +150,7 @@ export function StudentDashboardPage() {
                   ) : (
                     <div className={`mt-4 flex items-start gap-2 rounded-lg border p-3 text-xs leading-relaxed ${expired ? 'border-rose-900/50 bg-rose-950/30 text-rose-300' : 'border-slate-800 bg-slate-900 text-slate-400'}`}>
                       <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" />
-                      {expired ? 'This course has expired. Contact Vera to extend access.' : 'This enrollment is not active for learning right now.'}
+                      {expired ? 'This course has expired. Contact Sen Languages to extend access.' : 'This enrollment is not active for learning right now.'}
                     </div>
                   )}
                 </article>

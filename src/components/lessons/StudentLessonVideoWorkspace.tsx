@@ -260,7 +260,7 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
       <VideoNotice
         icon={playback?.status === 'PROCESSING' ? <RefreshCw className="h-7 w-7 animate-spin" /> : <AlertTriangle className="h-7 w-7" />}
         title={playback?.status === 'PROCESSING' ? 'Video is processing' : 'Video is not available yet'}
-        description="Vera will show the player here once this lesson video is ready."
+        description="Sen Languages will show the player here once this lesson video is ready."
         tone={playback?.status === 'PROCESSING' ? 'warning' : 'neutral'}
         onRetry={() => void playbackQuery.refetch()}
       />

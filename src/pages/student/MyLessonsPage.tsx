@@ -43,7 +43,7 @@ export const MyLessonsPage: React.FC = () => {
             </div>
             <h1 className="text-2xl font-extrabold text-foreground">Course access expired</h1>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-              This course is no longer available for learning. Contact Vera to extend your enrollment, then try again.
+              This course is no longer available for learning. Contact Sen Languages to extend your enrollment, then try again.
             </p>
             <Button className="mt-5" onClick={handleBack}>
               Back to enrollments

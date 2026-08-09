@@ -9,7 +9,9 @@ const hookState = vi.hoisted(() => ({
   createAvailability: vi.fn(),
   deleteAvailability: vi.fn(),
   reviewBooking: vi.fn(),
+  completePrivateBooking: vi.fn(),
   bookingsStatus: undefined as string | undefined,
+  privateBookingsStatus: undefined as string | undefined,
   availabilitySlots: [] as Array<{
     availabilityId: number
     teacherId: number
@@ -17,6 +19,22 @@ const hookState = vi.hoisted(() => ({
     endAt: string
     status: string
     meetLink?: string
+    bookingType?: string
+    lessonId?: number | null
+    lessonName?: string | null
+  }>,
+  privateBookings: [] as Array<{
+    id: number
+    studentName: string
+    teacherId: number
+    bookingType: string
+    lessonId?: number | null
+    lessonName?: string | null
+    enrollmentId?: number | null
+    meetLink?: string
+    startAt: string
+    endAt: string
+    status: string
   }>,
 }))
 
@@ -70,8 +88,28 @@ vi.mock('../../../hooks/useTeacher', () => ({
       error: null,
     }
   },
+  useGetTeacherPrivateBookings: (params = {}) => {
+    hookState.privateBookingsStatus = (params as { status?: string }).status
+    return {
+      data: {
+        content: hookState.privateBookings,
+        totalElements: hookState.privateBookings.length,
+        totalPages: hookState.privateBookings.length ? 1 : 0,
+        page: 0,
+        size: 20,
+      },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+    }
+  },
   useReviewTeacherBooking: () => ({
     mutateAsync: hookState.reviewBooking,
+    isPending: false,
+  }),
+  useCompleteTeacherPrivateBooking: () => ({
+    mutateAsync: hookState.completePrivateBooking,
     isPending: false,
   }),
 }))
@@ -91,8 +129,11 @@ describe('Teacher workspace', () => {
     hookState.createAvailability.mockReset()
     hookState.deleteAvailability.mockReset()
     hookState.reviewBooking.mockReset()
+    hookState.completePrivateBooking.mockReset()
     hookState.bookingsStatus = undefined
+    hookState.privateBookingsStatus = undefined
     hookState.availabilitySlots = []
+    hookState.privateBookings = []
   })
 
   it('validates availability requires date and hour fields', async () => {
@@ -184,6 +225,28 @@ describe('Teacher workspace', () => {
     expect(screen.getByText('Missing Meet link')).toBeInTheDocument()
   })
 
+  it('labels booked availability as private without lesson placeholders', () => {
+    hookState.availabilitySlots = [
+      {
+        availabilityId: 4,
+        teacherId: 2,
+        startAt: '2026-07-24T10:00:00Z',
+        endAt: '2026-07-24T11:00:00Z',
+        status: 'BOOKED',
+        bookingType: 'PRIVATE',
+        lessonId: null,
+        lessonName: null,
+        meetLink: 'https://meet.google.com/private-room',
+      },
+    ]
+
+    render(<TeacherAvailabilityPage />)
+
+    expect(screen.getByText('PRIVATE')).toBeInTheDocument()
+    expect(screen.getByText(/booked Private lesson/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Lesson #/i)).not.toBeInTheDocument()
+  })
+
   it('submits teacher review and explains missing compensation validation errors', async () => {
     const user = userEvent.setup()
     hookState.reviewBooking.mockRejectedValue(createAxiosError(400, 'Teacher compensation must be configured before review'))
@@ -205,5 +268,62 @@ describe('Teacher workspace', () => {
       })
     )
     expect(await screen.findByText('Teacher compensation must be configured before review')).toBeInTheDocument()
+  })
+
+  it('completes private bookings from the private tab', async () => {
+    const user = userEvent.setup()
+    hookState.privateBookings = [
+      {
+        id: 91,
+        studentName: 'John Smith',
+        teacherId: 2,
+        bookingType: 'PRIVATE',
+        lessonId: null,
+        lessonName: null,
+        enrollmentId: null,
+        meetLink: 'https://meet.google.com/private-room',
+        startAt: '2026-07-23T10:00:00Z',
+        endAt: '2026-07-23T11:00:00Z',
+        status: 'BOOKED',
+      },
+    ]
+    hookState.completePrivateBooking.mockResolvedValue({
+      ...hookState.privateBookings[0],
+      status: 'COMPLETED',
+    })
+
+    render(<TeacherBookingsPage />)
+
+    await user.click(screen.getByTestId('teacher-booking-type-private'))
+
+    expect(screen.getByText('Private lesson')).toBeInTheDocument()
+    expect(screen.queryByText(/Lesson #/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /open meet/i })).toHaveAttribute('href', 'https://meet.google.com/private-room')
+    await user.click(screen.getByTestId('complete-private-booking-91'))
+
+    await waitFor(() => expect(hookState.completePrivateBooking).toHaveBeenCalledWith(91))
+    expect(await screen.findByText('Private lesson marked COMPLETED.')).toBeInTheDocument()
+  })
+
+  it('prevents completing private bookings before the end time', async () => {
+    const user = userEvent.setup()
+    hookState.privateBookings = [
+      {
+        id: 92,
+        studentName: 'John Smith',
+        teacherId: 2,
+        bookingType: 'PRIVATE',
+        startAt: '2099-07-23T10:00:00Z',
+        endAt: '2099-07-23T11:00:00Z',
+        status: 'BOOKED',
+      },
+    ]
+
+    render(<TeacherBookingsPage />)
+
+    await user.click(screen.getByTestId('teacher-booking-type-private'))
+
+    expect(screen.getByText('Complete is available after the session end time.')).toBeInTheDocument()
+    expect(screen.getByTestId('complete-private-booking-92')).toBeDisabled()
   })
 })

@@ -63,7 +63,7 @@ export function PurchaseDetailPage() {
             <div>
               <h1 className="lms-section-title">Payment details</h1>
               <p className="lms-section-description">
-                Scan the SePay QR code or transfer manually. Vera checks payment confirmation every few seconds.
+                Scan the SePay QR code or transfer manually. Sen Languages checks payment confirmation every few seconds.
               </p>
             </div>
           </div>
@@ -88,7 +88,7 @@ export function PurchaseDetailPage() {
       ) : purchase.status === 'PAID' ? (
         <div className="lms-surface border-emerald-200 bg-emerald-50 p-5">
           <p className="font-extrabold text-emerald-900">Payment confirmed</p>
-          <p className="mt-1 text-sm text-emerald-800">Vera is preparing your enrollment. Refresh this page if the course button does not appear yet.</p>
+          <p className="mt-1 text-sm text-emerald-800">Sen Languages is preparing your enrollment. Refresh this page if the course button does not appear yet.</p>
         </div>
       ) : null}
     </section>

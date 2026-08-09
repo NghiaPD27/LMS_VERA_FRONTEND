@@ -6,6 +6,7 @@ import type {
   TeacherAvailability,
   TeacherAvailabilityQueryParams,
   TeacherAvailabilitySlotPage,
+  TeacherBooking,
   TeacherBookingPage,
   TeacherBookingQueryParams,
   TeacherEarningsQueryParams,
@@ -54,6 +55,19 @@ export const teacherApi = {
 
   reviewBooking: async (bookingId: number, data: ReviewBookingRequest): Promise<TeacherReview> => {
     const response = await http.post(`/teacher/bookings/${bookingId}/review`, data)
+    return response.data
+  },
+
+  getPrivateBookings: async (params: TeacherBookingQueryParams = {}): Promise<TeacherBookingPage> => {
+    const cleanedParams = cleanParams(params)
+    const response = await http.get('/teacher/private-bookings', {
+      params: Object.keys(cleanedParams).length ? cleanedParams : undefined,
+    })
+    return response.data
+  },
+
+  completePrivateBooking: async (bookingId: number): Promise<TeacherBooking> => {
+    const response = await http.post(`/teacher/private-bookings/${bookingId}/complete`)
     return response.data
   },
 }

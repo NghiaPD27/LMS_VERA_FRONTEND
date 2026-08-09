@@ -749,7 +749,7 @@ export function HomePage() {
           </div>
 
           <div className="border-t border-border/60 pt-4 pb-2 text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} Vera Language Center. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Sen Languages Center. All rights reserved.</p>
           </div>
         </section>
       </motion.div>

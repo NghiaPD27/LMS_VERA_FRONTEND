@@ -112,7 +112,7 @@ export function EvaluatorLayout() {
                   <GraduationCap className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-white text-sm">Vera Language</p>
+                  <p className="font-bold text-white text-sm">Sen Languages</p>
                   <p className="text-[10px] text-muted-foreground">Evaluator Workspace</p>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export function EvaluatorLayout() {
               </button>
               <div className="flex items-center gap-2 font-bold text-white text-sm">
                 <GraduationCap className="h-5 w-5 text-primary" />
-                Vera Language
+                Sen Languages
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout} className="border-border text-xs">

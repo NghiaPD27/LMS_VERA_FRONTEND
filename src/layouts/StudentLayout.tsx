@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
+  CalendarClock,
   ClipboardList,
   GraduationCap,
   KeyRound,
@@ -19,6 +20,7 @@ import { cn } from '@/utils/cn'
 const navItems = [
   { label: 'Dashboard', href: '/student', icon: LayoutDashboard, end: true },
   { label: 'Courses', href: '/student/courses', icon: ShoppingBag, end: false },
+  { label: 'Private Lessons', href: '/student/private-lessons', icon: CalendarClock, end: true },
   { label: 'My Purchases', href: '/student/purchases', icon: ReceiptText, end: false },
   { label: 'My Enrollments', href: '/student/enrollments', icon: ClipboardList, end: true },
   { label: 'Change Password', href: '/change-password', icon: KeyRound, end: true },
@@ -119,7 +121,7 @@ export function StudentLayout() {
                   <GraduationCap className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-white text-sm">Vera Language</p>
+                  <p className="font-bold text-white text-sm">Sen Languages</p>
                   <p className="text-[10px] text-muted-foreground">Student Portal</p>
                 </div>
               </div>
@@ -183,7 +185,7 @@ export function StudentLayout() {
               </button>
               <div className="flex items-center gap-2 font-bold text-white text-sm">
                 <GraduationCap className="h-5 w-5 text-primary" />
-                Vera Language
+                Sen Languages
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout} className="border-border text-xs">

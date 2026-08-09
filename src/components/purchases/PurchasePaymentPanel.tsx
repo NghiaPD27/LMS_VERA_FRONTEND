@@ -199,7 +199,7 @@ export function PurchasePaymentPanel({
             <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-950/40 p-3 text-xs leading-6 text-amber-300">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
               <p>
-                Use the QR code or transfer manually with the exact amount and transfer content shown above. Vera will update this page automatically after payment is confirmed.
+                Use the QR code or transfer manually with the exact amount and transfer content shown above. Sen Languages will update this page automatically after payment is confirmed.
               </p>
             </div>
           )}

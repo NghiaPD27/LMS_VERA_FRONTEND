@@ -50,8 +50,8 @@ export function Seo({
   return null
 }
 
-export function NoIndexSeo({ title = 'Vera Language' }: { title?: string }) {
-  return <Seo title={title} description="Private Vera Language workspace." noindex />
+export function NoIndexSeo({ title = 'Sen Languages' }: { title?: string }) {
+  return <Seo title={title} description="Private Sen Languages workspace." noindex />
 }
 
 function setMeta(name: string, content: string) {
