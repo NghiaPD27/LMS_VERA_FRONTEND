@@ -68,7 +68,7 @@ export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: Stude
 
   if (forbiddenError) {
     return (
-      <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+      <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-950/40 p-4 text-xs leading-6 text-amber-300">
         You do not have permission to access this final assessment status. Enrollment data is being refreshed.
       </div>
     )
@@ -139,22 +139,22 @@ export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: Stude
             }}
           />
           {activePayment.status === 'PAID' && (
-            <div className="mt-3 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-900">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-              Payment confirmed. Vera will schedule your final retake session.
+            <div className="mt-3 flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3 text-xs leading-6 text-emerald-300">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+              Payment confirmed. Sen Languages will schedule your final retake session.
             </div>
           )}
         </div>
       ) : status.retakeRequired || status.enrollmentStatus === 'WAITING_FOR_REASSESSMENT' ? (
-        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/40 p-4 text-xs leading-6 text-amber-300">
           <div className="flex items-start gap-3">
-            <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+            <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
             <div>
-              <p className="font-extrabold">Retake payment required</p>
+              <p className="font-extrabold text-white">Retake payment required</p>
               <p className="mt-1">Create a retake payment only after a NOT_PASS final result. Backend will block this action if the retake price is not configured or a payment is already pending.</p>
             </div>
           </div>
-          <Button type="button" className="mt-3" disabled={createPaymentMutation.isPending} onClick={() => void createRetakePayment()}>
+          <Button type="button" className="mt-3 bg-primary text-white font-bold" disabled={createPaymentMutation.isPending} onClick={() => void createRetakePayment()}>
             {createPaymentMutation.isPending ? 'Creating payment...' : 'Create retake payment'}
           </Button>
         </div>
@@ -167,9 +167,9 @@ export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: Stude
 
 function FinalMeta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-background p-3">
+    <div className="rounded-xl border border-border/80 bg-slate-950 p-3">
       <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</p>
-      <p className="mt-1 font-extrabold text-foreground">{value}</p>
+      <p className="mt-1 text-sm font-extrabold text-white">{value}</p>
     </div>
   )
 }
@@ -177,10 +177,10 @@ function FinalMeta({ label, value }: { label: string; value: string }) {
 function getFinalStatusCopy(enrollmentStatus?: string, lastResult?: string, retakeRequired?: boolean) {
   if (lastResult === 'PASS') return 'Final assessment passed. Your enrollment is complete.'
   if (lastResult === 'NOT_PASS' || retakeRequired || enrollmentStatus === 'WAITING_FOR_REASSESSMENT') {
-    return 'Final assessment was not passed. Complete retake payment before Vera schedules another final session.'
+    return 'Final assessment was not passed. Complete retake payment before Sen Languages schedules another final session.'
   }
   if (enrollmentStatus === 'COMPLETED') return 'Final assessment complete.'
-  return 'Your final assessment status is managed by Vera and your evaluator.'
+  return 'Your final assessment status is managed by Sen Languages and your evaluator.'
 }
 
 function getLatestRetakePayment(payments: FinalAssessmentRetakePayment[]) {

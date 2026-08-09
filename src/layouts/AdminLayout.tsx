@@ -71,7 +71,7 @@ export function AdminLayout() {
 
   return (
     <div className="vera-workspace-bg flex min-h-screen bg-[hsl(220_14%_7%)] text-foreground">
-      <NoIndexSeo title="Vera Language | Admin workspace" />
+      <NoIndexSeo title="Sen Languages | Admin workspace" />
 
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden h-dvh w-64 border-r border-border bg-[hsl(220_14%_9%)] md:flex md:flex-col">
@@ -82,7 +82,7 @@ export function AdminLayout() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-extrabold tracking-tight text-white">Vera Language</p>
+              <p className="text-base font-extrabold tracking-tight text-white">Sen Languages</p>
               <p className="text-[11px] font-medium text-muted-foreground">Admin Workspace</p>
             </div>
           </div>

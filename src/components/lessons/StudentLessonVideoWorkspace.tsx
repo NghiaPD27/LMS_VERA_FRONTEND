@@ -269,9 +269,9 @@ function LessonVideoPlayer({ lesson }: { lesson?: Lesson }) {
 
   return (
     <article className="lms-surface overflow-hidden">
-      <div className="border-b border-border bg-white p-5">
-        <p className="text-sm font-bold text-[hsl(var(--brand-green))]">Lesson {lesson.lessonNumber || '-'}</p>
-        <h2 className="mt-1 text-2xl font-extrabold text-foreground">{lesson.name}</h2>
+      <div className="border-b border-border/80 bg-slate-900/90 p-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">Lesson {lesson.lessonNumber || '-'}</p>
+        <h2 className="mt-1 text-2xl font-extrabold text-white">{lesson.name}</h2>
         {lesson.content && <p className="mt-2 text-sm leading-6 text-muted-foreground">{lesson.content}</p>}
       </div>
 
@@ -390,12 +390,12 @@ function LessonRailItem({
     <button
       type="button"
       disabled={locked}
-      className={`w-full rounded-lg border p-3 text-left transition-[background-color,border-color,color,transform] ${
+      className={`w-full rounded-lg border p-3 text-left transition-all duration-150 ${
         locked
-          ? 'cursor-not-allowed border-transparent bg-slate-50 text-muted-foreground opacity-85'
+          ? 'cursor-not-allowed border-transparent bg-slate-900/30 text-muted-foreground opacity-60'
           : active
-          ? 'border-[hsl(var(--brand-orange))]/30 bg-[hsl(var(--brand-orange-soft))] text-foreground shadow-sm'
-          : 'border-transparent text-muted-foreground hover:border-[hsl(var(--brand-green))]/20 hover:bg-[hsl(var(--brand-green-soft))] hover:text-foreground'
+          ? 'border-primary/40 bg-primary/15 text-white shadow-sm font-bold'
+          : 'border-transparent text-zinc-300 hover:border-slate-800 hover:bg-slate-900/70 hover:text-white'
       }`}
       onClick={onSelect}
       data-testid={`select-video-lesson-${lesson.id}`}
@@ -407,10 +407,10 @@ function LessonRailItem({
         </div>
         <span className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-extrabold ${
           locked
-            ? 'bg-white text-slate-500'
+            ? 'bg-slate-800 text-slate-400 border border-border/60'
             : active
-              ? 'bg-white text-primary'
-              : 'bg-white text-[hsl(var(--brand-green))]'
+              ? 'bg-primary text-white'
+              : 'bg-emerald-950/70 text-emerald-400 border border-emerald-500/30'
         }`}>
           {locked && <LockKeyhole className="h-3 w-3" />}
           {locked ? 'Locked' : formatLessonProgressStatus(lesson.lessonProgressStatus || lesson.status)}
@@ -491,9 +491,9 @@ function LearningStateCard({
   icon?: ReactNode
 }) {
   const toneClass = {
-    neutral: 'border-border bg-white text-muted-foreground',
-    success: 'border-emerald-200 bg-white text-emerald-700',
-    warning: 'border-amber-200 bg-white text-amber-700',
+    neutral: 'border-border/80 bg-slate-900/80 text-muted-foreground',
+    success: 'border-emerald-500/30 bg-emerald-950/50 text-emerald-300',
+    warning: 'border-amber-500/30 bg-amber-950/50 text-amber-300',
   }[tone]
 
   return (
@@ -540,10 +540,10 @@ function CheckpointWaitingPanel({ lessonId, enabled }: { lessonId?: number; enab
   const status = checkpointStatusQuery.data
 
   return (
-    <section className="border-t border-border bg-amber-50 p-5">
-      <div className="rounded-lg border border-amber-200 bg-white p-4">
+    <section className="border-t border-border/80 bg-slate-950 p-5">
+      <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-4">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-950 text-amber-400 border border-amber-500/30">
             <ClipboardCheck className="h-5 w-5" />
           </div>
           <div>
@@ -798,14 +798,14 @@ function LessonVideoElement({
           />
         ) : (
           <div
-            className={`absolute inset-0 grid place-items-center bg-[hsl(var(--brand-green-soft))] transition-opacity ${
+            className={`absolute inset-0 grid place-items-center bg-slate-950 transition-opacity ${
               hasVideoFrame ? 'opacity-0' : 'opacity-100'
             }`}
           >
-            <div className="text-center text-slate-800">
-              <ImageIcon className="mx-auto mb-3 h-10 w-10 text-[hsl(var(--brand-green))]" />
+            <div className="text-center text-white">
+              <ImageIcon className="mx-auto mb-3 h-10 w-10 text-primary" />
               <p className="text-sm font-extrabold">Lesson video</p>
-              <p className="mt-1 text-xs font-semibold text-slate-600">Thumbnail will appear when available</p>
+              <p className="mt-1 text-xs font-semibold text-muted-foreground">Thumbnail will appear when available</p>
             </div>
           </div>
         )}
@@ -814,7 +814,7 @@ function LessonVideoElement({
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <button
               type="button"
-              className="pointer-events-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-green))] shadow-xl transition hover:scale-105"
+              className="pointer-events-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-[0_0_25px_rgba(244,106,37,0.5)] transition hover:scale-105"
               onClick={() => void handlePlayClick()}
               aria-label="Play lesson video"
             >

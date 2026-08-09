@@ -143,11 +143,11 @@ export function StudentQuizPanel({ lessonId, enabled }: StudentQuizPanelProps) {
   if (!quiz) return null
 
   return (
-    <section className="border-t border-border bg-white p-5">
+    <section className="border-t border-border/80 bg-slate-900/90 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-bold text-[hsl(var(--brand-green))]">Review quiz</p>
-          <h3 className="mt-1 text-xl font-extrabold text-foreground">{quiz.title || 'Lesson quiz'}</h3>
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">Review quiz</p>
+          <h3 className="mt-1 text-xl font-extrabold text-white">{quiz.title || 'Lesson quiz'}</h3>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             You can retake this quiz any time. Low scores do not block your learning.
           </p>
@@ -176,9 +176,9 @@ export function StudentQuizPanel({ lessonId, enabled }: StudentQuizPanelProps) {
 
       {attempt && !submittedAttempt && (
         <div className="mt-5 space-y-4">
-          <div className="rounded-lg border border-[hsl(var(--brand-orange))]/25 bg-[hsl(var(--brand-orange-soft))] p-4">
-            <p className="font-extrabold text-foreground">Attempt {attempt.attemptNumber || '-'}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Choose one answer for each question before submitting.</p>
+          <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
+            <p className="font-extrabold text-white">Attempt {attempt.attemptNumber || '-'}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Choose one answer for each question before submitting.</p>
           </div>
 
           {questions.map((question, questionIndex) => (
@@ -229,11 +229,11 @@ function QuizQuestionCard({
     .sort((a, b) => (a.position || 0) - (b.position || 0))
 
   return (
-    <article className="rounded-lg border border-border bg-background p-4">
+    <article className="rounded-xl border border-border/80 bg-slate-900/60 p-4">
       <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
         Question {questionIndex + 1}
       </p>
-      <h4 className="mt-1 font-extrabold leading-6 text-foreground">
+      <h4 className="mt-1 font-extrabold leading-6 text-white">
         {question.questionText || 'Untitled question'}
       </h4>
 
@@ -246,18 +246,18 @@ function QuizQuestionCard({
               key={option.id || optionIndex}
               type="button"
               disabled={!optionId}
-              className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition ${
+              className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                 selected
-                  ? 'border-[hsl(var(--brand-green))] bg-[hsl(var(--brand-green-soft))] text-foreground shadow-sm'
-                  : 'border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  ? 'border-emerald-500/50 bg-emerald-950/60 text-white shadow-sm font-bold'
+                  : 'border-border/80 bg-slate-900/80 text-zinc-300 hover:border-primary/50 hover:bg-slate-800 hover:text-white'
               }`}
               onClick={() => optionId && onSelect(optionId)}
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs font-extrabold ${
                   selected
-                    ? 'border-[hsl(var(--brand-green))] bg-[hsl(var(--brand-green))] text-white'
-                    : 'border-border bg-background text-muted-foreground'
+                    ? 'border-emerald-500 bg-emerald-500 text-slate-950'
+                    : 'border-border bg-slate-800 text-muted-foreground'
                 }`}
               >
                 {String.fromCharCode(65 + optionIndex)}
@@ -273,15 +273,15 @@ function QuizQuestionCard({
 
 function QuizResult({ attempt }: { attempt: QuizAttempt }) {
   return (
-    <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+    <div className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-500/30">
             <Trophy className="h-6 w-6" />
           </div>
           <div>
-            <h4 className="text-lg font-extrabold text-emerald-950">Quiz submitted</h4>
-            <p className="mt-1 text-sm leading-6 text-emerald-800">
+            <h4 className="text-lg font-extrabold text-white">Quiz submitted</h4>
+            <p className="mt-1 text-xs leading-6 text-emerald-300/90">
               Teacher review is next. You can try again whenever you want.
             </p>
           </div>
@@ -292,12 +292,12 @@ function QuizResult({ attempt }: { attempt: QuizAttempt }) {
           <ResultStat label="Best" value={`${attempt.bestScorePercent ?? attempt.scorePercent ?? 0}%`} />
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2 text-sm text-emerald-900">
-        <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-bold">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-300">
+        <span className="rounded-full border border-emerald-500/30 bg-emerald-950/70 px-3 py-1 font-bold">
           Attempt {attempt.attemptNumber || '-'}
         </span>
         {attempt.lessonProgressStatus && (
-          <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-bold">
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-950/70 px-3 py-1 font-bold">
             {formatLessonProgressStatus(attempt.lessonProgressStatus)}
           </span>
         )}
@@ -308,9 +308,9 @@ function QuizResult({ attempt }: { attempt: QuizAttempt }) {
 
 function ResultStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-emerald-200 bg-white px-3 py-2">
-      <p className="text-base font-extrabold text-emerald-950">{value}</p>
-      <p className="text-xs font-bold text-emerald-700">{label}</p>
+    <div className="rounded-lg border border-emerald-500/30 bg-slate-900/80 px-3 py-2">
+      <p className="text-base font-extrabold text-white">{value}</p>
+      <p className="text-xs font-bold text-emerald-400">{label}</p>
     </div>
   )
 }
@@ -329,8 +329,8 @@ function QuizNotice({
   onRetry?: () => void
 }) {
   const toneClass = tone === 'warning'
-    ? 'border-amber-200 bg-amber-50 text-amber-800'
-    : 'border-border bg-white text-muted-foreground'
+    ? 'border-amber-500/30 bg-amber-950/40 text-amber-300'
+    : 'border-border/80 bg-slate-900/80 text-muted-foreground'
 
   return (
     <div className={`rounded-lg border p-4 ${toneClass}`}>

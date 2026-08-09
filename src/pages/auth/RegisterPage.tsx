@@ -58,7 +58,7 @@ export function RegisterPage() {
         <div className="relative overflow-hidden border-b border-border bg-gradient-to-b from-slate-900 to-[hsl(220_14%_11%)] px-8 py-7">
           <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/15 blur-2xl" />
           <div className="relative mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary">
-            Vera Language
+            Sen Languages
           </div>
           <h1 className="relative text-3xl font-extrabold tracking-tight text-white">Create a learner account</h1>
           <p className="relative mt-1 text-xs text-muted-foreground">

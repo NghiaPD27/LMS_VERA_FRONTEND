@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { siteUrl } from '../../utils/seo'
 
-const DEFAULT_TITLE = 'Vera Language | Học tiếng Anh và tiếng Việt trực tuyến'
+const DEFAULT_TITLE = 'Sen Languages | Học tiếng Anh và tiếng Việt trực tuyến'
 const DEFAULT_DESCRIPTION =
-  'Vera Language là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, video bài học, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
-const DEFAULT_IMAGE = `${siteUrl}/images/vera-language-classroom-hero.png`
+  'Sen Languages là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, bài học video, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
+const DEFAULT_IMAGE = `${siteUrl}/images/sen-languages-hero.png`
 
 interface SeoProps {
   title?: string

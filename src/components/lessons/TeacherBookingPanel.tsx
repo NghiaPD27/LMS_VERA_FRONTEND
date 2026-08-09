@@ -92,11 +92,11 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
   if (!enabled) return null
 
   return (
-    <section className="border-t border-border bg-[hsl(var(--brand-orange-soft))]/70 p-5">
+    <section className="border-t border-border/80 bg-slate-900/90 p-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm font-bold text-primary">Teacher session</p>
-          <h3 className="mt-1 text-xl font-extrabold text-foreground">Book your review session</h3>
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">Teacher session</p>
+          <h3 className="mt-1 text-xl font-extrabold text-white">Book your review session</h3>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {activeBooking ? 'Your booked session is shown below.' : `${slotsQuery.data?.totalElements ?? 0} available slots from your assigned teacher.`}
           </p>
@@ -187,16 +187,16 @@ export function TeacherBookingPanel({ lessonId, enabled }: TeacherBookingPanelPr
             />
           </div>
 
-          <div className="h-fit rounded-md border border-border bg-white p-4 shadow-[0_10px_26px_rgba(47,143,91,0.08)]">
-            <p className="text-sm font-extrabold text-foreground">Selected session</p>
-            <p className="mt-1 font-extrabold text-foreground">
+          <div className="h-fit rounded-xl border border-border/80 bg-slate-900/80 p-4 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Selected session</p>
+            <p className="mt-1 text-sm font-extrabold text-white">
               {selectedSlot ? formatDateTime(selectedSlot.startAt) : 'No slot selected'}
             </p>
             {selectedSlot?.teacherName && (
-              <p className="mt-1 text-sm text-muted-foreground">Teacher: {selectedSlot.teacherName}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Teacher: {selectedSlot.teacherName}</p>
             )}
             {selectedSlot?.endAt && (
-              <p className="mt-1 text-sm text-muted-foreground">Ends: {formatDateTime(selectedSlot.endAt)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Ends: {formatDateTime(selectedSlot.endAt)}</p>
             )}
             <Button
               type="button"
@@ -226,19 +226,19 @@ function TeacherSlotButton({
   return (
     <button
       type="button"
-      className={`rounded-md border p-3 text-left transition-[background-color,border-color,color,box-shadow,transform] active:translate-y-px ${
+      className={`rounded-xl border p-3 text-left transition-all active:translate-y-px ${
         selected
-          ? 'border-primary bg-white text-foreground shadow-[0_10px_24px_rgba(244,122,61,0.16)]'
-          : 'border-border bg-white/80 text-muted-foreground hover:border-primary/40 hover:bg-white hover:text-foreground'
+          ? 'border-primary/50 bg-primary/15 text-white shadow-sm font-bold'
+          : 'border-border/80 bg-slate-900/80 text-zinc-300 hover:border-primary/40 hover:bg-slate-800 hover:text-white'
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start gap-2">
         <CalendarClock className={`mt-0.5 h-4 w-4 shrink-0 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
         <div>
-          <p className="text-sm font-extrabold text-foreground">{formatDateTime(slot.startAt)}</p>
-          <p className="mt-1 text-xs font-semibold">{slot.teacherName || `Teacher #${slot.teacherId ?? '-'}`}</p>
-          <p className="mt-2 text-xs">1-hour review session</p>
+          <p className="text-xs font-extrabold text-white">{formatDateTime(slot.startAt)}</p>
+          <p className="mt-1 text-[11px] font-semibold text-zinc-300">{slot.teacherName || `Teacher #${slot.teacherId ?? '-'}`}</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">1-hour review session</p>
         </div>
       </div>
     </button>
@@ -255,28 +255,28 @@ function BookedSession({
   onCancel: () => void
 }) {
   return (
-    <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+    <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-4 text-xs leading-6 text-emerald-300">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
           <div>
-            <p className="font-extrabold text-emerald-950">Session booked</p>
+            <p className="font-extrabold text-white">Session booked</p>
             <p>{formatDateTime(booking.startAt)} with {booking.teacherName || `Teacher #${booking.teacherId ?? '-'}`}.</p>
-            {booking.status && <p className="text-emerald-800">Status: {booking.status}</p>}
-            {booking.lessonName && <p className="text-emerald-800">{booking.lessonName}</p>}
+            {booking.status && <p className="text-emerald-400 font-medium">Status: {booking.status}</p>}
+            {booking.lessonName && <p className="text-emerald-300">{booking.lessonName}</p>}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {booking.meetLink && (
-            <Button asChild variant="outline" size="sm" className="border-emerald-300 bg-white">
+            <Button asChild variant="outline" size="sm" className="border-emerald-500/40 bg-emerald-950 text-emerald-300 hover:bg-emerald-900 hover:text-white text-xs">
               <a href={booking.meetLink} target="_blank" rel="noreferrer">
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-3.5 w-3.5" />
                 Vào Google Meet
               </a>
             </Button>
           )}
-          <Button type="button" variant="outline" size="sm" className="border-emerald-300 bg-white" disabled={isCancelling} onClick={onCancel}>
-            <XCircle className="h-4 w-4" />
+          <Button type="button" variant="outline" size="sm" className="border-emerald-500/40 bg-slate-900 text-zinc-300 hover:bg-slate-800 text-xs" disabled={isCancelling} onClick={onCancel}>
+            <XCircle className="h-3.5 w-3.5" />
             {isCancelling ? 'Cancelling...' : 'Cancel booking'}
           </Button>
         </div>
@@ -297,12 +297,12 @@ function TeacherBookingNotice({
   onRetry: () => void
 }) {
   return (
-    <div className="mt-5 rounded-lg border border-border bg-white p-4">
+    <div className="mt-5 rounded-xl border border-border/80 bg-slate-900/80 p-4">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 shrink-0 text-muted-foreground">{icon}</div>
         <div>
-          <h3 className="font-extrabold text-foreground">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+          <h3 className="font-extrabold text-white">{title}</h3>
+          <p className="mt-1 text-xs leading-6 text-muted-foreground">{description}</p>
           <Button type="button" variant="outline" size="sm" className="mt-3" onClick={onRetry}>
             Retry
           </Button>

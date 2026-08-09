@@ -45,16 +45,16 @@ export function PurchasePaymentPanel({
     return (
       <div
         className={cn(
-          'rounded-lg border p-4',
-          isPaid ? 'border-emerald-200 bg-emerald-50' : isPending ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'
+          'rounded-xl border p-4',
+          isPaid ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' : isPending ? 'border-amber-500/30 bg-amber-950/40 text-amber-300' : 'border-rose-500/30 bg-rose-950/40 text-rose-300'
         )}
         data-testid={`payment-panel-${purchase.id ?? 'new'}`}
       >
         <div className="flex items-start gap-3">
           <div
             className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white',
-              isPaid ? 'text-emerald-700' : isPending ? 'text-amber-700' : 'text-red-700'
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-950 border border-border/80',
+              isPaid ? 'text-emerald-400' : isPending ? 'text-amber-400' : 'text-rose-400'
             )}
           >
             {isPaid ? <CheckCircle2 className="h-5 w-5" /> : isPending ? <QrCode className="h-5 w-5" /> : <TriangleAlert className="h-5 w-5" />}
@@ -66,11 +66,11 @@ export function PurchasePaymentPanel({
               </p>
               <span className="text-xs font-bold text-muted-foreground">{paymentProvider}</span>
             </div>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1 text-xs leading-6 text-muted-foreground">
               {isPending
                 ? 'Open payment details to scan the QR code or copy the transfer content.'
                 : isPaid
-                  ? 'Vera has confirmed this payment.'
+                  ? 'Sen Languages has confirmed this payment.'
                   : 'Check the latest purchase status before continuing.'}
             </p>
           </div>
@@ -99,45 +99,45 @@ export function PurchasePaymentPanel({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border bg-white shadow-[0_18px_50px_rgba(27,89,56,0.10)]',
-        isPaid ? 'border-emerald-200' : isPending ? 'border-amber-200' : 'border-red-200',
+        'overflow-hidden rounded-xl border bg-slate-900/90 shadow-lg',
+        isPaid ? 'border-emerald-500/30' : isPending ? 'border-amber-500/30' : 'border-rose-500/30',
       )}
       data-testid={`payment-panel-${purchase.id ?? 'new'}`}
     >
       <div
         className={cn(
           'flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-start sm:justify-between',
-          isPaid ? 'border-emerald-200 bg-emerald-50' : isPending ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'
+          isPaid ? 'border-emerald-500/30 bg-emerald-950/40' : isPending ? 'border-amber-500/30 bg-amber-950/40' : 'border-rose-500/30 bg-rose-950/40'
         )}
       >
         <div className="flex items-start gap-3">
           <div
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white',
-              isPaid ? 'text-emerald-700' : isPending ? 'text-amber-700' : 'text-red-700'
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950 border border-border/80',
+              isPaid ? 'text-emerald-400' : isPending ? 'text-amber-400' : 'text-rose-400'
             )}
           >
             {isPaid ? <CheckCircle2 className="h-6 w-6" /> : isPending ? <QrCode className="h-6 w-6" /> : <TriangleAlert className="h-6 w-6" />}
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-extrabold text-foreground">
+              <h2 className="text-lg font-extrabold text-white">
                 {isPaid ? 'Payment confirmed' : isPending ? 'Complete your bank transfer' : 'Payment needs attention'}
               </h2>
               <PurchaseStatusBadge status={purchase.status} />
             </div>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1 text-xs leading-6 text-muted-foreground">
               {isPaid
-                ? 'Vera has confirmed this payment. Your course access is ready.'
+                ? 'Sen Languages has confirmed this payment. Your course access is ready.'
                 : isPending
-                  ? 'Transfer the exact amount and keep the transfer content unchanged so Vera can match the payment.'
+                  ? 'Transfer the exact amount and keep the transfer content unchanged so Sen Languages can match the payment.'
                   : 'This payment is not active anymore. Check the latest purchase status before trying again.'}
             </p>
           </div>
         </div>
 
         {onRefresh && (
-          <Button type="button" variant="outline" size="sm" className="bg-white" onClick={onRefresh} disabled={isRefreshing}>
+          <Button type="button" variant="outline" size="sm" className="bg-slate-800 border-border/80 text-zinc-300 hover:bg-slate-700 hover:text-white" onClick={onRefresh} disabled={isRefreshing}>
             <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
             Refresh
           </Button>
@@ -145,8 +145,8 @@ export function PurchasePaymentPanel({
       </div>
 
       <div className="grid gap-5 p-4 lg:grid-cols-[240px_1fr] lg:p-6">
-        <div className="rounded-lg border border-border bg-[hsl(var(--brand-green-soft))] p-3">
-          <div className="aspect-square overflow-hidden rounded-md border border-white bg-white">
+        <div className="rounded-xl border border-border/80 bg-slate-950 p-3">
+          <div className="aspect-square overflow-hidden rounded-lg border border-border/80 bg-white">
             {purchase.paymentQrUrl && !qrFailed ? (
               <img
                 src={purchase.paymentQrUrl}
@@ -155,13 +155,13 @@ export function PurchasePaymentPanel({
                 onError={() => setQrFailed(true)}
               />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                <QrCode className="mb-3 h-9 w-9 text-[hsl(var(--brand-green))]" />
+              <div className="flex h-full flex-col items-center justify-center p-4 text-center text-xs text-muted-foreground bg-slate-950">
+                <QrCode className="mb-3 h-9 w-9 text-primary" />
                 QR image will appear when the payment provider is available.
               </div>
             )}
           </div>
-          <p className="mt-3 text-center text-xs font-bold uppercase tracking-normal text-[hsl(var(--brand-green))]">
+          <p className="mt-3 text-center text-xs font-bold uppercase tracking-normal text-primary">
             {paymentProvider}
           </p>
         </div>
@@ -196,8 +196,8 @@ export function PurchasePaymentPanel({
           </dl>
 
           {isPending && (
-            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-950/40 p-3 text-xs leading-6 text-amber-300">
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
               <p>
                 Use the QR code or transfer manually with the exact amount and transfer content shown above. Vera will update this page automatically after payment is confirmed.
               </p>

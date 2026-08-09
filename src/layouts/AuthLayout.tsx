@@ -5,7 +5,7 @@ import { NoIndexSeo } from '../components/common/Seo'
 export function AuthLayout() {
   return (
     <main className="relative isolate flex min-h-[100dvh] items-center justify-center overflow-y-auto overflow-x-hidden bg-[hsl(220_14%_7%)] px-4 py-6 text-foreground lg:overflow-hidden">
-      <NoIndexSeo title="Vera Language | Account access" />
+      <NoIndexSeo title="Sen Languages | Account access" />
       
       {/* Dark Ambient Radial Glows */}
       <div className="pointer-events-none absolute -left-20 -top-20 -z-10 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
@@ -21,7 +21,7 @@ export function AuthLayout() {
                 <GraduationCap className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xl font-bold text-white tracking-tight">Vera Language</p>
+                <p className="text-xl font-bold text-white tracking-tight">Sen Languages</p>
                 <p className="text-xs font-medium text-muted-foreground">Language learning portal</p>
               </div>
             </div>
@@ -49,7 +49,7 @@ export function AuthLayout() {
             <div className="rounded-xl border border-border bg-slate-900/60 p-4 shadow-sm backdrop-blur-sm">
               <BookOpen className="mb-2 h-5 w-5 text-primary" />
               <p className="font-bold text-white text-sm">Role-based Workspaces</p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">After sign-in, Vera routes you directly to your workspace.</p>
+              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">After sign-in, Sen Languages routes you directly to your workspace.</p>
             </div>
           </div>
         </aside>
