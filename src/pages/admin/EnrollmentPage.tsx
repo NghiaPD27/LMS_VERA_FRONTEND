@@ -10,15 +10,15 @@ import type { AdminEnrollment } from '../../types/enrollment'
 import type { Program } from '../../types/program'
 import type { AdminStudent } from '../../types/user'
 import type { AdminTeacher } from '../../types/teacher'
-import { useAssignTeacher, useGetAdminTeacher, useGetAdminTeachers, useGetTeacherEarnings, useUpsertTeacherCompensation } from '../../hooks/useTeacher'
+import { useAssignTeacher, useGetAdminTeacher, useGetAdminTeachers } from '../../hooks/useTeacher'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import {
   getEnrollmentAccessBadgeClass,
   getEnrollmentAccessLabel,
   isEnrollmentExpired
 } from '../../utils/enrollmentAccess'
-import { formatCurrency, formatDateTime, formatDateShort } from '../../utils/formatters'
-import { CalendarPlus, DollarSign, ReceiptText, Search, UserCheck, UserPlus } from 'lucide-react'
+import { formatDateTime, formatDateShort } from '../../utils/formatters'
+import { CalendarPlus, Search, UserCheck, UserPlus } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -582,7 +582,7 @@ export const EnrollmentPage: React.FC = () => {
             <DialogHeader className="border-b border-border bg-[hsl(220_14%_12%)] px-6 py-4">
               <DialogTitle className="text-white text-base">Teacher assignment</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Assign a teacher, configure compensation, and review earnings without changing the enrollment row layout.
+                Assign one teacher to this enrollment without changing course access or lesson progress.
               </DialogDescription>
             </DialogHeader>
             {teacherEnrollment && (
@@ -601,16 +601,11 @@ export const EnrollmentPage: React.FC = () => {
 function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnrollment; onClose: () => void }) {
   const [keyword, setKeyword] = useState('')
   const [selectedTeacher, setSelectedTeacher] = useState<AdminTeacher | null>(null)
-  const [compensationAmount, setCompensationAmount] = useState('')
-  const [compensationCurrency, setCompensationCurrency] = useState('VND')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const teacherIdForEarnings = selectedTeacher?.id || enrollment.teacherId
   const teachersQuery = useGetAdminTeachers({ keyword: keyword || undefined, page: 0, size: 8 }, true)
   const currentTeacherQuery = useGetAdminTeacher(enrollment.teacherId, !!enrollment.teacherId)
-  const earningsQuery = useGetTeacherEarnings(teacherIdForEarnings, {}, !!teacherIdForEarnings)
   const assignTeacherMutation = useAssignTeacher()
-  const compensationMutation = useUpsertTeacherCompensation()
 
   const teachers = teachersQuery.data?.content ?? []
 
@@ -630,38 +625,8 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
     }
   }
 
-  const saveCompensation = async () => {
-    const teacherId = selectedTeacher?.id || enrollment.teacherId
-    const amountPerSession = Number(compensationAmount)
-
-    if (!teacherId) {
-      setError('Choose a teacher before saving compensation.')
-      return
-    }
-
-    if (!Number.isFinite(amountPerSession) || amountPerSession < 0) {
-      setError('Compensation must be zero or greater.')
-      return
-    }
-
-    try {
-      setMessage(null)
-      setError(null)
-      await compensationMutation.mutateAsync({
-        teacherId,
-        data: {
-          amountPerSession,
-          currency: compensationCurrency || 'VND',
-        },
-      })
-      setMessage(`Compensation saved for ${selectedTeacher ? getTeacherName(selectedTeacher) : enrollment.teacherName || `Teacher #${teacherId}`}.`)
-    } catch (err) {
-      setError(getFriendlyApiErrorMessage(err, 'Failed to save teacher compensation'))
-    }
-  }
-
   return (
-    <div className="grid gap-5 p-6 lg:grid-cols-[1fr_340px]">
+    <div className="space-y-4 p-6">
       <section className="space-y-4">
         <div className="rounded-xl border border-border bg-slate-900/60 p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enrollment</p>
@@ -747,87 +712,13 @@ function TeacherAssignmentPanel({ enrollment, onClose }: { enrollment: AdminEnro
             {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign selected teacher'}
           </Button>
         </div>
-      </section>
-
-      <aside className="space-y-4">
-        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-white">
-            <DollarSign className="h-4 w-4 text-primary" />
-            Compensation
-          </div>
-          <div className="grid grid-cols-[1fr_86px] gap-2">
-            <input
-              type="number"
-              min={0}
-              value={compensationAmount}
-              onChange={(event) => setCompensationAmount(event.target.value)}
-              className="lms-input h-9 text-xs"
-              placeholder="Amount/session"
-              data-testid={`teacher-compensation-amount-${enrollment.id}`}
-            />
-            <input
-              value={compensationCurrency}
-              onChange={(event) => setCompensationCurrency(event.target.value.toUpperCase())}
-              className="lms-input h-9 text-xs"
-              placeholder="VND"
-              data-testid={`teacher-compensation-currency-${enrollment.id}`}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-3 w-full border-border text-xs"
-            disabled={compensationMutation.isPending}
-            onClick={() => void saveCompensation()}
-            data-testid={`save-teacher-compensation-${enrollment.id}`}
-          >
-            {compensationMutation.isPending ? 'Saving...' : 'Save compensation'}
-          </Button>
-        </div>
-
-        <div className="rounded-xl border border-border bg-slate-900/60 p-4">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-white">
-            <ReceiptText className="h-4 w-4 text-primary" />
-            Earnings
-          </div>
-          {!teacherIdForEarnings ? (
-            <p className="text-xs text-muted-foreground">Choose or assign a teacher to view earnings.</p>
-          ) : earningsQuery.isLoading ? (
-            <p className="text-xs text-muted-foreground">Loading earnings...</p>
-          ) : earningsQuery.isError ? (
-            <p className="text-xs text-rose-400">{getFriendlyApiErrorMessage(earningsQuery.error, 'Failed to load earnings')}</p>
-          ) : (
-            <div className="rounded-xl border border-border bg-slate-950 p-3">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">Total earned</p>
-              <p className="mt-1 text-base font-extrabold text-primary">
-                {formatCurrency(earningsQuery.data?.totalEarned ?? 0, earningsQuery.data?.currency || 'VND')}
-              </p>
-              <div className="mt-3 max-h-36 space-y-2 overflow-y-auto text-xs text-muted-foreground">
-                {(earningsQuery.data?.earnings || []).length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No earnings yet.</p>
-                ) : (
-                  earningsQuery.data?.earnings?.map((earning) => (
-                    <div key={earning.id || earning.bookingId} className="rounded-lg border border-border bg-slate-900 p-2 text-xs">
-                      <p className="font-bold text-white">
-                        {formatCurrency(earning.amount ?? 0, earning.currency || earningsQuery.data?.currency || 'VND')}
-                      </p>
-                      <p className="text-[11px]">{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</p>
-                      <p className="text-[10px] text-muted-foreground">{formatDateTime(earning.earnedAt)}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
         {message && <div className="lms-alert-success text-xs">{message}</div>}
         {error && <div className="lms-alert-error text-xs">{error}</div>}
 
-        <Button type="button" variant="outline" className="w-full border-border text-xs" onClick={onClose}>
+        <Button type="button" variant="outline" className="w-full border-border text-xs sm:w-auto" onClick={onClose}>
           Close
         </Button>
-      </aside>
+      </section>
     </div>
   )
 }

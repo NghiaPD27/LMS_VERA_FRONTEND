@@ -41,7 +41,7 @@ const navGroups = [
   {
     title: 'Progress & Review',
     items: [
-      { label: 'Teacher Earnings', href: '/admin/teacher-earnings', icon: WalletCards },
+      { label: 'Teacher Compensation', href: '/admin/teacher-earnings', icon: WalletCards },
       { label: 'Student Progress', href: '/admin/student-progress', icon: BookOpenCheck },
       { label: 'Checkpoints', href: '/admin/checkpoints', icon: ClipboardCheck },
       { label: 'Final Assessments', href: '/admin/final-assessments', icon: Award },

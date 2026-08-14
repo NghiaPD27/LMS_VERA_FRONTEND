@@ -7,6 +7,7 @@ import { getCurrentVietnamMonth } from '../../../utils/month'
 const hookState = vi.hoisted(() => ({
   teacherParams: [] as Array<{ teacherId?: number; params: { month?: string }; enabled?: boolean }>,
   teachersParams: [] as Array<{ keyword?: string; page?: number; size?: number }>,
+  saveCompensation: vi.fn(),
 }))
 
 vi.mock('../../../hooks/useTeacher', () => ({
@@ -72,6 +73,10 @@ vi.mock('../../../hooks/useTeacher', () => ({
       refetch: vi.fn(),
     }
   },
+  useUpsertTeacherCompensation: () => ({
+    mutateAsync: hookState.saveCompensation,
+    isPending: false,
+  }),
 }))
 
 const renderPage = () => {
@@ -94,6 +99,8 @@ describe('AdminTeacherEarningsPage', () => {
   beforeEach(() => {
     hookState.teacherParams = []
     hookState.teachersParams = []
+    hookState.saveCompensation.mockReset()
+    hookState.saveCompensation.mockResolvedValue({})
   })
 
   it('sends the current month for each visible teacher by default', () => {
@@ -125,5 +132,28 @@ describe('AdminTeacherEarningsPage', () => {
       )
     )
     expect(screen.getAllByText(/900,000/).length).toBeGreaterThan(0)
+  })
+
+  it('saves compensation for the selected teacher row', async () => {
+    renderPage()
+
+    fireEvent.click(screen.getByTestId('toggle-admin-teacher-earnings-2'))
+    fireEvent.change(screen.getByTestId('teacher-compensation-amount-2'), {
+      target: { value: '250000' },
+    })
+    fireEvent.change(screen.getByTestId('teacher-compensation-currency-2'), {
+      target: { value: 'vnd' },
+    })
+    fireEvent.click(screen.getByTestId('save-teacher-compensation-2'))
+
+    await waitFor(() =>
+      expect(hookState.saveCompensation).toHaveBeenCalledWith({
+        teacherId: 2,
+        data: {
+          amountPerSession: 250000,
+          currency: 'VND',
+        },
+      })
+    )
   })
 })

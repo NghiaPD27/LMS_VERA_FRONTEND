@@ -5,7 +5,6 @@ import { EnrollmentPage } from '../EnrollmentPage'
 
 const hookState = vi.hoisted(() => ({
   assignTeacher: vi.fn(),
-  saveCompensation: vi.fn(),
 }))
 
 vi.mock('../../../hooks/useAdminUsers', () => ({
@@ -89,31 +88,15 @@ vi.mock('../../../hooks/useTeacher', () => ({
     mutateAsync: hookState.assignTeacher,
     isPending: false,
   }),
-  useUpsertTeacherCompensation: () => ({
-    mutateAsync: hookState.saveCompensation,
-    isPending: false,
-  }),
-  useGetTeacherEarnings: () => ({
-    data: {
-      teacherId: 2,
-      totalEarned: 0,
-      currency: 'VND',
-      earnings: [],
-    },
-    isLoading: false,
-    isError: false,
-  }),
 }))
 
 describe('EnrollmentPage teacher assignment', () => {
   beforeEach(() => {
     hookState.assignTeacher.mockReset()
-    hookState.saveCompensation.mockReset()
     hookState.assignTeacher.mockResolvedValue({})
-    hookState.saveCompensation.mockResolvedValue({})
   })
 
-  it('assigns a searched teacher and saves VND compensation', async () => {
+  it('assigns a searched teacher without configuring compensation per enrollment', async () => {
     const user = userEvent.setup()
 
     render(<EnrollmentPage />)
@@ -131,17 +114,8 @@ describe('EnrollmentPage teacher assignment', () => {
       })
     )
 
-    await user.type(screen.getByTestId('teacher-compensation-amount-44'), '250000')
-    await user.click(screen.getByTestId('save-teacher-compensation-44'))
-
-    await waitFor(() =>
-      expect(hookState.saveCompensation).toHaveBeenCalledWith({
-        teacherId: 2,
-        data: {
-          amountPerSession: 250000,
-          currency: 'VND',
-        },
-      })
-    )
+    expect(screen.queryByTestId('teacher-compensation-amount-44')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('save-teacher-compensation-44')).not.toBeInTheDocument()
+    expect(screen.getByText(/Assign one teacher to this enrollment without changing course access or lesson progress/i)).toBeInTheDocument()
   })
 })

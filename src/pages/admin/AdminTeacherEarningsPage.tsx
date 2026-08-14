@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, RefreshCw, Search, WalletCards } from 'lucid
 import { Button } from '../../components/common/Button'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
-import { useGetAdminTeachers, useGetTeacherEarnings } from '../../hooks/useTeacher'
+import { useGetAdminTeachers, useGetTeacherEarnings, useUpsertTeacherCompensation } from '../../hooks/useTeacher'
 import type { AdminTeacher, TeacherEarning, TeacherEarningsSummary } from '../../types/teacher'
 import { getFriendlyApiErrorMessage } from '../../utils/errorMessage'
 import { formatCurrency, formatDateTime } from '../../utils/formatters'
@@ -52,9 +52,9 @@ export function AdminTeacherEarningsPage() {
               <WalletCards className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="lms-section-title">Teacher Earnings</h1>
+              <h1 className="lms-section-title">Teacher Compensation & Earnings</h1>
               <p className="lms-section-description">
-                Review monthly earned amounts for teacher transfer preparation.
+                Configure each teacher's session rate and review monthly earned amounts for transfer preparation.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@ export function AdminTeacherEarningsPage() {
           <div>
             <h2 className="text-base font-extrabold text-foreground">Monthly Transfer Summary</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Viewing {formatMonthLabel(month)}. This summary shows earned amounts only.
+              Viewing {formatMonthLabel(month)}. Compensation is saved per teacher, not per student assignment.
             </p>
           </div>
           <div className="flex flex-col gap-3 md:flex-row md:items-end">
@@ -173,10 +173,46 @@ export function AdminTeacherEarningsPage() {
 
 function AdminTeacherEarningsRow({ teacher, month }: { teacher: AdminTeacher; month: string }) {
   const [expanded, setExpanded] = useState(false)
+  const [amountPerSession, setAmountPerSession] = useState('')
+  const [currencyInput, setCurrencyInput] = useState('VND')
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const earningsQuery = useGetTeacherEarnings(teacher.id, { month }, !!teacher.id && !!month)
+  const compensationMutation = useUpsertTeacherCompensation()
   const summary = earningsQuery.data
   const earnings = summary?.earnings ?? []
   const currency = summary?.currency || 'VND'
+
+  const saveCompensation = async () => {
+    const teacherId = teacher.id
+    const amount = Number(amountPerSession)
+
+    if (!teacherId) {
+      setError('Teacher id is missing.')
+      return
+    }
+
+    if (!Number.isFinite(amount) || amount < 0) {
+      setError('Compensation must be zero or greater.')
+      return
+    }
+
+    try {
+      setMessage(null)
+      setError(null)
+      await compensationMutation.mutateAsync({
+        teacherId,
+        data: {
+          amountPerSession: amount,
+          currency: currencyInput || 'VND',
+        },
+      })
+      setMessage(`Compensation saved for ${getTeacherName(teacher)}.`)
+      void earningsQuery.refetch()
+    } catch (err) {
+      setError(getFriendlyApiErrorMessage(err, 'Failed to save teacher compensation'))
+    }
+  }
 
   return (
     <Fragment>
@@ -213,7 +249,7 @@ function AdminTeacherEarningsRow({ teacher, month }: { teacher: AdminTeacher; mo
               data-testid={`toggle-admin-teacher-earnings-${teacher.id}`}
             >
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              Rows
+              Manage
             </Button>
           )}
         </TableCell>
@@ -230,7 +266,55 @@ function AdminTeacherEarningsRow({ teacher, month }: { teacher: AdminTeacher; mo
       {expanded && !earningsQuery.isError && (
         <TableRow>
           <TableCell colSpan={6} className="bg-slate-950/60">
-            <TeacherEarningDetails earnings={earnings} currency={currency} />
+            <div className="grid gap-4 p-1">
+              <div className="rounded-lg border border-border bg-slate-900 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white">Teacher compensation</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      One amount per session applies to this teacher's lesson and private bookings.
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_96px_auto] sm:items-end">
+                    <label className="text-xs font-bold text-white">
+                      Amount/session
+                      <input
+                        type="number"
+                        min={0}
+                        value={amountPerSession}
+                        onChange={(event) => setAmountPerSession(event.target.value)}
+                        className="lms-input mt-1 h-9 text-xs"
+                        placeholder="250000"
+                        data-testid={`teacher-compensation-amount-${teacher.id}`}
+                      />
+                    </label>
+                    <label className="text-xs font-bold text-white">
+                      Currency
+                      <input
+                        value={currencyInput}
+                        onChange={(event) => setCurrencyInput(event.target.value.toUpperCase())}
+                        className="lms-input mt-1 h-9 text-xs"
+                        placeholder="VND"
+                        data-testid={`teacher-compensation-currency-${teacher.id}`}
+                      />
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-9 border-border text-xs"
+                      disabled={compensationMutation.isPending}
+                      onClick={() => void saveCompensation()}
+                      data-testid={`save-teacher-compensation-${teacher.id}`}
+                    >
+                      {compensationMutation.isPending ? 'Saving...' : 'Save rate'}
+                    </Button>
+                  </div>
+                </div>
+                {message && <div className="lms-alert-success mt-3 text-xs">{message}</div>}
+                {error && <div className="lms-alert-error mt-3 text-xs">{error}</div>}
+              </div>
+              <TeacherEarningDetails earnings={earnings} currency={currency} />
+            </div>
           </TableCell>
         </TableRow>
       )}
@@ -249,7 +333,9 @@ function TeacherEarningDetails({ earnings, currency }: { earnings: TeacherEarnin
         <div key={earning.id || earning.bookingId} className="grid gap-2 rounded-lg border border-border bg-slate-900 p-3 text-xs lg:grid-cols-[160px_1fr_1fr_120px_120px] lg:items-center">
           <span className="text-muted-foreground">{formatDateTime(earning.earnedAt)}</span>
           <span className="font-semibold text-white">{earning.studentName || `Student #${earning.studentId ?? '-'}`}</span>
-          <span className="text-zinc-300">{earning.lessonName || `Lesson #${earning.lessonId ?? '-'}`}</span>
+          <span className="text-zinc-300">
+            {earning.lessonName || (earning.bookingType === 'PRIVATE' ? 'Private lesson' : `Lesson #${earning.lessonId ?? '-'}`)}
+          </span>
           <span className="text-muted-foreground">Booking #{earning.bookingId ?? '-'}</span>
           <span className="font-bold text-primary lg:text-right">
             {formatCurrency(earning.amount ?? 0, earning.currency || currency)}

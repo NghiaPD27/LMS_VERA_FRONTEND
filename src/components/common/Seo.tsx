@@ -92,7 +92,7 @@ function setLink(rel: string, href?: string) {
 }
 
 function setJsonLd(jsonLd?: Record<string, unknown> | Record<string, unknown>[]) {
-  const id = 'vera-json-ld'
+  const id = 'sen-languages-json-ld'
   const existing = document.getElementById(id)
   if (!jsonLd) {
     existing?.remove()
