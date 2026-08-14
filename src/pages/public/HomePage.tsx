@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import { Seo } from '../../components/common/Seo'
+import { siteUrl } from '../../utils/seo'
 
 type Language = 'vi' | 'en'
 
@@ -198,6 +199,29 @@ const copy = {
 
 const TOTAL_SECTIONS = 5
 
+const homeJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Sen Languages',
+    alternateName: 'Sen Languages Center',
+    url: `${siteUrl}/`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: 'Sen Languages',
+    url: `${siteUrl}/`,
+    email: 'contact@senlanguages.com',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'Sen Tower',
+      addressLocality: 'District 1, Ho Chi Minh City',
+      addressCountry: 'VN',
+    },
+  },
+]
+
 export function HomePage() {
   const [lang, setLang] = useState<Language>('vi')
   const [currentSection, setCurrentSection] = useState(0)
@@ -298,6 +322,7 @@ export function HomePage() {
         title="Sen Languages | Trung tâm Ngôn ngữ Tiếng Anh & Tiếng Việt Online"
         description="Sen Languages - Hệ thống học tiếng Anh và tiếng Việt trực tuyến với lộ trình A1/A2 rõ ràng, bài học video tương tác và cố vấn 1-1."
         path="/"
+        jsonLd={homeJsonLd}
       />
 
       {/* Floating Header */}
