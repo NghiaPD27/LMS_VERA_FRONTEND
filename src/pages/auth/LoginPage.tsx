@@ -70,7 +70,7 @@ export function LoginPage() {
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25 shadow-[0_0_20px_rgba(244,106,37,0.2)] lg:mx-0">
           <GraduationCap className="h-6 w-6" />
         </div>
-        <p className="text-xs font-bold uppercase tracking-wider text-primary">Sen Languages</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">The Vera Voice</p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-white">Welcome back</h1>
         <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
           Sign in to access your courses, lessons, and learning workspace.

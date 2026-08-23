@@ -268,7 +268,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
                   <RefreshCw className="h-5 w-5 animate-spin text-[hsl(var(--brand-green))]" />
                   <div>
                     <p className="font-extrabold text-foreground">Checking current video...</p>
-                    <p className="text-sm text-muted-foreground">Sen Languages is loading the video attached to this lesson.</p>
+                    <p className="text-sm text-muted-foreground">The Vera Voice is loading the video attached to this lesson.</p>
                   </div>
                 </CurrentVideoShell>
               ) : lessonVideoQuery.isError && !videoMissing ? (
@@ -302,7 +302,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
               <div>
                 <h3 className="font-extrabold text-foreground">Upload video</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Select a file to create or replace the video attached to this lesson. Sen Languages creates a secure upload session and tracks when the video is ready.
+                  Select a file to create or replace the video attached to this lesson. The Vera Voice creates a secure upload session and tracks when the video is ready.
                 </p>
               </div>
             </div>
@@ -345,7 +345,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
           {stage === 'processing' && (
             <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
               <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
-              Sen Languages is processing this video and checking the status every few seconds.
+              The Vera Voice is processing this video and checking the status every few seconds.
             </div>
           )}
 

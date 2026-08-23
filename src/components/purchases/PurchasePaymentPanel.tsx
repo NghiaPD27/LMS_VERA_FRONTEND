@@ -70,7 +70,7 @@ export function PurchasePaymentPanel({
               {isPending
                 ? 'Open payment details to scan the QR code or copy the transfer content.'
                 : isPaid
-                  ? 'Sen Languages has confirmed this payment.'
+                  ? 'The Vera Voice has confirmed this payment.'
                   : 'Check the latest purchase status before continuing.'}
             </p>
           </div>
@@ -128,9 +128,9 @@ export function PurchasePaymentPanel({
             </div>
             <p className="mt-1 text-xs leading-6 text-muted-foreground">
               {isPaid
-                ? 'Sen Languages has confirmed this payment. Your course access is ready.'
+                ? 'The Vera Voice has confirmed this payment. Your course access is ready.'
                 : isPending
-                  ? 'Transfer the exact amount and keep the transfer content unchanged so Sen Languages can match the payment.'
+                  ? 'Transfer the exact amount and keep the transfer content unchanged so The Vera Voice can match the payment.'
                   : 'This payment is not active anymore. Check the latest purchase status before trying again.'}
             </p>
           </div>
@@ -199,7 +199,7 @@ export function PurchasePaymentPanel({
             <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-950/40 p-3 text-xs leading-6 text-amber-300">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
               <p>
-                Use the QR code or transfer manually with the exact amount and transfer content shown above. Sen Languages will update this page automatically after payment is confirmed.
+                Use the QR code or transfer manually with the exact amount and transfer content shown above. The Vera Voice will update this page automatically after payment is confirmed.
               </p>
             </div>
           )}

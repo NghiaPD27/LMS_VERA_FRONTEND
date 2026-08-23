@@ -31,8 +31,8 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
   return (
     <main className={embedded ? 'text-foreground' : 'vera-public-bg min-h-screen text-foreground bg-[hsl(220_14%_7%)]'}>
       <Seo
-        title={embedded ? 'Sen Languages | Student courses' : 'Khóa học Sen Languages | Tiếng Anh và tiếng Việt online'}
-        description="Khám phá các khóa học tiếng Anh và tiếng Việt trực tuyến trên Sen Languages với lộ trình rõ ràng, bài học video, quiz và giáo viên hỗ trợ."
+        title={embedded ? 'The Vera Voice | Student courses' : 'Khóa học The Vera Voice | Tiếng Anh và tiếng Việt online'}
+        description="Khám phá các khóa học tiếng Anh và tiếng Việt trực tuyến trên The Vera Voice với lộ trình rõ ràng, bài học video, quiz và giáo viên hỗ trợ."
         path="/courses"
         noindex={embedded}
       />
@@ -43,7 +43,7 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-[0_0_16px_rgba(244,106,37,0.35)]">
                 <GraduationCap className="h-5 w-5" />
               </span>
-              Sen Languages
+              The Vera Voice
             </Link>
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" className="border-border text-xs text-white hover:border-primary">
@@ -60,7 +60,7 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
       <section className={embedded ? 'lms-page-shell' : 'mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8'}>
         <div className="lms-page-hero">
           <div className="lms-page-hero-inner">
-            <p className="text-xs font-bold uppercase tracking-wider text-primary">Sen Languages Courses</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">The Vera Voice Courses</p>
             <h1 className="mt-1 max-w-3xl text-3xl font-extrabold text-white md:text-4xl">
               Choose the right learning path for your goals
             </h1>
@@ -117,7 +117,7 @@ export function CoursesPage({ embedded = false, courseBasePath = '/courses' }: C
                   </div>
                   <h2 className="text-lg font-extrabold text-white group-hover:text-primary transition-colors">{program.name}</h2>
                   <p className="mt-2 line-clamp-3 min-h-[4.5rem] text-xs leading-relaxed text-muted-foreground">
-                    {program.description || 'Sen Languages is updating the detailed course description.'}
+                    {program.description || 'The Vera Voice is updating the detailed course description.'}
                   </p>
                   <div className="mt-5 text-2xl font-extrabold text-primary">
                     {formatCurrency(program.price, program.currency || 'VND')}

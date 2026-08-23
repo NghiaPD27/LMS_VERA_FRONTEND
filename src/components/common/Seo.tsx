@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { siteUrl } from '../../utils/seo'
 
-const DEFAULT_TITLE = 'Sen Languages | Học tiếng Anh và tiếng Việt trực tuyến'
+const DEFAULT_TITLE = 'The Vera Voice | Học tiếng Anh và tiếng Việt trực tuyến'
 const DEFAULT_DESCRIPTION =
-  'Sen Languages là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, bài học video, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
-const DEFAULT_IMAGE = `${siteUrl}/images/sen-languages-hero.png`
+  'The Vera Voice là nền tảng học tiếng Anh và tiếng Việt trực tuyến với lộ trình rõ ràng, bài học video, quiz, giáo viên hỗ trợ và theo dõi tiến độ học tập.'
+const DEFAULT_IMAGE = `${siteUrl}/images/the-vera-voice-hero.png`
 
 interface SeoProps {
   title?: string
@@ -50,8 +50,8 @@ export function Seo({
   return null
 }
 
-export function NoIndexSeo({ title = 'Sen Languages' }: { title?: string }) {
-  return <Seo title={title} description="Private Sen Languages workspace." noindex />
+export function NoIndexSeo({ title = 'The Vera Voice' }: { title?: string }) {
+  return <Seo title={title} description="Private The Vera Voice workspace." noindex />
 }
 
 function setMeta(name: string, content: string) {
@@ -92,7 +92,7 @@ function setLink(rel: string, href?: string) {
 }
 
 function setJsonLd(jsonLd?: Record<string, unknown> | Record<string, unknown>[]) {
-  const id = 'sen-languages-json-ld'
+  const id = 'the-vera-voice-json-ld'
   const existing = document.getElementById(id)
   if (!jsonLd) {
     existing?.remove()

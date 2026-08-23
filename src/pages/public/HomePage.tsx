@@ -26,7 +26,7 @@ type Language = 'vi' | 'en'
 
 const copy = {
   vi: {
-    brandSubtitle: 'Trung tâm Ngôn ngữ Sen Languages',
+    brandSubtitle: 'Trung tâm Ngôn ngữ The Vera Voice',
     nav: [
       { label: 'Giới thiệu', sectionIndex: 0 },
       { label: 'Video', sectionIndex: 1 },
@@ -35,10 +35,10 @@ const copy = {
     ],
     login: 'Đăng nhập',
     register: 'Đăng ký',
-    heroBadge: 'Sen Languages Center',
+    heroBadge: 'The Vera Voice',
     heroTitle: 'Tự tin giao tiếp Tiếng Anh & Tiếng Việt',
     heroDescription:
-      'Sen Languages đồng hành cùng bạn trên con đường chinh phục ngôn ngữ với lộ trình cá nhân hóa, phương pháp tương tác phản xạ và hỗ trợ 1-1 tận tâm.',
+      'The Vera Voice đồng hành cùng bạn trên con đường chinh phục ngôn ngữ với lộ trình cá nhân hóa, phương pháp tương tác phản xạ và hỗ trợ 1-1 tận tâm.',
     primaryCta: 'Tư vấn lộ trình ngay',
     secondaryCta: 'Xem các khóa học',
     quickStats: [
@@ -53,9 +53,9 @@ const copy = {
     scrollDown: 'Cuộn xuống',
     videoTitle: 'Lớp học trực tuyến & Phương pháp giảng dạy',
     videoDescription:
-      'Cùng chị trải nghiệm môi trường học tập tương tác, phương pháp luyện phản xạ tự nhiên và cách theo dõi tiến độ bài học tại Sen Languages.',
+      'Cùng chị trải nghiệm môi trường học tập tương tác, phương pháp luyện phản xạ tự nhiên và cách theo dõi tiến độ bài học tại The Vera Voice.',
     videoTag: 'Video Giới Thiệu',
-    videoHeading: 'Sen Languages Overview Video',
+    videoHeading: 'The Vera Voice Overview Video',
     videoSubheading: 'Bấm để phát video giới thiệu trung tâm',
     pathTag: 'Lộ Trình Đào Tạo',
     pathTitle: 'Tư vấn & Lựa chọn Lộ trình học',
@@ -84,7 +84,7 @@ const copy = {
     contactTag: 'Liên Hệ Cố Vấn',
     contactTitle: 'Đăng ký nhận tư vấn lộ trình miễn phí',
     contactDescription:
-      'Để lại thông tin, đội ngũ cố vấn Sen Languages sẽ liên hệ trực tiếp để kiểm tra trình độ và xếp lớp phù hợp nhất với bạn.',
+      'Để lại thông tin, đội ngũ cố vấn The Vera Voice sẽ liên hệ trực tiếp để kiểm tra trình độ và xếp lớp phù hợp nhất với bạn.',
     hotlineLabel: 'Hotline / Zalo',
     emailLabel: 'Email',
     addressLabel: 'Địa chỉ trụ sở',
@@ -99,10 +99,10 @@ const copy = {
     placeholderName: 'Nguyễn Văn A',
     placeholderNote: 'Nhập nhu cầu học tập của bạn...',
     formSuccessTitle: 'Đăng ký thành công!',
-    formSuccess: 'Cảm ơn bạn! Sen Languages sẽ liên hệ tư vấn trong 24h làm việc.',
+    formSuccess: 'Cảm ơn bạn! The Vera Voice sẽ liên hệ tư vấn trong 24h làm việc.',
     formReset: 'Gửi yêu cầu khác',
     footerDesc: 'Hệ thống đào tạo ngôn ngữ trực tuyến chuyên nghiệp, giúp học viên tự tin giao tiếp tiếng Anh và tiếng Việt.',
-    footerAbout: 'Về Sen Languages',
+    footerAbout: 'Về The Vera Voice',
     footerAboutNav: ['Giới thiệu trung tâm', 'Video lớp học', 'Lộ trình CEFR', 'Danh sách khóa học'],
     footerPortals: 'Tài khoản & Portal',
     footerPortalsNav: ['Cổng học viên', 'Cổng giáo viên', 'Cổng cố vấn Evaluator', 'Đăng ký học viên mới'],
@@ -111,7 +111,7 @@ const copy = {
     sectionDots: ['Giới thiệu', 'Video', 'Lộ trình', 'Liên hệ', 'Chân trang'],
   },
   en: {
-    brandSubtitle: 'Sen Languages Center',
+    brandSubtitle: 'The Vera Voice',
     nav: [
       { label: 'About', sectionIndex: 0 },
       { label: 'Video', sectionIndex: 1 },
@@ -120,10 +120,10 @@ const copy = {
     ],
     login: 'Sign In',
     register: 'Register',
-    heroBadge: 'Sen Languages Center',
+    heroBadge: 'The Vera Voice',
     heroTitle: 'Speak English & Vietnamese With Confidence',
     heroDescription:
-      'Sen Languages empowers your language journey through structured paths, natural speaking practice, and dedicated mentorship.',
+      'The Vera Voice empowers your language journey through structured paths, natural speaking practice, and dedicated mentorship.',
     primaryCta: 'Get Free Advisory',
     secondaryCta: 'Explore Courses',
     quickStats: [
@@ -140,7 +140,7 @@ const copy = {
     videoDescription:
       'Experience our real-time interactive online classroom, speaking-first methodology, and progress tracking tools.',
     videoTag: 'Featured Video',
-    videoHeading: 'Sen Languages Overview Video',
+    videoHeading: 'The Vera Voice Overview Video',
     videoSubheading: 'Click to play center introduction video',
     pathTag: 'Learning Paths',
     pathTitle: 'Find Your Tailored Learning Path',
@@ -169,7 +169,7 @@ const copy = {
     contactTag: 'Contact Counselor',
     contactTitle: 'Schedule a Free Advisory Session',
     contactDescription:
-      'Leave your details and Sen Languages counselors will reach out to assess your level and arrange the ideal class.',
+      'Leave your details and The Vera Voice counselors will reach out to assess your level and arrange the ideal class.',
     hotlineLabel: 'Hotline / Zalo',
     emailLabel: 'Email',
     addressLabel: 'Headquarter Address',
@@ -184,10 +184,10 @@ const copy = {
     placeholderName: 'John Doe',
     placeholderNote: 'Enter your learning goals...',
     formSuccessTitle: 'Registration Successful!',
-    formSuccess: 'Thank you! Sen Languages will contact you within 24 business hours.',
+    formSuccess: 'Thank you! The Vera Voice will contact you within 24 business hours.',
     formReset: 'Submit another request',
     footerDesc: 'Professional online language education platform, empowering students to speak English and Vietnamese with confidence.',
-    footerAbout: 'About Sen Languages',
+    footerAbout: 'About The Vera Voice',
     footerAboutNav: ['Center Overview', 'Classroom Video', 'CEFR Paths', 'All Courses'],
     footerPortals: 'Portals & Accounts',
     footerPortalsNav: ['Student Portal', 'Teacher Portal', 'Evaluator Portal', 'New Student Register'],
@@ -203,14 +203,14 @@ const homeJsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Sen Languages',
-    alternateName: 'Sen Languages Center',
+    name: 'The Vera Voice',
+    alternateName: 'The Vera Voice',
     url: `${siteUrl}/`,
   },
   {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
-    name: 'Sen Languages',
+    name: 'The Vera Voice',
     url: `${siteUrl}/`,
     email: 'contact@senlanguages.com',
     address: {
@@ -319,8 +319,8 @@ export function HomePage() {
       className="h-[100dvh] w-full overflow-hidden bg-[hsl(220_14%_6%)] text-foreground font-sans selection:bg-primary/30 selection:text-white relative"
     >
       <Seo
-        title="Sen Languages | Trung tâm Ngôn ngữ Tiếng Anh & Tiếng Việt Online"
-        description="Sen Languages - Hệ thống học tiếng Anh và tiếng Việt trực tuyến với lộ trình A1/A2 rõ ràng, bài học video tương tác và cố vấn 1-1."
+        title="The Vera Voice | Trung tâm Ngôn ngữ Tiếng Anh & Tiếng Việt Online"
+        description="The Vera Voice - Hệ thống học tiếng Anh và tiếng Việt trực tuyến với lộ trình A1/A2 rõ ràng, bài học video tương tác và cố vấn 1-1."
         path="/"
         jsonLd={homeJsonLd}
       />
@@ -333,7 +333,7 @@ export function HomePage() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-extrabold text-white tracking-tight leading-none">Sen Languages</p>
+              <p className="text-base font-extrabold text-white tracking-tight leading-none">The Vera Voice</p>
               <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">{t.brandSubtitle}</p>
             </div>
           </button>
@@ -544,7 +544,7 @@ export function HomePage() {
                   <iframe
                     className="w-full h-full rounded-xl"
                     src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1"
-                    title="Sen Languages Video"
+                    title="The Vera Voice Video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -738,7 +738,7 @@ export function HomePage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <p className="text-lg font-extrabold text-white">Sen Languages</p>
+                <p className="text-lg font-extrabold text-white">The Vera Voice</p>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {t.footerDesc}
@@ -774,7 +774,7 @@ export function HomePage() {
           </div>
 
           <div className="border-t border-border/60 pt-4 pb-2 text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} Sen Languages Center. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} The Vera Voice. All rights reserved.</p>
           </div>
         </section>
       </motion.div>

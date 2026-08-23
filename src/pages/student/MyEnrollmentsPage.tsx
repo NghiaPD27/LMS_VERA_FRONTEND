@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
@@ -128,7 +128,7 @@ export const MyEnrollmentsPage: React.FC = () => {
                 ) : (
                   <div className={`mt-5 flex items-start gap-2 rounded-lg border p-3 text-sm leading-6 ${expired ? 'border-red-200 bg-red-50 text-red-800' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
                     <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" />
-                    {expired ? 'This course has expired. Contact Sen Languages to extend access.' : 'This enrollment is not active for learning right now.'}
+                    {expired ? 'This course has expired. Contact The Vera Voice to extend access.' : 'This enrollment is not active for learning right now.'}
                   </div>
                 )}
               </article>

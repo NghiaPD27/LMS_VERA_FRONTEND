@@ -141,7 +141,7 @@ export function StudentFinalAssessmentPanel({ enrollmentId, onForbidden }: Stude
           {activePayment.status === 'PAID' && (
             <div className="mt-3 flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3 text-xs leading-6 text-emerald-300">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-              Payment confirmed. Sen Languages will schedule your final retake session.
+              Payment confirmed. The Vera Voice will schedule your final retake session.
             </div>
           )}
         </div>
@@ -177,10 +177,10 @@ function FinalMeta({ label, value }: { label: string; value: string }) {
 function getFinalStatusCopy(enrollmentStatus?: string, lastResult?: string, retakeRequired?: boolean) {
   if (lastResult === 'PASS') return 'Final assessment passed. Your enrollment is complete.'
   if (lastResult === 'NOT_PASS' || retakeRequired || enrollmentStatus === 'WAITING_FOR_REASSESSMENT') {
-    return 'Final assessment was not passed. Complete retake payment before Sen Languages schedules another final session.'
+    return 'Final assessment was not passed. Complete retake payment before The Vera Voice schedules another final session.'
   }
   if (enrollmentStatus === 'COMPLETED') return 'Final assessment complete.'
-  return 'Your final assessment status is managed by Sen Languages and your evaluator.'
+  return 'Your final assessment status is managed by The Vera Voice and your evaluator.'
 }
 
 function getLatestRetakePayment(payments: FinalAssessmentRetakePayment[]) {
