@@ -229,16 +229,16 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[92dvh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Lesson video</DialogTitle>
+      <DialogContent className="max-h-[92dvh] w-[calc(100%-2rem)] max-w-3xl overflow-hidden rounded-xl border-border bg-[hsl(220_14%_10%)] p-0 text-foreground shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+        <DialogHeader className="border-b border-border bg-[hsl(220_14%_12%)] px-5 py-5 pr-12 sm:px-6">
+          <DialogTitle className="text-xl font-extrabold text-white">Lesson video</DialogTitle>
           <DialogDescription>
             Upload a lesson video, track processing, and keep the lesson ready for students.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
-          <section className="rounded-lg border border-border bg-background p-4">
+        <div className="max-h-[calc(92dvh-92px)] space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+          <section className="rounded-lg border border-border bg-slate-950/40 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm font-bold text-muted-foreground">Lesson</p>
@@ -334,7 +334,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
 
             {stage === 'uploading' && (
               <div className="mt-4">
-                <div className="h-3 overflow-hidden rounded-full bg-white">
+                <div className="h-3 overflow-hidden rounded-full bg-slate-900">
                   <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
                 <p className="mt-2 text-sm font-bold text-primary">{uploadProgress}% uploaded</p>
@@ -343,14 +343,14 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
           </section>
 
           {stage === 'processing' && (
-            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+            <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-950/30 p-4 text-sm leading-6 text-amber-200">
               <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
               The Vera Voice is processing this video and checking the status every few seconds.
             </div>
           )}
 
           {stage === 'failed' && (
-            <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800">
+            <div className="flex items-start gap-3 rounded-lg border border-rose-500/30 bg-rose-950/30 p-4 text-sm leading-6 text-rose-200">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
               Video upload or processing failed. You can retry the upload or save metadata manually.
             </div>
@@ -358,7 +358,7 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
 
           {errorMessage && <div className="lms-alert-error">{errorMessage}</div>}
 
-          <form className="rounded-lg border border-border bg-white p-4" onSubmit={handleManualSubmit}>
+          <form className="rounded-lg border border-border bg-slate-950/40 p-4" onSubmit={handleManualSubmit}>
             <div className="mb-4 flex items-start gap-3">
               <Settings2 className="mt-1 h-5 w-5 shrink-0 text-[hsl(var(--brand-green))]" />
               <div>
@@ -424,11 +424,11 @@ export function LessonVideoManager({ lesson, programId, isOpen, onClose }: Lesso
 
 function VideoStateBadge({ stage, status }: { stage: UploadStage; status?: string }) {
   const meta: Record<UploadStage, { label: string; className: string; icon: typeof FileVideo }> = {
-    idle: { label: 'No video', className: 'border-slate-200 bg-slate-50 text-slate-700', icon: FileVideo },
-    uploading: { label: 'Uploading', className: 'border-orange-200 bg-orange-50 text-orange-700', icon: CloudUpload },
-    processing: { label: 'Processing', className: 'border-amber-200 bg-amber-50 text-amber-700', icon: RefreshCw },
-    ready: { label: 'Ready', className: 'border-emerald-200 bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
-    failed: { label: 'Failed', className: 'border-red-200 bg-red-50 text-red-700', icon: AlertTriangle },
+    idle: { label: 'No video', className: 'border-slate-700 bg-slate-900 text-slate-200', icon: FileVideo },
+    uploading: { label: 'Uploading', className: 'border-orange-500/40 bg-orange-950/40 text-orange-200', icon: CloudUpload },
+    processing: { label: 'Processing', className: 'border-amber-500/40 bg-amber-950/40 text-amber-200', icon: RefreshCw },
+    ready: { label: 'Ready', className: 'border-emerald-500/40 bg-emerald-950/40 text-emerald-200', icon: CheckCircle2 },
+    failed: { label: 'Failed', className: 'border-rose-500/40 bg-rose-950/40 text-rose-200', icon: AlertTriangle },
   }
   const current = meta[stage]
   const Icon = current.icon
@@ -443,21 +443,9 @@ function VideoStateBadge({ stage, status }: { stage: UploadStage; status?: strin
 
 function CurrentVideoDetails({ video }: { video: LessonVideo }) {
   return (
-    <div className="rounded-lg border border-border bg-white p-4">
+    <div className="rounded-lg border border-border bg-slate-950/70 p-4">
       <div className="grid gap-4 lg:grid-cols-[180px_1fr]">
-        <div className="overflow-hidden rounded-md border border-border bg-slate-50">
-          {video.thumbnailUrl ? (
-            <img
-              src={video.thumbnailUrl}
-              alt=""
-              className="aspect-video h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex aspect-video items-center justify-center text-slate-500">
-              <FileVideo className="h-8 w-8" />
-            </div>
-          )}
-        </div>
+        <VideoThumbnail thumbnailUrl={video.thumbnailUrl} />
 
         <div className="min-w-0">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -483,7 +471,7 @@ function CurrentVideoDetails({ video }: { video: LessonVideo }) {
 
 function CurrentVideoShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-dashed border-border bg-white p-4">
+    <div className="flex items-start gap-3 rounded-lg border border-dashed border-border bg-slate-950/50 p-4">
       {children}
     </div>
   )
@@ -491,9 +479,31 @@ function CurrentVideoShell({ children }: { children: ReactNode }) {
 
 function VideoMeta({ label, value }: { label: string; value?: string | number }) {
   return (
-    <div className="rounded-md border border-border bg-white p-3">
+    <div className="rounded-md border border-border bg-slate-900/70 p-3">
       <dt className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</dt>
       <dd className="mt-1 break-words text-sm font-bold text-foreground">{value || '-'}</dd>
+    </div>
+  )
+}
+
+function VideoThumbnail({ thumbnailUrl }: { thumbnailUrl?: string }) {
+  const [hasLoadError, setHasLoadError] = useState(false)
+
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-slate-900/70">
+      {thumbnailUrl && !hasLoadError ? (
+        <img
+          src={thumbnailUrl}
+          alt="Lesson video thumbnail"
+          className="aspect-video w-full object-cover"
+          onError={() => setHasLoadError(true)}
+        />
+      ) : (
+        <div className="flex aspect-video flex-col items-center justify-center gap-2 px-4 text-center text-slate-400">
+          <FileVideo className="h-8 w-8" />
+          <span className="text-xs font-semibold">Thumbnail unavailable</span>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { AxiosError } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -103,6 +103,14 @@ describe('LessonVideoManager', () => {
 
     expect(await screen.findByText('No video yet')).toBeInTheDocument()
     expect(screen.getByText('This lesson does not have a video attached. Upload a file or save existing video metadata below.')).toBeInTheDocument()
+  })
+
+  it('shows a usable fallback when the current video thumbnail cannot load', async () => {
+    renderManager()
+
+    fireEvent.error(await screen.findByRole('img', { name: 'Lesson video thumbnail' }))
+
+    expect(await screen.findByText('Thumbnail unavailable')).toBeInTheDocument()
   })
 
   it('syncs video status manually and updates current video metadata', async () => {
