@@ -444,7 +444,7 @@ function VideoStateBadge({ stage, status }: { stage: UploadStage; status?: strin
 function CurrentVideoDetails({ video }: { video: LessonVideo }) {
   return (
     <div className="rounded-lg border border-border bg-slate-950/70 p-4">
-      <div className="grid gap-4 lg:grid-cols-[180px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
         <VideoThumbnail thumbnailUrl={video.thumbnailUrl} />
 
         <div className="min-w-0">
@@ -461,7 +461,7 @@ function CurrentVideoDetails({ video }: { video: LessonVideo }) {
             <VideoMeta label="Duration" value={formatDuration(video.durationSeconds)} />
             <VideoMeta label="Created" value={formatDateTime(video.createdAt)} />
             <VideoMeta label="Updated" value={formatDateTime(video.updatedAt)} />
-            <VideoMeta label="Thumbnail URL" value={video.thumbnailUrl} />
+            <VideoMeta label="Thumbnail" value={video.thumbnailUrl ? 'Video preview available' : 'No preview available'} />
           </dl>
         </div>
       </div>
@@ -479,7 +479,7 @@ function CurrentVideoShell({ children }: { children: ReactNode }) {
 
 function VideoMeta({ label, value }: { label: string; value?: string | number }) {
   return (
-    <div className="rounded-md border border-border bg-slate-900/70 p-3">
+    <div className="lms-meta-card">
       <dt className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</dt>
       <dd className="mt-1 break-words text-sm font-bold text-foreground">{value || '-'}</dd>
     </div>
@@ -490,16 +490,16 @@ function VideoThumbnail({ thumbnailUrl }: { thumbnailUrl?: string }) {
   const [hasLoadError, setHasLoadError] = useState(false)
 
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-slate-900/70">
+    <div className="overflow-hidden rounded-lg border border-border bg-[hsl(var(--secondary))] shadow-inner shadow-black/20">
       {thumbnailUrl && !hasLoadError ? (
         <img
           src={thumbnailUrl}
           alt="Lesson video thumbnail"
-          className="aspect-video w-full object-cover"
+          className="aspect-video w-full bg-slate-950 object-cover object-center"
           onError={() => setHasLoadError(true)}
         />
       ) : (
-        <div className="flex aspect-video flex-col items-center justify-center gap-2 px-4 text-center text-slate-400">
+        <div className="flex aspect-video flex-col items-center justify-center gap-2 px-4 text-center text-muted-foreground">
           <FileVideo className="h-8 w-8" />
           <span className="text-xs font-semibold">Thumbnail unavailable</span>
         </div>

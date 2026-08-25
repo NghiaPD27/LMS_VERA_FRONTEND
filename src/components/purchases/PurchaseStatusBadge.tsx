@@ -3,23 +3,23 @@ import type { PurchaseStatus } from '../../types/purchase'
 const purchaseStatusMeta: Record<string, { label: string; className: string }> = {
   PENDING: {
     label: 'Pending confirmation',
-    className: 'border-amber-200 bg-amber-50 text-amber-700',
+    className: 'border-amber-500/40 bg-amber-950/50 text-amber-100',
   },
   PAID: {
     label: 'Paid',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    className: 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200',
   },
   CANCELLED: {
     label: 'Cancelled',
-    className: 'border-slate-200 bg-slate-50 text-slate-700',
+    className: 'border-border bg-muted text-muted-foreground',
   },
   FAILED: {
     label: 'Payment failed',
-    className: 'border-red-200 bg-red-50 text-red-700',
+    className: 'border-red-500/40 bg-red-950/50 text-red-100',
   },
   EXPIRED: {
     label: 'Expired',
-    className: 'border-slate-200 bg-slate-50 text-slate-700',
+    className: 'border-border bg-muted text-muted-foreground',
   },
 }
 

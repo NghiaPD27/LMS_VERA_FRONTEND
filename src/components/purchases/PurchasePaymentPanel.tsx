@@ -245,7 +245,7 @@ function CompactPaymentField({ label, value, copyKey, copiedKey, onCopy }: Payme
   const canCopy = !!copyKey && value !== '-'
 
   return (
-    <div className="min-w-0 rounded-md border border-white/80 bg-white p-3 shadow-sm">
+    <div className="min-w-0 rounded-lg border border-border bg-[hsl(var(--secondary))] p-3 shadow-sm">
       <dt className="text-xs font-bold uppercase tracking-normal text-muted-foreground">{label}</dt>
       <dd className="mt-2 flex min-w-0 items-center justify-between gap-2">
         <span className="min-w-0 truncate text-sm font-extrabold text-foreground" title={value}>

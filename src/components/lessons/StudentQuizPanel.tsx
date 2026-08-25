@@ -340,7 +340,7 @@ function QuizNotice({
           <h3 className="font-extrabold text-foreground">{title}</h3>
           <p className="mt-1 text-sm leading-6">{description}</p>
           {onRetry && (
-            <Button type="button" variant="outline" size="sm" className="mt-3 bg-white" onClick={onRetry}>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={onRetry}>
               Retry
             </Button>
           )}

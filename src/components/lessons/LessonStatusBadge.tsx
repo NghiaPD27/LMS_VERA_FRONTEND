@@ -10,16 +10,16 @@ export const LessonStatusBadge: React.FC<LessonStatusBadgeProps> = ({ status = '
 
   let variant: 'secondary' | 'default' | 'outline' = 'secondary'
   let label = 'Draft'
-  let className = 'bg-gray-100 text-gray-700 hover:bg-gray-100'
+  let className = 'border-border bg-muted text-muted-foreground hover:bg-muted'
 
   if (normalizedStatus === 'PUBLISHED') {
     variant = 'default'
     label = 'Published'
-    className = 'bg-[hsl(var(--brand-green-soft))] text-[hsl(var(--brand-green))] hover:bg-[hsl(var(--brand-green-soft))]'
+    className = 'border border-emerald-500/35 bg-[hsl(var(--brand-green-soft))] text-emerald-200 hover:bg-[hsl(var(--brand-green-soft))]'
   } else if (normalizedStatus === 'ARCHIVED') {
     variant = 'outline'
     label = 'Archived'
-    className = 'border-gray-200 bg-muted text-muted-foreground hover:bg-muted'
+    className = 'border-border bg-muted text-muted-foreground hover:bg-muted'
   }
 
   return (

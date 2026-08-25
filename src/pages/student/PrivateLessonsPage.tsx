@@ -152,7 +152,7 @@ export function PrivateLessonsPage() {
             <span>{clientMessage}</span>
           </div>
           {createdBooking?.meetLink && (
-            <Button asChild variant="outline" size="sm" className="border-emerald-500/40 bg-white text-emerald-800 hover:bg-emerald-100">
+            <Button asChild variant="outline" size="sm" className="border-emerald-500/40 bg-emerald-950/60 text-emerald-200 hover:bg-emerald-900/60 hover:text-emerald-100">
               <a href={createdBooking.meetLink} target="_blank" rel="noreferrer">
                 <ExternalLink className="h-3.5 w-3.5" />
                 Open Meet

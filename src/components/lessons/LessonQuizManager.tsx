@@ -543,7 +543,7 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
                 </section>
               </div>
 
-              <div className="sticky bottom-0 -mx-6 -mb-6 flex flex-col gap-3 border-t border-border bg-white/95 px-6 py-4 backdrop-blur sm:flex-row sm:justify-between">
+              <div className="sticky bottom-0 -mx-6 -mb-6 flex flex-col gap-3 border-t border-border bg-[hsl(var(--popover))]/95 px-6 py-4 backdrop-blur sm:flex-row sm:justify-between">
                 <Button type="button" variant="outline" disabled={isBusy} onClick={addQuestion}>
                   <Plus className="h-4 w-4" />
                   Add question
@@ -568,7 +568,7 @@ export function LessonQuizManager({ lesson, isOpen, onClose }: LessonQuizManager
 
 function QuizStat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="min-w-20 rounded-md border border-border bg-white px-3 py-2">
+    <div className="lms-stat text-center">
       <p className="font-extrabold text-foreground">{value}</p>
       <p className="text-xs font-bold text-muted-foreground">{label}</p>
     </div>
@@ -592,8 +592,8 @@ function QuestionStatusBadge({ valid }: { valid: boolean }) {
     <span
       className={`inline-flex shrink-0 rounded-full border px-2 py-1 text-[10px] font-extrabold ${
         valid
-          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-          : 'border-amber-200 bg-amber-50 text-amber-700'
+          ? 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200'
+          : 'border-amber-500/40 bg-amber-950/50 text-amber-100'
       }`}
     >
       {valid ? 'Ready' : 'Needs work'}
@@ -611,9 +611,9 @@ function QuizMessage({
   children: React.ReactNode
 }) {
   const toneClass = {
-    warning: 'border-amber-200 bg-amber-50 text-amber-900',
-    error: 'border-red-200 bg-red-50 text-red-800',
-    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    warning: 'border-amber-500/35 bg-amber-950/45 text-amber-100',
+    error: 'border-red-500/35 bg-red-950/50 text-red-100',
+    success: 'border-emerald-500/35 bg-emerald-950/50 text-emerald-100',
   }[tone]
 
   return (

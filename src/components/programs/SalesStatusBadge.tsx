@@ -1,15 +1,15 @@
 const salesStatusMeta: Record<string, { label: string; className: string }> = {
   DRAFT: {
     label: 'Draft',
-    className: 'border-slate-200 bg-slate-50 text-slate-700',
+    className: 'border-border bg-muted text-muted-foreground',
   },
   PUBLISHED: {
     label: 'On Sale',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    className: 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200',
   },
   ARCHIVED: {
     label: 'Archived',
-    className: 'border-amber-200 bg-amber-50 text-amber-700',
+    className: 'border-amber-500/40 bg-amber-950/50 text-amber-100',
   },
 }
 
